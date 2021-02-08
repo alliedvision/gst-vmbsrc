@@ -6,6 +6,10 @@ project(
     LANGUAGES C
 )
 
+configure_file(
+    ${PROJECT_SOURCE_DIR}/src/config.h.in config.h
+)
+
 # add local cmake modules to simplify detection of dependencies
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
@@ -29,6 +33,7 @@ find_package(GObject REQUIRED)
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
+        ${PROJECT_BINARY_DIR}
         ${GSTREAMER_INCLUDE_DIR}
         ${GLIB2_INCLUDE_DIR}
 )
