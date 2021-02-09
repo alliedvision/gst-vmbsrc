@@ -24,27 +24,26 @@
 
 G_BEGIN_DECLS
 
-#define GST_TYPE_VIMBA_SRC   (gst_vimba_src_get_type())
-#define GST_VIMBA_SRC(obj)   (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_VIMBA_SRC,GstVimbaSrc))
-#define GST_VIMBA_SRC_CLASS(klass)   (G_TYPE_CHECK_CLASS_CAST((klass),GST_TYPE_VIMBA_SRC,GstVimbaSrcClass))
-#define GST_IS_VIMBA_SRC(obj)   (G_TYPE_CHECK_INSTANCE_TYPE((obj),GST_TYPE_VIMBA_SRC))
-#define GST_IS_VIMBA_SRC_CLASS(obj)   (G_TYPE_CHECK_CLASS_TYPE((klass),GST_TYPE_VIMBA_SRC))
+#define GST_TYPE_VIMBA_SRC (gst_vimba_src_get_type())
+#define GST_VIMBA_SRC(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_VIMBA_SRC, GstVimbaSrc))
+#define GST_VIMBA_SRC_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_VIMBA_SRC, GstVimbaSrcClass))
+#define GST_IS_VIMBA_SRC(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_VIMBA_SRC))
+#define GST_IS_VIMBA_SRC_CLASS(obj) (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_VIMBA_SRC))
 
 typedef struct _GstVimbaSrc GstVimbaSrc;
 typedef struct _GstVimbaSrcClass GstVimbaSrcClass;
 
 struct _GstVimbaSrc
 {
-  GstBaseSrc base_vimbasrc;
-
+    GstBaseSrc base_vimbasrc;
 };
 
 struct _GstVimbaSrcClass
 {
-  GstBaseSrcClass base_vimbasrc_class;
+    GstBaseSrcClass base_vimbasrc_class;
 };
 
-GType gst_vimba_src_get_type (void);
+GType gst_vimba_src_get_type(void);
 
 G_END_DECLS
 
