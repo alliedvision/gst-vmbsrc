@@ -18,13 +18,16 @@ add_library(${PROJECT_NAME} SHARED
 )
 
 # Defines used in gstplugin.c
-target_compile_definitions(${PROJECT_NAME} PUBLIC
-    PACKAGE=\"${PROJECT_NAME}\"
-    PACKAGE_VERSION=\"${PROJECT_VERSION}\"
-    GST_LICENSE=\"LGPL\"
-    GST_API_VERSION=\"1.14\"
-    GST_PACKAGE_NAME=\"GStreamer_template_Plug-ins\"
-    GST_PACKAGE_ORIGIN=\"https://gstreamer.freedesktop.org\"
+target_compile_definitions(${PROJECT_NAME}
+    PUBLIC
+        PACKAGE=\"${PROJECT_NAME}\"
+        PACKAGE_VERSION=\"${PROJECT_VERSION}\"
+        GST_LICENSE=\"LGPL\"
+        GST_API_VERSION=\"1.14\"
+        GST_PACKAGE_NAME=\"GStreamer_template_Plug-ins\"
+        GST_PACKAGE_ORIGIN=\"https://gstreamer.freedesktop.org\"
+    PRIVATE
+        HAVE_CONFIG_H
 )
 
 find_package(GStreamer REQUIRED COMPONENTS base)
