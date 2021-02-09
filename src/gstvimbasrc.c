@@ -1,5 +1,5 @@
 /* GStreamer
- * Copyright (C) 2021 FIXME <fixme@example.com>
+ * Copyright (C) 2021 Allied Vision Technologies GmbH
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -107,8 +107,8 @@ gst_vimba_src_class_init(GstVimbaSrcClass *klass)
                                               &gst_vimba_src_src_template);
 
     gst_element_class_set_static_metadata(GST_ELEMENT_CLASS(klass),
-                                          "FIXME Long name", "Generic", "FIXME Description",
-                                          "FIXME <fixme@example.com>");
+                                          DESCRIPTION, "Generic", DESCRIPTION,
+                                          "Allied Vision Technologies GmbH");
 
     gobject_class->set_property = gst_vimba_src_set_property;
     gobject_class->get_property = gst_vimba_src_get_property;
@@ -417,25 +417,12 @@ plugin_init(GstPlugin *plugin)
                                 GST_TYPE_VIMBA_SRC);
 }
 
-/* FIXME: these are normally defined by the GStreamer build system.
-   If you are creating an element to be included in gst-plugins-*,
-   remove these, as they're always defined.  Otherwise, edit as
-   appropriate for your external plugin package. */
-#ifndef VERSION
-#define VERSION "0.0.FIXME"
-#endif
-#ifndef PACKAGE
-#define PACKAGE "FIXME_package"
-#endif
-#ifndef PACKAGE_NAME
-#define PACKAGE_NAME "FIXME_package_name"
-#endif
-#ifndef GST_PACKAGE_ORIGIN
-#define GST_PACKAGE_ORIGIN "http://FIXME.org/"
-#endif
-
 GST_PLUGIN_DEFINE(GST_VERSION_MAJOR,
                   GST_VERSION_MINOR,
                   vimbasrc,
-                  "FIXME plugin description",
-                  plugin_init, VERSION, "LGPL", PACKAGE_NAME, GST_PACKAGE_ORIGIN)
+                  DESCRIPTION,
+                  plugin_init,
+                  VERSION,
+                  "LGPL",
+                  PACKAGE,
+                  HOMEPAGE_URL)

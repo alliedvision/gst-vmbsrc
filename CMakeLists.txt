@@ -4,10 +4,9 @@ project(
     gstvimbasrc
     VERSION 0.0.1
     LANGUAGES C
-)
-
-configure_file(
-    ${PROJECT_SOURCE_DIR}/src/config.h.in config.h
+    DESCRIPTION "GStreamer source plugin for Vimba cameras"
+    # TODO: Should this URL instead point to the Github Repo we plan to use for this project?
+    HOMEPAGE_URL "https://alliedvision.com/"
 )
 
 # add local cmake modules to simplify detection of dependencies
@@ -19,15 +18,13 @@ add_library(${PROJECT_NAME} SHARED
 
 # Defines used in gstplugin.c
 target_compile_definitions(${PROJECT_NAME}
-    PUBLIC
-        PACKAGE=\"${PROJECT_NAME}\"
-        PACKAGE_VERSION=\"${PROJECT_VERSION}\"
-        GST_LICENSE=\"LGPL\"
-        GST_API_VERSION=\"1.14\"
-        GST_PACKAGE_NAME=\"GStreamer_template_Plug-ins\"
-        GST_PACKAGE_ORIGIN=\"https://gstreamer.freedesktop.org\"
     PRIVATE
         HAVE_CONFIG_H
+)
+
+# fill configuration file with defined values
+configure_file(
+    ${PROJECT_SOURCE_DIR}/src/config.h.in config.h
 )
 
 find_package(GStreamer REQUIRED COMPONENTS base)
