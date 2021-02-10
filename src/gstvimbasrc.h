@@ -19,7 +19,7 @@
 #ifndef _GST_VIMBA_SRC_H_
 #define _GST_VIMBA_SRC_H_
 
-#include <gst/base/gstbasesrc.h>
+#include <gst/base/gstpushsrc.h>
 
 G_BEGIN_DECLS
 
@@ -34,12 +34,12 @@ typedef struct _GstVimbaSrcClass GstVimbaSrcClass;
 
 struct _GstVimbaSrc
 {
-    GstBaseSrc base_vimbasrc;
+    GstPushSrc base_vimbasrc;
 };
 
 struct _GstVimbaSrcClass
 {
-    GstBaseSrcClass base_vimbasrc_class;
+    GstPushSrcClass base_vimbasrc_class;
 };
 
 GType gst_vimba_src_get_type(void);
