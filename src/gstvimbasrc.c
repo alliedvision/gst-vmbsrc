@@ -37,24 +37,24 @@
 #include <gst/base/gstpushsrc.h>
 #include "gstvimbasrc.h"
 
-GST_DEBUG_CATEGORY_STATIC(gst_vimba_src_debug_category);
-#define GST_CAT_DEFAULT gst_vimba_src_debug_category
+GST_DEBUG_CATEGORY_STATIC(gst_vimbasrc_debug_category);
+#define GST_CAT_DEFAULT gst_vimbasrc_debug_category
 
 /* prototypes */
 
-static void gst_vimba_src_set_property(GObject *object,
+static void gst_vimbasrc_set_property(GObject *object,
                                        guint property_id, const GValue *value, GParamSpec *pspec);
-static void gst_vimba_src_get_property(GObject *object,
+static void gst_vimbasrc_get_property(GObject *object,
                                        guint property_id, GValue *value, GParamSpec *pspec);
-static void gst_vimba_src_dispose(GObject *object);
-static void gst_vimba_src_finalize(GObject *object);
+static void gst_vimbasrc_dispose(GObject *object);
+static void gst_vimbasrc_finalize(GObject *object);
 
-static GstCaps *gst_vimba_src_get_caps(GstBaseSrc *src, GstCaps *filter);
-static gboolean gst_vimba_src_set_caps(GstBaseSrc *src, GstCaps *caps);
-static gboolean gst_vimba_src_start(GstBaseSrc *src);
-static gboolean gst_vimba_src_stop(GstBaseSrc *src);
+static GstCaps *gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter);
+static gboolean gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps);
+static gboolean gst_vimbasrc_start(GstBaseSrc *src);
+static gboolean gst_vimbasrc_stop(GstBaseSrc *src);
 
-static GstFlowReturn gst_vimba_src_create(GstPushSrc *src, GstBuffer **buf);
+static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf);
 
 enum
 {
@@ -63,7 +63,7 @@ enum
 
 /* pad templates */
 
-static GstStaticPadTemplate gst_vimba_src_src_template =
+static GstStaticPadTemplate gst_vimbasrc_src_template =
     GST_STATIC_PAD_TEMPLATE("src",
                             GST_PAD_SRC,
                             GST_PAD_ALWAYS,
@@ -71,12 +71,12 @@ static GstStaticPadTemplate gst_vimba_src_src_template =
 
 /* class initialization */
 
-G_DEFINE_TYPE_WITH_CODE(GstVimbaSrc, gst_vimba_src, GST_TYPE_PUSH_SRC,
-                        GST_DEBUG_CATEGORY_INIT(gst_vimba_src_debug_category, "vimbasrc", 0,
+G_DEFINE_TYPE_WITH_CODE(GstVimbaSrc, gst_vimbasrc, GST_TYPE_PUSH_SRC,
+                        GST_DEBUG_CATEGORY_INIT(gst_vimbasrc_debug_category, "vimbasrc", 0,
                                                 "debug category for vimbasrc element"));
 
 static void
-gst_vimba_src_class_init(GstVimbaSrcClass *klass)
+gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
     GstBaseSrcClass *base_src_class = GST_BASE_SRC_CLASS(klass);
@@ -85,32 +85,32 @@ gst_vimba_src_class_init(GstVimbaSrcClass *klass)
     /* Setting up pads and setting metadata should be moved to
       base_class_init if you intend to subclass this class. */
     gst_element_class_add_static_pad_template(GST_ELEMENT_CLASS(klass),
-                                              &gst_vimba_src_src_template);
+                                              &gst_vimbasrc_src_template);
 
     gst_element_class_set_static_metadata(GST_ELEMENT_CLASS(klass),
                                           DESCRIPTION, "Generic", DESCRIPTION,
                                           "Allied Vision Technologies GmbH");
 
-    gobject_class->set_property = gst_vimba_src_set_property;
-    gobject_class->get_property = gst_vimba_src_get_property;
-    gobject_class->dispose = gst_vimba_src_dispose;
-    gobject_class->finalize = gst_vimba_src_finalize;
-    base_src_class->get_caps = GST_DEBUG_FUNCPTR(gst_vimba_src_get_caps);
-    base_src_class->set_caps = GST_DEBUG_FUNCPTR(gst_vimba_src_set_caps);
-    base_src_class->start = GST_DEBUG_FUNCPTR(gst_vimba_src_start);
-    base_src_class->stop = GST_DEBUG_FUNCPTR(gst_vimba_src_stop);
-    push_src_class->create = GST_DEBUG_FUNCPTR(gst_vimba_src_create);
+    gobject_class->set_property = gst_vimbasrc_set_property;
+    gobject_class->get_property = gst_vimbasrc_get_property;
+    gobject_class->dispose = gst_vimbasrc_dispose;
+    gobject_class->finalize = gst_vimbasrc_finalize;
+    base_src_class->get_caps = GST_DEBUG_FUNCPTR(gst_vimbasrc_get_caps);
+    base_src_class->set_caps = GST_DEBUG_FUNCPTR(gst_vimbasrc_set_caps);
+    base_src_class->start = GST_DEBUG_FUNCPTR(gst_vimbasrc_start);
+    base_src_class->stop = GST_DEBUG_FUNCPTR(gst_vimbasrc_stop);
+    push_src_class->create = GST_DEBUG_FUNCPTR(gst_vimbasrc_create);
 }
 
 static void
-gst_vimba_src_init(GstVimbaSrc *vimbasrc)
+gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
 {
 }
 
-void gst_vimba_src_set_property(GObject *object, guint property_id,
+void gst_vimbasrc_set_property(GObject *object, guint property_id,
                                 const GValue *value, GParamSpec *pspec)
 {
-    GstVimbaSrc *vimbasrc = GST_VIMBA_SRC(object);
+    GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
 
     GST_DEBUG_OBJECT(vimbasrc, "set_property");
 
@@ -122,10 +122,10 @@ void gst_vimba_src_set_property(GObject *object, guint property_id,
     }
 }
 
-void gst_vimba_src_get_property(GObject *object, guint property_id,
+void gst_vimbasrc_get_property(GObject *object, guint property_id,
                                 GValue *value, GParamSpec *pspec)
 {
-    GstVimbaSrc *vimbasrc = GST_VIMBA_SRC(object);
+    GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
 
     GST_DEBUG_OBJECT(vimbasrc, "get_property");
 
@@ -137,33 +137,33 @@ void gst_vimba_src_get_property(GObject *object, guint property_id,
     }
 }
 
-void gst_vimba_src_dispose(GObject *object)
+void gst_vimbasrc_dispose(GObject *object)
 {
-    GstVimbaSrc *vimbasrc = GST_VIMBA_SRC(object);
+    GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
 
     GST_DEBUG_OBJECT(vimbasrc, "dispose");
 
     /* clean up as possible.  may be called multiple times */
 
-    G_OBJECT_CLASS(gst_vimba_src_parent_class)->dispose(object);
+    G_OBJECT_CLASS(gst_vimbasrc_parent_class)->dispose(object);
 }
 
-void gst_vimba_src_finalize(GObject *object)
+void gst_vimbasrc_finalize(GObject *object)
 {
-    GstVimbaSrc *vimbasrc = GST_VIMBA_SRC(object);
+    GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
 
     GST_DEBUG_OBJECT(vimbasrc, "finalize");
 
     /* clean up object here */
 
-    G_OBJECT_CLASS(gst_vimba_src_parent_class)->finalize(object);
+    G_OBJECT_CLASS(gst_vimbasrc_parent_class)->finalize(object);
 }
 
 /* get caps from subclass */
 static GstCaps *
-gst_vimba_src_get_caps(GstBaseSrc *src, GstCaps *filter)
+gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
 {
-    GstVimbaSrc *vimbasrc = GST_VIMBA_SRC(src);
+    GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
     GST_DEBUG_OBJECT(vimbasrc, "get_caps");
 
@@ -172,9 +172,9 @@ gst_vimba_src_get_caps(GstBaseSrc *src, GstCaps *filter)
 
 /* notify the subclass of new caps */
 static gboolean
-gst_vimba_src_set_caps(GstBaseSrc *src, GstCaps *caps)
+gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
 {
-    GstVimbaSrc *vimbasrc = GST_VIMBA_SRC(src);
+    GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
     GST_DEBUG_OBJECT(vimbasrc, "set_caps");
 
@@ -183,9 +183,9 @@ gst_vimba_src_set_caps(GstBaseSrc *src, GstCaps *caps)
 
 /* start and stop processing, ideal for opening/closing the resource */
 static gboolean
-gst_vimba_src_start(GstBaseSrc *src)
+gst_vimbasrc_start(GstBaseSrc *src)
 {
-    GstVimbaSrc *vimbasrc = GST_VIMBA_SRC(src);
+    GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
     GST_DEBUG_OBJECT(vimbasrc, "start");
 
@@ -193,9 +193,9 @@ gst_vimba_src_start(GstBaseSrc *src)
 }
 
 static gboolean
-gst_vimba_src_stop(GstBaseSrc *src)
+gst_vimbasrc_stop(GstBaseSrc *src)
 {
-    GstVimbaSrc *vimbasrc = GST_VIMBA_SRC(src);
+    GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
     GST_DEBUG_OBJECT(vimbasrc, "stop");
 
@@ -204,9 +204,9 @@ gst_vimba_src_stop(GstBaseSrc *src)
 
 /* ask the subclass to create a buffer */
 static GstFlowReturn
-gst_vimba_src_create(GstPushSrc *src, GstBuffer **buf)
+gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
 {
-    GstVimbaSrc *vimbasrc = GST_VIMBA_SRC(src);
+    GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
     GST_DEBUG_OBJECT(vimbasrc, "create");
 
@@ -220,7 +220,7 @@ plugin_init(GstPlugin *plugin)
     /* FIXME Remember to set the rank if it's an element that is meant
      to be autoplugged by decodebin. */
     return gst_element_register(plugin, "vimbasrc", GST_RANK_NONE,
-                                GST_TYPE_VIMBA_SRC);
+                                GST_TYPE_vimbasrc);
 }
 
 GST_PLUGIN_DEFINE(GST_VERSION_MAJOR,
