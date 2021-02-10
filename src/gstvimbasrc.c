@@ -106,6 +106,10 @@ gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
 static void
 gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
 {
+    // Mark this element as a live source (disable preroll)
+    gst_base_src_set_live(GST_BASE_SRC(vimbasrc), TRUE);
+    gst_base_src_set_format(GST_BASE_SRC(vimbasrc), GST_FORMAT_TIME);
+    gst_base_src_set_do_timestamp(GST_BASE_SRC(vimbasrc), TRUE);
 }
 
 void gst_vimbasrc_set_property(GObject *object, guint property_id,
