@@ -29,13 +29,14 @@
  * </refsect2>
  */
 
+#include "gstvimbasrc.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
 #include <gst/gst.h>
 #include <gst/base/gstpushsrc.h>
-#include "gstvimbasrc.h"
 
 GST_DEBUG_CATEGORY_STATIC(gst_vimbasrc_debug_category);
 #define GST_CAT_DEFAULT gst_vimbasrc_debug_category
