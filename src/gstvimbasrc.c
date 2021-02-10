@@ -43,9 +43,9 @@ GST_DEBUG_CATEGORY_STATIC(gst_vimbasrc_debug_category);
 /* prototypes */
 
 static void gst_vimbasrc_set_property(GObject *object,
-                                       guint property_id, const GValue *value, GParamSpec *pspec);
+                                      guint property_id, const GValue *value, GParamSpec *pspec);
 static void gst_vimbasrc_get_property(GObject *object,
-                                       guint property_id, GValue *value, GParamSpec *pspec);
+                                      guint property_id, GValue *value, GParamSpec *pspec);
 static void gst_vimbasrc_dispose(GObject *object);
 static void gst_vimbasrc_finalize(GObject *object);
 
@@ -80,7 +80,7 @@ gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
     GstBaseSrcClass *base_src_class = GST_BASE_SRC_CLASS(klass);
-    GstPushSrcClass *push_src_class = GST_PUSH_SRC_CLASS (klass);
+    GstPushSrcClass *push_src_class = GST_PUSH_SRC_CLASS(klass);
 
     /* Setting up pads and setting metadata should be moved to
       base_class_init if you intend to subclass this class. */
@@ -108,7 +108,7 @@ gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
 }
 
 void gst_vimbasrc_set_property(GObject *object, guint property_id,
-                                const GValue *value, GParamSpec *pspec)
+                               const GValue *value, GParamSpec *pspec)
 {
     GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
 
@@ -123,7 +123,7 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
 }
 
 void gst_vimbasrc_get_property(GObject *object, guint property_id,
-                                GValue *value, GParamSpec *pspec)
+                               GValue *value, GParamSpec *pspec)
 {
     GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
 
