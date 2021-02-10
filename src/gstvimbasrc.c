@@ -106,6 +106,15 @@ gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
 static void
 gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
 {
+    GST_DEBUG_OBJECT(vimbasrc, "init");
+    /* TODO:
+        - Start Vimba System here (VmbStartup)
+        - Scan for cameras (VmbCamerasList)
+        - Check that requested camera is available here -> Otherwise raise error
+        - Open camera and store handle in appropriate place (VmbCameraOpen)
+        - Perform necessary adjustments (e.g. run AdjustPacketSize feature for GigE)
+    */
+
     // Mark this element as a live source (disable preroll)
     gst_base_src_set_live(GST_BASE_SRC(vimbasrc), TRUE);
     gst_base_src_set_format(GST_BASE_SRC(vimbasrc), GST_FORMAT_TIME);
@@ -159,7 +168,10 @@ void gst_vimbasrc_finalize(GObject *object)
 
     GST_DEBUG_OBJECT(vimbasrc, "finalize");
 
-    /* clean up object here */
+    /* TODO:
+        - Disconnect the Camera (VmbCameraDisconnect)
+        - Shutdown Vimba (VmbShutdown)
+    */
 
     G_OBJECT_CLASS(gst_vimbasrc_parent_class)->finalize(object);
 }
@@ -194,6 +206,18 @@ gst_vimbasrc_start(GstBaseSrc *src)
 
     GST_DEBUG_OBJECT(vimbasrc, "start");
 
+    /* TODO:
+        - Clarify how Hardware triggering influences the setup required here
+    */
+
+    /* TODO:
+        - Allocate frame buffers
+        - Announce frame buffers to Vimba (VmbFrameAnnounce)
+        - Start capturing for the already openend camera (VmbCaptureStart)
+        - Queue the announced frame buffers (VmbCaptureFrameQueue)
+        - Run AcquisitionStart feature
+    */
+
     return TRUE;
 }
 
@@ -203,6 +227,13 @@ gst_vimbasrc_stop(GstBaseSrc *src)
     GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
     GST_DEBUG_OBJECT(vimbasrc, "stop");
+
+    /* TODO:
+        - Run AcquisitionStop feature
+        - End capturing (VmbCaptureEnd)
+        - Clear the frame buffers from the queue (VmbCaptureQueueFlush)
+        - Revoke announced frames (VmbFrameRevoke)
+    */
 
     return TRUE;
 }
