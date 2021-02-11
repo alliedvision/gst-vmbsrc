@@ -92,7 +92,7 @@ gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
                                               &gst_vimbasrc_src_template);
 
     gst_element_class_set_static_metadata(GST_ELEMENT_CLASS(klass),
-                                          DESCRIPTION, "Generic", DESCRIPTION,
+                                          "Vimba GStreamer source", "Generic", DESCRIPTION,
                                           "Allied Vision Technologies GmbH");
 
     gobject_class->set_property = gst_vimbasrc_set_property;
