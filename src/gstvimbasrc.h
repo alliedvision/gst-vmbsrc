@@ -21,6 +21,8 @@
 
 #include <gst/base/gstpushsrc.h>
 
+#include <VimbaC/Include/VmbCommonTypes.h>
+
 G_BEGIN_DECLS
 
 #define GST_TYPE_vimbasrc (gst_vimbasrc_get_type())
@@ -35,6 +37,9 @@ typedef struct _GstVimbaSrcClass GstVimbaSrcClass;
 struct _GstVimbaSrc
 {
     GstPushSrc base_vimbasrc;
+
+    const gchar *camera_id;
+    VmbHandle_t camera_handle;
 };
 
 struct _GstVimbaSrcClass

@@ -62,7 +62,8 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf);
 
 enum
 {
-    PROP_0
+    PROP_0,
+    PROP_CAMERA_ID
 };
 
 /* pad templates */
@@ -104,6 +105,17 @@ gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
     base_src_class->start = GST_DEBUG_FUNCPTR(gst_vimbasrc_start);
     base_src_class->stop = GST_DEBUG_FUNCPTR(gst_vimbasrc_stop);
     push_src_class->create = GST_DEBUG_FUNCPTR(gst_vimbasrc_create);
+
+    // Install properties
+    g_object_class_install_property(
+        gobject_class,
+        PROP_CAMERA_ID,
+        g_param_spec_string(
+            "camera",
+            "Camera",
+            "ID of the camera images should be recorded from",
+            "",
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -113,9 +125,6 @@ gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
     /* TODO:
         - Start Vimba System here (VmbStartup)
         - Scan for cameras (VmbCamerasList)
-        - Check that requested camera is available here -> Otherwise raise error
-        - Open camera and store handle in appropriate place (VmbCameraOpen)
-        - Perform necessary adjustments (e.g. run AdjustPacketSize feature for GigE)
     */
     // Start the Vimba API
     VmbError_t result = VmbStartup();
@@ -152,6 +161,19 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
 
     switch (property_id)
     {
+    case PROP_CAMERA_ID:
+        vimbasrc->camera_id = g_value_get_string(value);
+        VmbError_t result = VmbCameraOpen(vimbasrc->camera_id, VmbAccessModeFull, &vimbasrc->camera_handle);
+        if (result == VmbErrorSuccess)
+        {
+            GST_INFO_OBJECT(vimbasrc, "Successfully opened camera %s", vimbasrc->camera_id);
+        }
+        else
+        {
+            GST_ERROR_OBJECT(vimbasrc, "Could not open camera %s. Got error code: %s", vimbasrc->camera_id, ErrorCodeToMessage(result));
+            // TODO: List available cameras in this case?
+        }
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
         break;
@@ -167,6 +189,9 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id,
 
     switch (property_id)
     {
+    case PROP_CAMERA_ID:
+        g_value_set_string(value, vimbasrc->camera_id);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
         break;
@@ -190,10 +215,15 @@ void gst_vimbasrc_finalize(GObject *object)
 
     GST_DEBUG_OBJECT(vimbasrc, "finalize");
 
-    /* TODO:
-        - Disconnect the Camera (VmbCameraDisconnect)
-        - Shutdown Vimba (VmbShutdown)
-    */
+    VmbError_t result = VmbCameraClose(vimbasrc->camera_handle);
+    if (result == VmbErrorSuccess)
+    {
+        GST_INFO_OBJECT(vimbasrc, "Closed camera %s", vimbasrc->camera_id);
+    }
+    else
+    {
+        GST_WARNING_OBJECT(vimbasrc, "Closing camera %s failed. Got error code: %s", vimbasrc->camera_id, ErrorCodeToMessage(result));
+    }
 
     VmbShutdown();
     GST_DEBUG_OBJECT(vimbasrc, "Vimba API was shut down");
