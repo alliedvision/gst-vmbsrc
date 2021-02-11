@@ -14,6 +14,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 add_library(${PROJECT_NAME} SHARED
     src/gstvimbasrc.c
+    src/vimba_helpers.c
 )
 
 # Defines used in gstplugin.c
@@ -36,6 +37,8 @@ target_include_directories(${PROJECT_NAME}
         ${PROJECT_BINARY_DIR}
         ${GSTREAMER_INCLUDE_DIR}
         ${GLIB2_INCLUDE_DIR}
+        # TODO: If possible find a better way to include Vimba into CMake
+        ${VIMBA_HOME}
 )
 
 target_link_libraries (${PROJECT_NAME}
@@ -43,4 +46,6 @@ target_link_libraries (${PROJECT_NAME}
     ${GOBJECT_LIBRARIES}
     ${GSTREAMER_LIBRARY}
     ${GSTREAMER_BASE_LIBRARY}
+    # TODO: If possible find a better way to include Vimba into CMake
+    ${VIMBA_HOME}/VimbaC/Lib/Win64/VimbaC.lib
 )

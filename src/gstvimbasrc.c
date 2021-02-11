@@ -30,6 +30,7 @@
  */
 
 #include "gstvimbasrc.h"
+#include "vimba_helpers.h"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -37,6 +38,8 @@
 
 #include <gst/gst.h>
 #include <gst/base/gstpushsrc.h>
+
+#include <VimbaC/Include/VimbaC.h>
 
 GST_DEBUG_CATEGORY_STATIC(gst_vimbasrc_debug_category);
 #define GST_CAT_DEFAULT gst_vimbasrc_debug_category
@@ -114,6 +117,25 @@ gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
         - Open camera and store handle in appropriate place (VmbCameraOpen)
         - Perform necessary adjustments (e.g. run AdjustPacketSize feature for GigE)
     */
+    // Start the Vimba API
+    VmbError_t result = VmbStartup();
+    GST_DEBUG_OBJECT(vimbasrc, "VmbStartup returned: %s", ErrorCodeToMessage(result));
+    if (result != VmbErrorSuccess)
+    {
+        GST_ERROR_OBJECT(vimbasrc, "Vimba initialization failed");
+    }
+
+    // Log the used VimbaC version
+    VmbVersionInfo_t version_info;
+    result = VmbVersionQuery(&version_info, sizeof(version_info));
+    if (result == VmbErrorSuccess)
+    {
+        GST_INFO_OBJECT(vimbasrc, "Running with VimbaC Version %u.%u.%u", version_info.major, version_info.minor, version_info.patch);
+    }
+    else
+    {
+        GST_WARNING_OBJECT(vimbasrc, "VmbVersionQuery failed with Reason: %s", ErrorCodeToMessage(result));
+    }
 
     // Mark this element as a live source (disable preroll)
     gst_base_src_set_live(GST_BASE_SRC(vimbasrc), TRUE);
@@ -172,6 +194,9 @@ void gst_vimbasrc_finalize(GObject *object)
         - Disconnect the Camera (VmbCameraDisconnect)
         - Shutdown Vimba (VmbShutdown)
     */
+
+    VmbShutdown();
+    GST_DEBUG_OBJECT(vimbasrc, "Vimba API was shut down");
 
     G_OBJECT_CLASS(gst_vimbasrc_parent_class)->finalize(object);
 }
