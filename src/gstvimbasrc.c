@@ -38,6 +38,7 @@
 
 #include <gst/gst.h>
 #include <gst/base/gstpushsrc.h>
+#include <glib.h>
 
 #include <VimbaC/Include/VimbaC.h>
 
@@ -266,11 +267,15 @@ gst_vimbasrc_start(GstBaseSrc *src)
         - Check if some state variables (is_acquiring, etc.) are helpful and should be added
     */
 
+    // Prepare queue for filled frames from which vimbasrc_create can take them
+    g_filled_frame_queue = g_async_queue_new();
+
     // Determine required buffer size and allocate memory
     VmbInt64_t payload_size;
     VmbError_t result = VmbFeatureIntGet(vimbasrc->camera.handle, "PayloadSize", &payload_size);
     if (result == VmbErrorSuccess)
     {
+        GST_DEBUG_OBJECT(vimbasrc, "Got PayloadSize of: %d", payload_size);
         for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
         {
             vimbasrc->frame_buffers[i].buffer = (unsigned char *)malloc((VmbUint32_t)payload_size);
@@ -352,6 +357,9 @@ gst_vimbasrc_stop(GstBaseSrc *src)
         }
     }
 
+    // Unref the filled frame queue so it is deleted properly
+    g_async_queue_unref(g_filled_frame_queue);
+
     return TRUE;
 }
 
@@ -362,6 +370,27 @@ gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
     GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
     GST_DEBUG_OBJECT(vimbasrc, "create");
+
+    // Wait until we can get a filled frame (added to queue in vimba_frame_callback)
+    VmbFrame_t *frame = g_async_queue_pop(g_filled_frame_queue);
+
+    // Prepare output buffer that will be filled with frame data
+    GstBuffer *buffer = gst_buffer_new_and_alloc(frame->bufferSize);
+
+    // copy over frame data into the GStreamer buffer
+    // TODO: Investigate if we can work without copying to improve performance?
+    // TODO: Add handling of incomplete frames here. This assumes that we got nice and working frames
+    gst_buffer_fill(
+        buffer,
+        0,
+        frame->buffer,
+        frame->bufferSize);
+
+    // requeue frame after we copied the image data for Vimba to use again
+    VmbCaptureFrameQueue(vimbasrc->camera.handle, frame, &vimba_frame_callback);
+
+    // Set filled GstBuffer as output to pass down the pipeline
+    *buf = buffer;
 
     return GST_FLOW_OK;
 }
@@ -386,11 +415,10 @@ GST_PLUGIN_DEFINE(GST_VERSION_MAJOR,
                   PACKAGE,
                   HOMEPAGE_URL)
 
-void VMB_CALL vimba_frame_callback(const VmbHandle_t cameraHandle, VmbFrame_t *pFrame)
+void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, VmbFrame_t *frame)
 {
     GST_DEBUG("Got Frame");
-    // TODO: Find way to get make frame available to gst_vimbasrc_create
+    g_async_queue_push(g_filled_frame_queue, frame);
 
-    // requeue the frame so it can be filled again
-    VmbCaptureFrameQueue(cameraHandle, pFrame, &vimba_frame_callback);
+    // requeueing the frame is done after it was consumed in vimbasrc_create
 }

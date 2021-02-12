@@ -20,6 +20,7 @@
 #define _GST_vimbasrc_H_
 
 #include <gst/base/gstpushsrc.h>
+#include <glib.h>
 
 #include <VimbaC/Include/VimbaC.h>
 #include <VimbaC/Include/VmbCommonTypes.h>
@@ -36,6 +37,10 @@ typedef struct _GstVimbaSrc GstVimbaSrc;
 typedef struct _GstVimbaSrcClass GstVimbaSrcClass;
 
 #define NUM_VIMBA_FRAMES 3
+
+// global queue in which filled Vimba frames are placed in the vimba_frame_callback
+// (has to be global as no context can be passed to VmbFrameCallback functions)
+GAsyncQueue *g_filled_frame_queue;
 
 struct _GstVimbaSrc
 {
