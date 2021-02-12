@@ -21,6 +21,7 @@
 
 #include <gst/base/gstpushsrc.h>
 
+#include <VimbaC/Include/VimbaC.h>
 #include <VimbaC/Include/VmbCommonTypes.h>
 
 G_BEGIN_DECLS
@@ -34,12 +35,15 @@ G_BEGIN_DECLS
 typedef struct _GstVimbaSrc GstVimbaSrc;
 typedef struct _GstVimbaSrcClass GstVimbaSrcClass;
 
+#define NUM_VIMBA_FRAMES 3
+
 struct _GstVimbaSrc
 {
     GstPushSrc base_vimbasrc;
 
     const gchar *camera_id;
     VmbHandle_t camera_handle;
+    VmbFrame_t frame_buffers[NUM_VIMBA_FRAMES];
 };
 
 struct _GstVimbaSrcClass
@@ -50,5 +54,7 @@ struct _GstVimbaSrcClass
 GType gst_vimbasrc_get_type(void);
 
 G_END_DECLS
+
+void VMB_CALL vimba_frame_callback(const VmbHandle_t cameraHandle, VmbFrame_t *pFrame);
 
 #endif

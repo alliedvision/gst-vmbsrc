@@ -263,17 +263,65 @@ gst_vimbasrc_start(GstBaseSrc *src)
 
     /* TODO:
         - Clarify how Hardware triggering influences the setup required here
+        - Check if some state variables (is_acquiring, etc.) are helpful and should be added
     */
 
-    /* TODO:
-        - Allocate frame buffers
-        - Announce frame buffers to Vimba (VmbFrameAnnounce)
-        - Start capturing for the already openend camera (VmbCaptureStart)
-        - Queue the announced frame buffers (VmbCaptureFrameQueue)
-        - Run AcquisitionStart feature
-    */
+    // Determine required buffer size and allocate memory
+    VmbInt64_t payload_size;
+    VmbError_t result = VmbFeatureIntGet(vimbasrc->camera_handle, "PayloadSize", &payload_size);
+    if (result == VmbErrorSuccess)
+    {
+        for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
+        {
+            vimbasrc->frame_buffers[i].buffer = (unsigned char *)malloc((VmbUint32_t)payload_size);
+            if (NULL == vimbasrc->frame_buffers[i].buffer)
+            {
+                result = VmbErrorResources;
+                break;
+            }
+            vimbasrc->frame_buffers[i].bufferSize = (VmbUint32_t)payload_size;
 
-    return TRUE;
+            // Announce Frame
+            result = VmbFrameAnnounce(vimbasrc->camera_handle, &vimbasrc->frame_buffers[i], (VmbUint32_t)sizeof(VmbFrame_t));
+            if (result != VmbErrorSuccess)
+            {
+                free(vimbasrc->frame_buffers[i].buffer);
+                memset(&vimbasrc->frame_buffers[i], 0, sizeof(VmbFrame_t));
+                break;
+            }
+        }
+
+        if (result == VmbErrorSuccess)
+        {
+            // Start Capture Engine
+            result = VmbCaptureStart(vimbasrc->camera_handle);
+            if (result == VmbErrorSuccess)
+            {
+                // g_bStreaming = VmbBoolTrue;
+                for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
+                {
+                    // Queue Frame
+                    result = VmbCaptureFrameQueue(vimbasrc->camera_handle, &vimbasrc->frame_buffers[i], &vimba_frame_callback);
+                    if (VmbErrorSuccess != result)
+                    {
+                        break;
+                    }
+                }
+
+                if (VmbErrorSuccess == result)
+                {
+                    // Start Acquisition
+                    result = VmbFeatureCommandRun(vimbasrc->camera_handle, "AcquisitionStart");
+                }
+            }
+        }
+    }
+
+    // Is this necessary?
+    gst_base_src_start_complete(src, GST_FLOW_OK);
+
+    // TODO: Is this enough error handling?
+    return result == VmbErrorSuccess ? TRUE : FALSE;
 }
 
 static gboolean
@@ -283,12 +331,26 @@ gst_vimbasrc_stop(GstBaseSrc *src)
 
     GST_DEBUG_OBJECT(vimbasrc, "stop");
 
-    /* TODO:
-        - Run AcquisitionStop feature
-        - End capturing (VmbCaptureEnd)
-        - Clear the frame buffers from the queue (VmbCaptureQueueFlush)
-        - Revoke announced frames (VmbFrameRevoke)
-    */
+    // Stop Acquisition
+    VmbFeatureCommandRun(vimbasrc->camera_handle, "AcquisitionStop");
+
+    // Stop Capture Engine
+    VmbCaptureEnd(vimbasrc->camera_handle);
+
+    // Flush the capture queue
+    VmbCaptureQueueFlush(vimbasrc->camera_handle);
+
+    // TODO: Do we need to ensure that revoking is not interrupted by a dangling frame callback?
+    // AquireApiLock();?
+    for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
+    {
+        if (NULL != vimbasrc->frame_buffers[i].buffer)
+        {
+            VmbFrameRevoke(vimbasrc->camera_handle, &vimbasrc->frame_buffers[i]);
+            free(vimbasrc->frame_buffers[i].buffer);
+            memset(&vimbasrc->frame_buffers[i], 0, sizeof(VmbFrame_t));
+        }
+    }
 
     return TRUE;
 }
@@ -323,3 +385,12 @@ GST_PLUGIN_DEFINE(GST_VERSION_MAJOR,
                   "LGPL",
                   PACKAGE,
                   HOMEPAGE_URL)
+
+void VMB_CALL vimba_frame_callback(const VmbHandle_t cameraHandle, VmbFrame_t *pFrame)
+{
+    GST_DEBUG("Got Frame");
+    // TODO: Find way to get make frame available to gst_vimbasrc_create
+
+    // requeue the frame so it can be filled again
+    VmbCaptureFrameQueue(cameraHandle, pFrame, &vimba_frame_callback);
+}
