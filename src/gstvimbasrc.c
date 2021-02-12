@@ -162,15 +162,15 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
     switch (property_id)
     {
     case PROP_CAMERA_ID:
-        vimbasrc->camera_id = g_value_get_string(value);
-        VmbError_t result = VmbCameraOpen(vimbasrc->camera_id, VmbAccessModeFull, &vimbasrc->camera_handle);
+        vimbasrc->camera.id = g_value_get_string(value);
+        VmbError_t result = VmbCameraOpen(vimbasrc->camera.id, VmbAccessModeFull, &vimbasrc->camera.handle);
         if (result == VmbErrorSuccess)
         {
-            GST_INFO_OBJECT(vimbasrc, "Successfully opened camera %s", vimbasrc->camera_id);
+            GST_INFO_OBJECT(vimbasrc, "Successfully opened camera %s", vimbasrc->camera.id);
         }
         else
         {
-            GST_ERROR_OBJECT(vimbasrc, "Could not open camera %s. Got error code: %s", vimbasrc->camera_id, ErrorCodeToMessage(result));
+            GST_ERROR_OBJECT(vimbasrc, "Could not open camera %s. Got error code: %s", vimbasrc->camera.id, ErrorCodeToMessage(result));
             // TODO: List available cameras in this case?
         }
         break;
@@ -190,7 +190,7 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id,
     switch (property_id)
     {
     case PROP_CAMERA_ID:
-        g_value_set_string(value, vimbasrc->camera_id);
+        g_value_set_string(value, vimbasrc->camera.id);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -215,14 +215,14 @@ void gst_vimbasrc_finalize(GObject *object)
 
     GST_DEBUG_OBJECT(vimbasrc, "finalize");
 
-    VmbError_t result = VmbCameraClose(vimbasrc->camera_handle);
+    VmbError_t result = VmbCameraClose(vimbasrc->camera.handle);
     if (result == VmbErrorSuccess)
     {
-        GST_INFO_OBJECT(vimbasrc, "Closed camera %s", vimbasrc->camera_id);
+        GST_INFO_OBJECT(vimbasrc, "Closed camera %s", vimbasrc->camera.id);
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc, "Closing camera %s failed. Got error code: %s", vimbasrc->camera_id, ErrorCodeToMessage(result));
+        GST_WARNING_OBJECT(vimbasrc, "Closing camera %s failed. Got error code: %s", vimbasrc->camera.id, ErrorCodeToMessage(result));
     }
 
     VmbShutdown();
@@ -268,7 +268,7 @@ gst_vimbasrc_start(GstBaseSrc *src)
 
     // Determine required buffer size and allocate memory
     VmbInt64_t payload_size;
-    VmbError_t result = VmbFeatureIntGet(vimbasrc->camera_handle, "PayloadSize", &payload_size);
+    VmbError_t result = VmbFeatureIntGet(vimbasrc->camera.handle, "PayloadSize", &payload_size);
     if (result == VmbErrorSuccess)
     {
         for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
@@ -282,7 +282,7 @@ gst_vimbasrc_start(GstBaseSrc *src)
             vimbasrc->frame_buffers[i].bufferSize = (VmbUint32_t)payload_size;
 
             // Announce Frame
-            result = VmbFrameAnnounce(vimbasrc->camera_handle, &vimbasrc->frame_buffers[i], (VmbUint32_t)sizeof(VmbFrame_t));
+            result = VmbFrameAnnounce(vimbasrc->camera.handle, &vimbasrc->frame_buffers[i], (VmbUint32_t)sizeof(VmbFrame_t));
             if (result != VmbErrorSuccess)
             {
                 free(vimbasrc->frame_buffers[i].buffer);
@@ -294,14 +294,14 @@ gst_vimbasrc_start(GstBaseSrc *src)
         if (result == VmbErrorSuccess)
         {
             // Start Capture Engine
-            result = VmbCaptureStart(vimbasrc->camera_handle);
+            result = VmbCaptureStart(vimbasrc->camera.handle);
             if (result == VmbErrorSuccess)
             {
                 // g_bStreaming = VmbBoolTrue;
                 for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
                 {
                     // Queue Frame
-                    result = VmbCaptureFrameQueue(vimbasrc->camera_handle, &vimbasrc->frame_buffers[i], &vimba_frame_callback);
+                    result = VmbCaptureFrameQueue(vimbasrc->camera.handle, &vimbasrc->frame_buffers[i], &vimba_frame_callback);
                     if (VmbErrorSuccess != result)
                     {
                         break;
@@ -311,7 +311,7 @@ gst_vimbasrc_start(GstBaseSrc *src)
                 if (VmbErrorSuccess == result)
                 {
                     // Start Acquisition
-                    result = VmbFeatureCommandRun(vimbasrc->camera_handle, "AcquisitionStart");
+                    result = VmbFeatureCommandRun(vimbasrc->camera.handle, "AcquisitionStart");
                 }
             }
         }
@@ -332,13 +332,13 @@ gst_vimbasrc_stop(GstBaseSrc *src)
     GST_DEBUG_OBJECT(vimbasrc, "stop");
 
     // Stop Acquisition
-    VmbFeatureCommandRun(vimbasrc->camera_handle, "AcquisitionStop");
+    VmbFeatureCommandRun(vimbasrc->camera.handle, "AcquisitionStop");
 
     // Stop Capture Engine
-    VmbCaptureEnd(vimbasrc->camera_handle);
+    VmbCaptureEnd(vimbasrc->camera.handle);
 
     // Flush the capture queue
-    VmbCaptureQueueFlush(vimbasrc->camera_handle);
+    VmbCaptureQueueFlush(vimbasrc->camera.handle);
 
     // TODO: Do we need to ensure that revoking is not interrupted by a dangling frame callback?
     // AquireApiLock();?
@@ -346,7 +346,7 @@ gst_vimbasrc_stop(GstBaseSrc *src)
     {
         if (NULL != vimbasrc->frame_buffers[i].buffer)
         {
-            VmbFrameRevoke(vimbasrc->camera_handle, &vimbasrc->frame_buffers[i]);
+            VmbFrameRevoke(vimbasrc->camera.handle, &vimbasrc->frame_buffers[i]);
             free(vimbasrc->frame_buffers[i].buffer);
             memset(&vimbasrc->frame_buffers[i], 0, sizeof(VmbFrame_t));
         }

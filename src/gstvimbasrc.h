@@ -41,8 +41,12 @@ struct _GstVimbaSrc
 {
     GstPushSrc base_vimbasrc;
 
-    const gchar *camera_id;
-    VmbHandle_t camera_handle;
+    struct
+    {
+        const gchar *id;
+        VmbHandle_t handle;
+    } camera;
+
     VmbFrame_t frame_buffers[NUM_VIMBA_FRAMES];
 };
 
