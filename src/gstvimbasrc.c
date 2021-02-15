@@ -354,7 +354,15 @@ gst_vimbasrc_start(GstBaseSrc *src)
     }
 
     // Is this necessary?
-    gst_base_src_start_complete(src, GST_FLOW_OK);
+    if (result == VmbErrorSuccess)
+    {
+        gst_base_src_start_complete(src, GST_FLOW_OK);
+    }
+    else
+    {
+        GST_ERROR_OBJECT(vimbasrc, "Could not start acquisition. Experienced error: %s", ErrorCodeToMessage(result));
+        gst_base_src_start_complete(src, GST_FLOW_ERROR);
+    }
 
     // TODO: Is this enough error handling?
     return result == VmbErrorSuccess ? TRUE : FALSE;
