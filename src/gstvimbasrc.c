@@ -301,7 +301,7 @@ gst_vimbasrc_start(GstBaseSrc *src)
     VmbError_t result = VmbFeatureIntGet(vimbasrc->camera.handle, "PayloadSize", &payload_size);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Got PayloadSize of: %d", payload_size);
+        GST_DEBUG_OBJECT(vimbasrc, "Got PayloadSize of: %llu", payload_size);
         for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
         {
             vimbasrc->frame_buffers[i].buffer = (unsigned char *)malloc((VmbUint32_t)payload_size);
