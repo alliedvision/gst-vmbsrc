@@ -301,7 +301,8 @@ gst_vimbasrc_start(GstBaseSrc *src)
     VmbError_t result = VmbFeatureIntGet(vimbasrc->camera.handle, "PayloadSize", &payload_size);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Got PayloadSize of: %llu", payload_size);
+        GST_DEBUG_OBJECT(vimbasrc, "Got \"PayloadSize\" of: %llu", payload_size);
+        GST_DEBUG_OBJECT(vimbasrc, "Allocating and announcing %d vimba frames", NUM_VIMBA_FRAMES);
         for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
         {
             vimbasrc->frame_buffers[i].buffer = (unsigned char *)malloc((VmbUint32_t)payload_size);
@@ -325,10 +326,12 @@ gst_vimbasrc_start(GstBaseSrc *src)
         if (result == VmbErrorSuccess)
         {
             // Start Capture Engine
+            GST_DEBUG_OBJECT(vimbasrc, "Starting the capture engine");
             result = VmbCaptureStart(vimbasrc->camera.handle);
             if (result == VmbErrorSuccess)
             {
                 // g_bStreaming = VmbBoolTrue;
+                GST_DEBUG_OBJECT(vimbasrc, "Queueing the vimba frames");
                 for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
                 {
                     // Queue Frame
@@ -342,6 +345,7 @@ gst_vimbasrc_start(GstBaseSrc *src)
                 if (VmbErrorSuccess == result)
                 {
                     // Start Acquisition
+                    GST_DEBUG_OBJECT(vimbasrc, "Running \"AcquisitionStart\" feature");
                     result = VmbFeatureCommandRun(vimbasrc->camera.handle, "AcquisitionStart");
                 }
             }
