@@ -175,6 +175,7 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
         {
             GST_ERROR_OBJECT(vimbasrc, "Could not open camera %s. Got error code: %s", vimbasrc->camera.id, ErrorCodeToMessage(result));
             // TODO: List available cameras in this case?
+            // TODO: Can we signal an error to the pipeline to stop immediately?
         }
         break;
     default:
