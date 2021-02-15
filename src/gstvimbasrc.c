@@ -38,6 +38,7 @@
 
 #include <gst/gst.h>
 #include <gst/base/gstpushsrc.h>
+#include <gst/video/video-info.h>
 #include <glib.h>
 
 #include <VimbaC/Include/VimbaC.h>
@@ -68,12 +69,13 @@ enum
 };
 
 /* pad templates */
-
+// TODO: Add Bayer formats to template
+// TODO: What other formats are needed in the template?
 static GstStaticPadTemplate gst_vimbasrc_src_template =
     GST_STATIC_PAD_TEMPLATE("src",
                             GST_PAD_SRC,
                             GST_PAD_ALWAYS,
-                            GST_STATIC_CAPS("application/unknown"));
+                            GST_STATIC_CAPS(GST_VIDEO_CAPS_MAKE(GST_VIDEO_FORMATS_ALL)));
 
 /* class initialization */
 
@@ -240,7 +242,27 @@ gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
 
     GST_DEBUG_OBJECT(vimbasrc, "get_caps");
 
-    return NULL;
+    GstCaps *caps;
+    caps = gst_pad_get_pad_template_caps(GST_BASE_SRC_PAD(src));
+    caps = gst_caps_make_writable(caps);
+
+    // TODO: Query the capabilities from the camera and return sensible values
+    GstStructure *raw_caps = gst_caps_get_structure(caps, 0);
+    gst_structure_set(raw_caps,
+        "width", GST_TYPE_INT_RANGE, 1, 2592,
+        "height", GST_TYPE_INT_RANGE, 1, 1944,
+        "framerate", GST_TYPE_FRACTION, 10, 1,
+        NULL
+    );
+    // TODO: Query supported pixel formats from camera and map them to GStreamer formats
+    GValue pixel_format = G_VALUE_INIT;
+    g_value_init(&pixel_format, G_TYPE_STRING);
+    g_value_set_static_string(&pixel_format, "GRAY8"); // GStreamer GRAY8 corresponds to Mono8 in Vimba formats
+    gst_structure_set_value(raw_caps, "format", &pixel_format);
+
+    GST_DEBUG_OBJECT(vimbasrc, "returning caps: %s", gst_caps_to_string(caps));
+
+    return caps;
 }
 
 /* notify the subclass of new caps */
@@ -250,6 +272,10 @@ gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
     GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
     GST_DEBUG_OBJECT(vimbasrc, "set_caps");
+
+    GST_DEBUG_OBJECT(vimbasrc, "caps requested to be set: %s", gst_caps_to_string(caps));
+
+    // TODO: Actually set the capabilites
 
     return TRUE;
 }
