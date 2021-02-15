@@ -41,11 +41,19 @@ target_include_directories(${PROJECT_NAME}
         ${VIMBA_HOME}
 )
 
+# Make linking work on Windows and Linux
+# TODO: find a better way to include Vimba into CMake
+if (WIN32)
+    set(VIMBAC_LIBRARY ${VIMBA_HOME}/VimbaC/Lib/Win64/VimbaC.lib)
+elseif(UNIX)
+    set (VIMBAC_LIBRARY ${VIMBA_HOME}/VimbaC/DynamicLib/x86_64bit/libVimbaC.so)
+endif()
+
 target_link_libraries (${PROJECT_NAME}
     ${GLIB2_LIBRARIES}
     ${GOBJECT_LIBRARIES}
     ${GSTREAMER_LIBRARY}
     ${GSTREAMER_BASE_LIBRARY}
     # TODO: If possible find a better way to include Vimba into CMake
-    ${VIMBA_HOME}/VimbaC/Lib/Win64/VimbaC.lib
+    ${VIMBAC_LIBRARY}
 )
