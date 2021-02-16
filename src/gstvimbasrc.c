@@ -207,7 +207,7 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
             // TODO: Can we signal an error to the pipeline to stop immediately?
         }
         break;
-    case PROP_EXPOSUREAUTO:
+    case PROP_EXPOSUREAUTO: ;
         GEnumValue *enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), g_value_get_enum(value));
         GST_DEBUG_OBJECT(vimbasrc, "Setting \"ExposureAuto\" to %s", enum_entry->value_nick);
         result = VmbFeatureEnumSet(vimbasrc->camera.handle, "ExposureAuto", enum_entry->value_nick);
@@ -238,7 +238,7 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id,
     case PROP_CAMERA_ID:
         g_value_set_string(value, vimbasrc->camera.id);
         break;
-    case PROP_EXPOSUREAUTO:
+    case PROP_EXPOSUREAUTO: ;
         const char *vmbfeature_value;
         VmbError_t result = VmbFeatureEnumGet(vimbasrc->camera.handle, "ExposureAuto", &vmbfeature_value);
         if (result == VmbErrorSuccess)
