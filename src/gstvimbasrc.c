@@ -65,7 +65,8 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf);
 enum
 {
     PROP_0,
-    PROP_CAMERA_ID
+    PROP_CAMERA_ID,
+    PROP_EXPOSUREAUTO
 };
 
 /* pad templates */
@@ -76,6 +77,26 @@ static GstStaticPadTemplate gst_vimbasrc_src_template =
                             GST_PAD_SRC,
                             GST_PAD_ALWAYS,
                             GST_STATIC_CAPS(GST_VIDEO_CAPS_MAKE(GST_VIDEO_FORMATS_ALL)));
+
+/* Auto exposure modes */
+#define GST_ENUM_EXPOSUREAUTO_MODES (gst_vimbasrc_exposureauto_get_type())
+static GType
+gst_vimbasrc_exposureauto_get_type(void)
+{
+    static GType vimbasrc_exposureauto_type = 0;
+    static const GEnumValue exposureauto_modes[] = {
+        /* The "nick" (last entry) will be used to pass the setting value on to the Vimba FeatureEnum */
+        {GST_VIMBASRC_AUTOFEATURE_OFF, "Exposure duration is usercontrolled using ExposureTime", "Off"},
+        {GST_VIMBASRC_AUTOFEATURE_ONCE, "Exposure duration is adapted once by the device. Once it has converged, it returns to the Offstate", "Once"},
+        {GST_VIMBASRC_AUTOFEATURE_CONTINUOUS, "Exposure duration is constantly adapted by the device to maximize the dynamic range", "Continuous"},
+        {0, NULL, NULL}};
+    if (!vimbasrc_exposureauto_type)
+    {
+        vimbasrc_exposureauto_type =
+            g_enum_register_static("GstVimbasrcExposureAutoModes", exposureauto_modes);
+    }
+    return vimbasrc_exposureauto_type;
+}
 
 /* class initialization */
 
@@ -118,6 +139,16 @@ gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             "Camera ID",
             "ID of the camera images should be recorded from",
             "",
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_EXPOSUREAUTO,
+        g_param_spec_enum(
+            "exposureauto",
+            "ExposureAuto feature setting",
+            "Sets the auto exposure mode. The output of the auto exposure function affects the whole image",
+            GST_ENUM_EXPOSUREAUTO_MODES,
+            GST_VIMBASRC_AUTOFEATURE_OFF,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
@@ -176,6 +207,19 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
             // TODO: Can we signal an error to the pipeline to stop immediately?
         }
         break;
+    case PROP_EXPOSUREAUTO:
+        GEnumValue *enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), g_value_get_enum(value));
+        GST_DEBUG_OBJECT(vimbasrc, "Setting \"ExposureAuto\" to %s", enum_entry->value_nick);
+        result = VmbFeatureEnumSet(vimbasrc->camera.handle, "ExposureAuto", enum_entry->value_nick);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Failed to set \"ExposureAuto\" to %s. Return code was: %s", enum_entry->value_nick, ErrorCodeToMessage(result));
+        }
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
         break;
@@ -193,6 +237,19 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id,
     {
     case PROP_CAMERA_ID:
         g_value_set_string(value, vimbasrc->camera.id);
+        break;
+    case PROP_EXPOSUREAUTO:
+        const char *vmbfeature_value;
+        VmbError_t result = VmbFeatureEnumGet(vimbasrc->camera.handle, "ExposureAuto", &vmbfeature_value);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Camera returned the following value for \"ExposureAuto\": %s", vmbfeature_value);
+            g_value_set_enum(value, g_enum_get_value_by_nick(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), vmbfeature_value)->value);
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Failed to read value of \"ExposureAuto\" from camera. Return code was: %s", ErrorCodeToMessage(result));
+        }
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);

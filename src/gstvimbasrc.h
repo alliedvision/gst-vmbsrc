@@ -33,6 +33,14 @@ G_BEGIN_DECLS
 #define GST_IS_vimbasrc(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_vimbasrc))
 #define GST_IS_vimbasrc_CLASS(obj) (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_vimbasrc))
 
+/* Allowed values for "Auto" camera Features */
+typedef enum
+{
+    GST_VIMBASRC_AUTOFEATURE_OFF,
+    GST_VIMBASRC_AUTOFEATURE_ONCE,
+    GST_VIMBASRC_AUTOFEATURE_CONTINUOUS
+} GstVimbasrcAutoFeatureValue;
+
 typedef struct _GstVimbaSrc GstVimbaSrc;
 typedef struct _GstVimbaSrcClass GstVimbaSrcClass;
 
