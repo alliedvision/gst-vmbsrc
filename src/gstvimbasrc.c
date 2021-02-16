@@ -115,7 +115,7 @@ gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
         PROP_CAMERA_ID,
         g_param_spec_string(
             "camera",
-            "Camera",
+            "Camera ID",
             "ID of the camera images should be recorded from",
             "",
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
@@ -125,10 +125,6 @@ static void
 gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
 {
     GST_DEBUG_OBJECT(vimbasrc, "init");
-    /* TODO:
-        - Start Vimba System here (VmbStartup)
-        - Scan for cameras (VmbCamerasList)
-    */
     // Start the Vimba API
     VmbError_t result = VmbStartup();
     GST_DEBUG_OBJECT(vimbasrc, "VmbStartup returned: %s", ErrorCodeToMessage(result));
@@ -162,11 +158,13 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
 
     GST_DEBUG_OBJECT(vimbasrc, "set_property");
 
+    VmbError_t result;
+
     switch (property_id)
     {
     case PROP_CAMERA_ID:
         vimbasrc->camera.id = g_value_get_string(value);
-        VmbError_t result = VmbCameraOpen(vimbasrc->camera.id, VmbAccessModeFull, &vimbasrc->camera.handle);
+        result = VmbCameraOpen(vimbasrc->camera.id, VmbAccessModeFull, &vimbasrc->camera.handle);
         if (result == VmbErrorSuccess)
         {
             GST_INFO_OBJECT(vimbasrc, "Successfully opened camera %s", vimbasrc->camera.id);
@@ -250,11 +248,10 @@ gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
     // TODO: Query the capabilities from the camera and return sensible values
     GstStructure *raw_caps = gst_caps_get_structure(caps, 0);
     gst_structure_set(raw_caps,
-        "width", GST_TYPE_INT_RANGE, 1, 2592,
-        "height", GST_TYPE_INT_RANGE, 1, 1944,
-        "framerate", GST_TYPE_FRACTION, 10, 1,
-        NULL
-    );
+                      "width", GST_TYPE_INT_RANGE, 1, 2592,
+                      "height", GST_TYPE_INT_RANGE, 1, 1944,
+                      "framerate", GST_TYPE_FRACTION, 10, 1,
+                      NULL);
     // TODO: Query supported pixel formats from camera and map them to GStreamer formats
     GValue pixel_format = G_VALUE_INIT;
     g_value_init(&pixel_format, G_TYPE_STRING);
