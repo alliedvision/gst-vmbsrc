@@ -33,8 +33,7 @@ RUN apt-get update && \
 
 COPY --from=cmake_installer /usr/local /usr/local
 
-COPY VimbaC.h VmbCommonTypes.h /usr/local/include/
-COPY libVimbaC.so /usr/local/lib/
+ENV VIMBA_HOME=/vimba
 
 # mount the checked out repository into this volume
 VOLUME ["/gst-vimba"]
