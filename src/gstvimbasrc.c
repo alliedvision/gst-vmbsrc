@@ -68,7 +68,8 @@ enum
     PROP_CAMERA_ID,
     PROP_EXPOSUREAUTO,
     PROP_BALANCEWHITEAUTO,
-    PROP_GAIN
+    PROP_GAIN,
+    PROP_EXPOSURETIME
 };
 
 /* pad templates */
@@ -189,9 +190,20 @@ gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             "gain",
             "Gain feature setting",
             "Controls the selected gain as an absolute physical value. This is an amplification factor applied to the video signal",
-            0,
+            0.,
             G_MAXDOUBLE,
-            0,
+            0.,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_EXPOSURETIME,
+        g_param_spec_double(
+            "exposuretime",
+            "ExposureTime feature setting",
+            "Sets the Exposure time when ExposureMode is Timed and ExposureAuto is Off. This controls the duration where the photosensitive cells are exposed to light",
+            0.,
+            G_MAXDOUBLE,
+            0.,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
@@ -298,6 +310,33 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
             GST_WARNING_OBJECT(vimbasrc, "Failed to set \"Gain\" to %f. Return code was: %s", double_entry, ErrorCodeToMessage(result));
         }
         break;
+    case PROP_EXPOSURETIME:
+        // TODO: Workaround for cameras with legacy "ExposureTimeAbs" feature should be replaced with a general legacy feature name handling approach:
+        // A static table maps each property, e.g. "exposuretime", to a list of (feature name, set function, get function) pairs,
+        // e.g. [("ExposureTime", setExposureTime, getExposureTime), ("ExposureTimeAbs", setExposureTimeAbs, getExposureTimeAbs)].
+        // On startup, the feature list of the connected camera obtained from VmbFeaturesList() is used to determine which set/get function to use.
+
+        double_entry = g_value_get_double(value);
+        GST_DEBUG_OBJECT(vimbasrc, "Setting \"ExposureTime\" to %f", double_entry);
+        result = VmbFeatureFloatSet(vimbasrc->camera.handle, "ExposureTime", double_entry);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Failed to set \"ExposureTime\" to %f. Return code was: %s Setting \"ExposureTimeAbs\"", double_entry, ErrorCodeToMessage(result));
+            result = VmbFeatureFloatSet(vimbasrc->camera.handle, "ExposureTimeAbs", double_entry);
+            if (result == VmbErrorSuccess)
+            {
+                GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+            }
+            else
+            {
+                GST_WARNING_OBJECT(vimbasrc, "Failed to set \"ExposureTime\" to %f. Return code was: %s", double_entry, ErrorCodeToMessage(result));
+            }
+        }
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
         break;
@@ -356,6 +395,31 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id,
         else
         {
             GST_WARNING_OBJECT(vimbasrc, "Failed to read value of \"Gain\" from camera. Return code was: %s", ErrorCodeToMessage(result));
+        }
+        break;
+    case PROP_EXPOSURETIME:
+        // TODO: Workaround for cameras with legacy "ExposureTimeAbs" feature should be replaced with a general legacy feature name handling approach:
+        // See similar TODO above
+
+        result = VmbFeatureFloatGet(vimbasrc->camera.handle, "ExposureTime", &vmbfeature_value_double);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Camera returned the following value for \"ExposureTime\": %f", vmbfeature_value_double);
+            g_value_set_double(value, vmbfeature_value_double);
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Failed to read value of \"ExposureTime\" from camera. Return code was: %s", ErrorCodeToMessage(result));
+            result = VmbFeatureFloatGet(vimbasrc->camera.handle, "ExposureTimeAbs", &vmbfeature_value_double);
+            if (result == VmbErrorSuccess)
+            {
+                GST_DEBUG_OBJECT(vimbasrc, "Camera returned the following value for \"ExposureTimeAbs\": %f", vmbfeature_value_double);
+                g_value_set_double(value, vmbfeature_value_double);
+            }
+            else
+            {
+                GST_WARNING_OBJECT(vimbasrc, "Failed to read value of \"ExposureTimeAbs\" from camera. Return code was: %s", ErrorCodeToMessage(result));
+            }
         }
         break;
     default:
