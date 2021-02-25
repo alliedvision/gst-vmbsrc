@@ -31,6 +31,7 @@
 
 #include "gstvimbasrc.h"
 #include "vimba_helpers.h"
+#include "pixelformats.h"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -199,6 +200,7 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
         if (result == VmbErrorSuccess)
         {
             GST_INFO_OBJECT(vimbasrc, "Successfully opened camera %s", vimbasrc->camera.id);
+            query_supported_pixel_formats(vimbasrc);
         }
         else
         {
@@ -309,11 +311,20 @@ gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
                       "height", GST_TYPE_INT_RANGE, 1, 1944,
                       "framerate", GST_TYPE_FRACTION, 10, 1,
                       NULL);
-    // TODO: Query supported pixel formats from camera and map them to GStreamer formats
+
+    // Query supported pixel formats from camera and map them to GStreamer formats
+    GValue pixel_format_raw_list = G_VALUE_INIT;
     GValue pixel_format = G_VALUE_INIT;
+    g_value_init(&pixel_format_raw_list, GST_TYPE_LIST);
     g_value_init(&pixel_format, G_TYPE_STRING);
-    g_value_set_static_string(&pixel_format, "GRAY8"); // GStreamer GRAY8 corresponds to Mono8 in Vimba formats
-    gst_structure_set_value(raw_caps, "format", &pixel_format);
+
+    // Add all supported GStreamer format string to the reported caps
+    for (unsigned int i = 0; i < vimbasrc->camera.supported_formats_count; i++)
+    {
+        g_value_set_static_string(&pixel_format, vimbasrc->camera.supported_formats[i]->gst_format_name);
+        gst_value_list_append_value(&pixel_format_raw_list, &pixel_format);
+    }
+    gst_structure_set_value(raw_caps, "format", &pixel_format_raw_list);
 
     GST_DEBUG_OBJECT(vimbasrc, "returning caps: %s", gst_caps_to_string(caps));
 
@@ -514,4 +525,47 @@ void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, VmbFrame_t *
     g_async_queue_push(g_filled_frame_queue, frame);
 
     // requeueing the frame is done after it was consumed in vimbasrc_create
+}
+
+void query_supported_pixel_formats(GstVimbaSrc *vimbasrc)
+{
+    // get number of supported formats from the camera
+    VmbUint32_t camera_format_count;
+    VmbFeatureEnumRangeQuery(
+        vimbasrc->camera.handle,
+        "PixelFormat",
+        NULL,
+        0,
+        &camera_format_count);
+
+    // get the vimba format string supported by the camera
+    const char **supported_formats = malloc(camera_format_count * sizeof(char *));
+    VmbFeatureEnumRangeQuery(
+        vimbasrc->camera.handle,
+        "PixelFormat",
+        supported_formats,
+        camera_format_count,
+        NULL);
+
+    GST_DEBUG_OBJECT(vimbasrc, "Got %d supported formats", camera_format_count);
+    for (unsigned int i = 0; i < camera_format_count; i++)
+    {
+        const VimbaGstFormatMatch_t *format_map = gst_format_from_vimba_format(supported_formats[i]);
+        if (format_map != NULL)
+        {
+            GST_DEBUG_OBJECT(vimbasrc,
+                             "Vimba format \"%s\" corresponds to GStreamer format \"%s\"",
+                             supported_formats[i],
+                             format_map->gst_format_name);
+            vimbasrc->camera.supported_formats[vimbasrc->camera.supported_formats_count] = format_map;
+            vimbasrc->camera.supported_formats_count++;
+        }
+        else
+        {
+            GST_DEBUG_OBJECT(vimbasrc,
+                             "No corresponding GStreamer format found for vimba format \"%s\"",
+                             supported_formats[i]);
+        }
+    }
+    free(supported_formats);
 }
