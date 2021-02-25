@@ -333,7 +333,7 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
             }
             else
             {
-                GST_WARNING_OBJECT(vimbasrc, "Failed to set \"ExposureTime\" to %f. Return code was: %s", double_entry, ErrorCodeToMessage(result));
+                GST_WARNING_OBJECT(vimbasrc, "Failed to set \"ExposureTimeAbs\" to %f. Return code was: %s", double_entry, ErrorCodeToMessage(result));
             }
         }
         break;
