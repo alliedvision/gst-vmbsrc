@@ -1,4 +1,7 @@
 #include "vimba_helpers.h"
+
+#include <gst/gstinfo.h>
+
 #include <VimbaC/Include/VimbaC.h>
 
 //
@@ -55,4 +58,50 @@ const char *ErrorCodeToMessage(VmbError_t eError)
     default:
         return "Unknown";
     }
+}
+
+
+// Purpose: Discovers GigE cameras if GigE TL is present.
+//          Discovery is switched on only once so that the API can detect all currently connected cameras.
+VmbBool_t DiscoverGigECameras(GObject* object)
+{
+    VmbError_t  result = VmbErrorSuccess;
+    VmbBool_t   isGigE = VmbBoolFalse;
+
+    VmbBool_t   ret = VmbBoolFalse;
+
+    result = VmbFeatureBoolGet(gVimbaHandle, "GeVTLIsPresent", &isGigE);                 // Is Vimba connected to a GigE transport layer?
+    if (VmbErrorSuccess == result)
+    {
+        if (VmbBoolTrue == isGigE)
+        {
+            result = VmbFeatureIntSet(gVimbaHandle, "GeVDiscoveryAllDuration", 250);     // Set the waiting duration for discovery packets to return. If not set the default of 150 ms is used.
+            if (VmbErrorSuccess == result)
+            {
+                result = VmbFeatureCommandRun(gVimbaHandle, "GeVDiscoveryAllOnce");      // Send discovery packets to GigE cameras and wait 250 ms until they are answered
+                if (VmbErrorSuccess == result)
+                {
+                    ret = VmbBoolTrue;
+                }
+                else
+                {
+                    GST_ERROR_OBJECT(object, "Could not ping GigE cameras over the network. Reason: %d\n", ErrorCodeToMessage(result));
+                }
+            }
+            else
+            {
+                GST_ERROR_OBJECT(object, "Could not set the discovery waiting duration. Reason: %d\n", ErrorCodeToMessage(result));
+            }
+        }
+        else
+        {
+            GST_INFO_OBJECT(object, "Vimba is not connected to a GigE transport layer");
+        }
+    }
+    else
+    {
+        GST_ERROR_OBJECT(object, "Could not query Vimba for the presence of a GigE transport layer. Reason: %d\n\n", ErrorCodeToMessage(result));
+    }
+
+    return ret;
 }

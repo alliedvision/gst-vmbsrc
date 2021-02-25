@@ -66,7 +66,10 @@ enum
 {
     PROP_0,
     PROP_CAMERA_ID,
-    PROP_EXPOSUREAUTO
+    PROP_EXPOSUREAUTO,
+    PROP_BALANCEWHITEAUTO,
+    PROP_GAIN,
+    PROP_EXPOSURETIME
 };
 
 /* pad templates */
@@ -96,6 +99,26 @@ gst_vimbasrc_exposureauto_get_type(void)
             g_enum_register_static("GstVimbasrcExposureAutoModes", exposureauto_modes);
     }
     return vimbasrc_exposureauto_type;
+}
+
+/* Auto white balance modes */
+#define GST_ENUM_BALANCEWHITEAUTO_MODES (gst_vimbasrc_balancewhiteauto_get_type())
+static GType
+gst_vimbasrc_balancewhiteauto_get_type(void)
+{
+    static GType vimbasrc_balancewhiteauto_type = 0;
+    static const GEnumValue balancewhiteauto_modes[] = {
+        /* The "nick" (last entry) will be used to pass the setting value on to the Vimba FeatureEnum */
+        {GST_VIMBASRC_AUTOFEATURE_OFF, "White balancing is user controlled using BalanceRatioSelector and BalanceRatio", "Off"},
+        {GST_VIMBASRC_AUTOFEATURE_ONCE, "White balancing is automatically adjusted once by the device. Once it has converged, it automatically returns to the Off state", "Once"},
+        {GST_VIMBASRC_AUTOFEATURE_CONTINUOUS, "White balancing is constantly adjusted by the device", "Continuous"},
+        {0, NULL, NULL} };
+    if (!vimbasrc_balancewhiteauto_type)
+    {
+        vimbasrc_balancewhiteauto_type =
+            g_enum_register_static("GstVimbasrcBalanceWhiteAutoModes", balancewhiteauto_modes);
+    }
+    return vimbasrc_balancewhiteauto_type;
 }
 
 /* class initialization */
@@ -150,6 +173,38 @@ gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             GST_ENUM_EXPOSUREAUTO_MODES,
             GST_VIMBASRC_AUTOFEATURE_OFF,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_BALANCEWHITEAUTO,
+        g_param_spec_enum(
+            "balancewhiteauto",
+            "BalanceWhiteAuto feature setting",
+            "Controls the mode for automatic white balancing between the color channels. The white balancing ratios are automatically adjusted",
+            GST_ENUM_BALANCEWHITEAUTO_MODES,
+            GST_VIMBASRC_AUTOFEATURE_OFF,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_GAIN,
+        g_param_spec_double(
+            "gain",
+            "Gain feature setting",
+            "Controls the selected gain as an absolute physical value. This is an amplification factor applied to the video signal",
+            0.,
+            G_MAXDOUBLE,
+            0.,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_EXPOSURETIME,
+        g_param_spec_double(
+            "exposuretime",
+            "ExposureTime feature setting",
+            "Sets the Exposure time when ExposureMode is Timed and ExposureAuto is Off. This controls the duration where the photosensitive cells are exposed to light",
+            0.,
+            G_MAXDOUBLE,
+            0.,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -176,6 +231,11 @@ gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
         GST_WARNING_OBJECT(vimbasrc, "VmbVersionQuery failed with Reason: %s", ErrorCodeToMessage(result));
     }
 
+    if (DiscoverGigECameras((GObject*)vimbasrc) == VmbBoolFalse)
+    {
+        GST_INFO_OBJECT(vimbasrc, "GigE cameras will be ignored");
+    }
+
     // Mark this element as a live source (disable preroll)
     gst_base_src_set_live(GST_BASE_SRC(vimbasrc), TRUE);
     gst_base_src_set_format(GST_BASE_SRC(vimbasrc), GST_FORMAT_TIME);
@@ -190,6 +250,10 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
     GST_DEBUG_OBJECT(vimbasrc, "set_property");
 
     VmbError_t result;
+
+    GEnumValue* enum_entry;
+
+    gdouble double_entry;
 
     switch (property_id)
     {
@@ -207,8 +271,8 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
             // TODO: Can we signal an error to the pipeline to stop immediately?
         }
         break;
-    case PROP_EXPOSUREAUTO: ;
-        GEnumValue *enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), g_value_get_enum(value));
+    case PROP_EXPOSUREAUTO:
+        enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), g_value_get_enum(value));
         GST_DEBUG_OBJECT(vimbasrc, "Setting \"ExposureAuto\" to %s", enum_entry->value_nick);
         result = VmbFeatureEnumSet(vimbasrc->camera.handle, "ExposureAuto", enum_entry->value_nick);
         if (result == VmbErrorSuccess)
@@ -218,6 +282,59 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
         else
         {
             GST_WARNING_OBJECT(vimbasrc, "Failed to set \"ExposureAuto\" to %s. Return code was: %s", enum_entry->value_nick, ErrorCodeToMessage(result));
+        }
+        break;
+    case PROP_BALANCEWHITEAUTO:
+        enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_BALANCEWHITEAUTO_MODES), g_value_get_enum(value));
+        GST_DEBUG_OBJECT(vimbasrc, "Setting \"BalanceWhiteAuto\" to %s", enum_entry->value_nick);
+        result = VmbFeatureEnumSet(vimbasrc->camera.handle, "BalanceWhiteAuto", enum_entry->value_nick);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Failed to set \"BalanceWhiteAuto\" to %s. Return code was: %s", enum_entry->value_nick, ErrorCodeToMessage(result));
+        }
+        break;
+    case PROP_GAIN:
+        double_entry = g_value_get_double(value);
+        GST_DEBUG_OBJECT(vimbasrc, "Setting \"Gain\" to %f", double_entry);
+        result = VmbFeatureFloatSet(vimbasrc->camera.handle, "Gain", double_entry);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Failed to set \"Gain\" to %f. Return code was: %s", double_entry, ErrorCodeToMessage(result));
+        }
+        break;
+    case PROP_EXPOSURETIME:
+        // TODO: Workaround for cameras with legacy "ExposureTimeAbs" feature should be replaced with a general legacy feature name handling approach:
+        // A static table maps each property, e.g. "exposuretime", to a list of (feature name, set function, get function) pairs,
+        // e.g. [("ExposureTime", setExposureTime, getExposureTime), ("ExposureTimeAbs", setExposureTimeAbs, getExposureTimeAbs)].
+        // On startup, the feature list of the connected camera obtained from VmbFeaturesList() is used to determine which set/get function to use.
+
+        double_entry = g_value_get_double(value);
+        GST_DEBUG_OBJECT(vimbasrc, "Setting \"ExposureTime\" to %f", double_entry);
+        result = VmbFeatureFloatSet(vimbasrc->camera.handle, "ExposureTime", double_entry);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Failed to set \"ExposureTime\" to %f. Return code was: %s Setting \"ExposureTimeAbs\"", double_entry, ErrorCodeToMessage(result));
+            result = VmbFeatureFloatSet(vimbasrc->camera.handle, "ExposureTimeAbs", double_entry);
+            if (result == VmbErrorSuccess)
+            {
+                GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+            }
+            else
+            {
+                GST_WARNING_OBJECT(vimbasrc, "Failed to set \"ExposureTimeAbs\" to %f. Return code was: %s", double_entry, ErrorCodeToMessage(result));
+            }
         }
         break;
     default:
@@ -231,6 +348,12 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id,
 {
     GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
 
+    const char* vmbfeature_value_char;
+
+    double vmbfeature_value_double;
+
+    VmbError_t result;
+
     GST_DEBUG_OBJECT(vimbasrc, "get_property");
 
     switch (property_id)
@@ -238,17 +361,65 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id,
     case PROP_CAMERA_ID:
         g_value_set_string(value, vimbasrc->camera.id);
         break;
-    case PROP_EXPOSUREAUTO: ;
-        const char *vmbfeature_value;
-        VmbError_t result = VmbFeatureEnumGet(vimbasrc->camera.handle, "ExposureAuto", &vmbfeature_value);
+    case PROP_EXPOSUREAUTO:
+        result = VmbFeatureEnumGet(vimbasrc->camera.handle, "ExposureAuto", &vmbfeature_value_char);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc, "Camera returned the following value for \"ExposureAuto\": %s", vmbfeature_value);
-            g_value_set_enum(value, g_enum_get_value_by_nick(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), vmbfeature_value)->value);
+            GST_DEBUG_OBJECT(vimbasrc, "Camera returned the following value for \"ExposureAuto\": %s", vmbfeature_value_char);
+            g_value_set_enum(value, g_enum_get_value_by_nick(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), vmbfeature_value_char)->value);
         }
         else
         {
             GST_WARNING_OBJECT(vimbasrc, "Failed to read value of \"ExposureAuto\" from camera. Return code was: %s", ErrorCodeToMessage(result));
+        }
+        break;
+    case PROP_BALANCEWHITEAUTO:
+        result = VmbFeatureEnumGet(vimbasrc->camera.handle, "BalanceWhiteAuto", &vmbfeature_value_char);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Camera returned the following value for \"BalanceWhiteAuto\": %s", vmbfeature_value_char);
+            g_value_set_enum(value, g_enum_get_value_by_nick(g_type_class_ref(GST_ENUM_BALANCEWHITEAUTO_MODES), vmbfeature_value_char)->value);
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Failed to read value of \"BalanceWhiteAuto\" from camera. Return code was: %s", ErrorCodeToMessage(result));
+        }
+        break;
+    case PROP_GAIN:
+        result = VmbFeatureFloatGet(vimbasrc->camera.handle, "Gain", &vmbfeature_value_double);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Camera returned the following value for \"Gain\": %f", vmbfeature_value_double);
+            g_value_set_double(value, vmbfeature_value_double);
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Failed to read value of \"Gain\" from camera. Return code was: %s", ErrorCodeToMessage(result));
+        }
+        break;
+    case PROP_EXPOSURETIME:
+        // TODO: Workaround for cameras with legacy "ExposureTimeAbs" feature should be replaced with a general legacy feature name handling approach:
+        // See similar TODO above
+
+        result = VmbFeatureFloatGet(vimbasrc->camera.handle, "ExposureTime", &vmbfeature_value_double);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Camera returned the following value for \"ExposureTime\": %f", vmbfeature_value_double);
+            g_value_set_double(value, vmbfeature_value_double);
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Failed to read value of \"ExposureTime\" from camera. Return code was: %s", ErrorCodeToMessage(result));
+            result = VmbFeatureFloatGet(vimbasrc->camera.handle, "ExposureTimeAbs", &vmbfeature_value_double);
+            if (result == VmbErrorSuccess)
+            {
+                GST_DEBUG_OBJECT(vimbasrc, "Camera returned the following value for \"ExposureTimeAbs\": %f", vmbfeature_value_double);
+                g_value_set_double(value, vmbfeature_value_double);
+            }
+            else
+            {
+                GST_WARNING_OBJECT(vimbasrc, "Failed to read value of \"ExposureTimeAbs\" from camera. Return code was: %s", ErrorCodeToMessage(result));
+            }
         }
         break;
     default:
