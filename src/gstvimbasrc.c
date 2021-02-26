@@ -326,7 +326,7 @@ gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
     }
     gst_structure_set_value(raw_caps, "format", &pixel_format_raw_list);
 
-    GST_DEBUG_OBJECT(vimbasrc, "returning caps: %s", gst_caps_to_string(caps));
+    GST_DEBUG_OBJECT(vimbasrc, "returning caps: %" GST_PTR_FORMAT, caps);
 
     return caps;
 }
@@ -339,7 +339,7 @@ gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
 
     GST_DEBUG_OBJECT(vimbasrc, "set_caps");
 
-    GST_DEBUG_OBJECT(vimbasrc, "caps requested to be set: %s", gst_caps_to_string(caps));
+    GST_DEBUG_OBJECT(vimbasrc, "caps requested to be set: %" GST_PTR_FORMAT, caps);
 
     // TODO: save to assume that "format" is always exactly one format and not a list?
     // gst_caps_is_fixed might otherwise be a good check and gst_caps_normalize could help make sure
