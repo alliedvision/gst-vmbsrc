@@ -369,7 +369,9 @@ gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
         return FALSE;
     }
 
-    // TODO: Stop camera if it is already running before changing settings
+    // Changing width, height and pixel format can not be done while images are acquired
+    stop_image_acquisition(vimbasrc);
+
     VmbError_t result = VmbFeatureEnumSet(vimbasrc->camera.handle,
                                           "PixelFormat",
                                           vimba_format);
@@ -380,6 +382,8 @@ gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
                          vimba_format,
                          ErrorCodeToMessage(result));
     }
+
+    start_image_acquisition(vimbasrc);
 
     return TRUE;
 }
@@ -429,30 +433,7 @@ gst_vimbasrc_start(GstBaseSrc *src)
 
         if (result == VmbErrorSuccess)
         {
-            // Start Capture Engine
-            GST_DEBUG_OBJECT(vimbasrc, "Starting the capture engine");
-            result = VmbCaptureStart(vimbasrc->camera.handle);
-            if (result == VmbErrorSuccess)
-            {
-                // g_bStreaming = VmbBoolTrue;
-                GST_DEBUG_OBJECT(vimbasrc, "Queueing the vimba frames");
-                for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
-                {
-                    // Queue Frame
-                    result = VmbCaptureFrameQueue(vimbasrc->camera.handle, &vimbasrc->frame_buffers[i], &vimba_frame_callback);
-                    if (VmbErrorSuccess != result)
-                    {
-                        break;
-                    }
-                }
-
-                if (VmbErrorSuccess == result)
-                {
-                    // Start Acquisition
-                    GST_DEBUG_OBJECT(vimbasrc, "Running \"AcquisitionStart\" feature");
-                    result = VmbFeatureCommandRun(vimbasrc->camera.handle, "AcquisitionStart");
-                }
-            }
+            result = start_image_acquisition(vimbasrc);
         }
     }
 
@@ -478,14 +459,7 @@ gst_vimbasrc_stop(GstBaseSrc *src)
 
     GST_DEBUG_OBJECT(vimbasrc, "stop");
 
-    // Stop Acquisition
-    VmbFeatureCommandRun(vimbasrc->camera.handle, "AcquisitionStop");
-
-    // Stop Capture Engine
-    VmbCaptureEnd(vimbasrc->camera.handle);
-
-    // Flush the capture queue
-    VmbCaptureQueueFlush(vimbasrc->camera.handle);
+    stop_image_acquisition(vimbasrc);
 
     // TODO: Do we need to ensure that revoking is not interrupted by a dangling frame callback?
     // AquireApiLock();?
@@ -556,6 +530,53 @@ GST_PLUGIN_DEFINE(GST_VERSION_MAJOR,
                   "LGPL",
                   PACKAGE,
                   HOMEPAGE_URL)
+
+VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc)
+{
+    // Start Capture Engine
+    GST_DEBUG_OBJECT(vimbasrc, "Starting the capture engine");
+    VmbError_t result = VmbCaptureStart(vimbasrc->camera.handle);
+    if (result == VmbErrorSuccess)
+    {
+        // g_bStreaming = VmbBoolTrue;
+        GST_DEBUG_OBJECT(vimbasrc, "Queueing the vimba frames");
+        for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
+        {
+            // Queue Frame
+            result = VmbCaptureFrameQueue(vimbasrc->camera.handle, &vimbasrc->frame_buffers[i], &vimba_frame_callback);
+            if (VmbErrorSuccess != result)
+            {
+                break;
+            }
+        }
+
+        if (VmbErrorSuccess == result)
+        {
+            // Start Acquisition
+            GST_DEBUG_OBJECT(vimbasrc, "Running \"AcquisitionStart\" feature");
+            result = VmbFeatureCommandRun(vimbasrc->camera.handle, "AcquisitionStart");
+        }
+    }
+    return result;
+}
+
+
+VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc)
+{
+    // Stop Acquisition
+    GST_DEBUG_OBJECT(vimbasrc, "Running \"AcquisitionStop\" feature");
+    VmbError_t result = VmbFeatureCommandRun(vimbasrc->camera.handle, "AcquisitionStop");
+
+    // Stop Capture Engine
+    GST_DEBUG_OBJECT(vimbasrc, "Stopping the capture engine");
+    result = VmbCaptureEnd(vimbasrc->camera.handle);
+
+    // Flush the capture queue
+    GST_DEBUG_OBJECT(vimbasrc, "Flushing the capture queue");
+    VmbCaptureQueueFlush(vimbasrc->camera.handle);
+
+    return result;
+}
 
 void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, VmbFrame_t *frame)
 {
