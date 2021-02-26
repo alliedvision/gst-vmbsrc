@@ -309,7 +309,9 @@ gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
     gst_structure_set(raw_caps,
                       "width", GST_TYPE_INT_RANGE, 1, 2592,
                       "height", GST_TYPE_INT_RANGE, 1, 1944,
-                      "framerate", GST_TYPE_FRACTION, 10, 1,
+                      // TODO: Check if framerate should also be gotten from camera (e.g. as max-framerate here)
+                      // Mark the framerate as variable because triggering might cause variable framerate
+                      "framerate", GST_TYPE_FRACTION, 0, 1,
                       NULL);
 
     // Query supported pixel formats from camera and map them to GStreamer formats
