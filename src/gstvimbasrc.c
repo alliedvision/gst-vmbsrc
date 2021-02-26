@@ -622,7 +622,6 @@ VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc)
     return result;
 }
 
-
 VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc)
 {
     // Stop Acquisition
