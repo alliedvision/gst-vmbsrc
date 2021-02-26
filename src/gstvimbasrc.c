@@ -305,10 +305,41 @@ gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
     caps = gst_caps_make_writable(caps);
 
     // TODO: Query the capabilities from the camera and return sensible values
+    VmbInt64_t width_min, width_max, width_increment;
+    VmbInt64_t height_min, height_max, height_increment;
+
+    VmbFeatureIntRangeQuery(vimbasrc->camera.handle, "Width", &width_min, &width_max);
+    VmbFeatureIntRangeQuery(vimbasrc->camera.handle, "Height", &height_min, &height_max);
+
+    VmbFeatureIntIncrementQuery(vimbasrc->camera.handle, "Width", &width_increment);
+    VmbFeatureIntIncrementQuery(vimbasrc->camera.handle, "Height", &height_increment);
+
+    GValue width_range = G_VALUE_INIT;
+    GValue height_range = G_VALUE_INIT;
+
+    g_value_init(&width_range, GST_TYPE_INT_RANGE);
+    g_value_init(&height_range, GST_TYPE_INT_RANGE);
+
+    gst_value_set_int_range_step(&width_range,
+                                 (gint)width_min,
+                                 (gint)width_max,
+                                 (gint)width_increment);
+
+    gst_value_set_int_range_step(&height_range,
+                                 (gint)height_min,
+                                 (gint)height_max,
+                                 (gint)height_increment);
+
     GstStructure *raw_caps = gst_caps_get_structure(caps, 0);
+    gst_structure_set_value(raw_caps,
+                            "width",
+                            &width_range);
+
+    gst_structure_set_value(raw_caps,
+                            "height",
+                            &height_range);
+
     gst_structure_set(raw_caps,
-                      "width", GST_TYPE_INT_RANGE, 1, 2592,
-                      "height", GST_TYPE_INT_RANGE, 1, 1944,
                       // TODO: Check if framerate should also be gotten from camera (e.g. as max-framerate here)
                       // Mark the framerate as variable because triggering might cause variable framerate
                       "framerate", GST_TYPE_FRACTION, 0, 1,
