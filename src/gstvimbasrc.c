@@ -414,6 +414,35 @@ gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
                          "Could not set \"PixelFormat\" to \"%s\". Got return code \"%s\"",
                          vimba_format,
                          ErrorCodeToMessage(result));
+        return FALSE;
+    }
+
+    gint width;
+    gst_structure_get_int(structure, "width", &width);
+    result = VmbFeatureIntSet(vimbasrc->camera.handle,
+                              "Width",
+                              width);
+    if (result != VmbErrorSuccess)
+    {
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Could not set \"Width\" to \"%d\". Got return code \"%s\"",
+                         width,
+                         ErrorCodeToMessage(result));
+        return FALSE;
+    }
+
+    gint height;
+    gst_structure_get_int(structure, "height", &height);
+    result = VmbFeatureIntSet(vimbasrc->camera.handle,
+                              "Height",
+                              height);
+    if (result != VmbErrorSuccess)
+    {
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Could not set \"Height\" to \"%d\". Got return code \"%s\"",
+                         height,
+                         ErrorCodeToMessage(result));
+        return FALSE;
     }
 
     start_image_acquisition(vimbasrc);
