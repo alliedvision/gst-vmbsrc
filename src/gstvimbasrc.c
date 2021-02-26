@@ -341,7 +341,45 @@ gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
 
     GST_DEBUG_OBJECT(vimbasrc, "caps requested to be set: %s", gst_caps_to_string(caps));
 
-    // TODO: Actually set the capabilites
+    // TODO: save to assume that "format" is always exactly one format and not a list?
+    // gst_caps_is_fixed might otherwise be a good check and gst_caps_normalize could help make sure
+    // of it
+    GstStructure *structure;
+    structure = gst_caps_get_structure(caps, 0);
+    const char *gst_format = gst_structure_get_string(structure, "format");
+    GST_DEBUG_OBJECT(vimbasrc,
+                     "Looking for matching vimba pixel format to GSreamer format \"%s\"",
+                     gst_format);
+
+    const char *vimba_format = NULL;
+    for (unsigned int i = 0; i < vimbasrc->camera.supported_formats_count; i++)
+    {
+        if (strcmp(gst_format, vimbasrc->camera.supported_formats[i]->gst_format_name) == 0)
+        {
+            vimba_format = vimbasrc->camera.supported_formats[i]->vimba_format_name;
+            GST_DEBUG_OBJECT(vimbasrc, "Found matching vimba pixel format \"%s\"", vimba_format);
+            break;
+        }
+    }
+    if (vimba_format == NULL)
+    {
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Could not find a matching vimba pixel format for GStreamer format \"%s\"",
+                         gst_format);
+        return FALSE;
+    }
+
+    // TODO: Stop camera if it is already running before changing settings
+    VmbError_t result = VmbFeatureEnumSet(vimbasrc->camera.handle,
+                                          "PixelFormat",
+                                          vimba_format);
+    if (result != VmbErrorSuccess)
+    {
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Could not set \"PixelFormat\" to \"%s\". Got return code \"%s\"",
+                         vimba_format,
+                         ErrorCodeToMessage(result));
+    }
 
     return TRUE;
 }
