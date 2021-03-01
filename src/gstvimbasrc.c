@@ -600,7 +600,6 @@ VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc)
     VmbError_t result = VmbCaptureStart(vimbasrc->camera.handle);
     if (result == VmbErrorSuccess)
     {
-        // g_bStreaming = VmbBoolTrue;
         GST_DEBUG_OBJECT(vimbasrc, "Queueing the vimba frames");
         for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
         {
