@@ -577,17 +577,6 @@ gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
     VmbError_t result;
     // Changing width, height and pixel format can not be done while images are acquired
     result = stop_image_acquisition(vimbasrc);
-    // Store current PayloadSize to see if the frame buffer sizes need to be increased
-    VmbInt64_t old_payload_size;
-    result = VmbFeatureIntGet(vimbasrc->camera.handle, "PayloadSize", &old_payload_size);
-    if (result != VmbErrorSuccess)
-    {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Could not read \"PayloadSize\" feature. Got return code \"%s\"",
-                           ErrorCodeToMessage(result));
-        // Set a negative value so we are guaranteed to reallocate the buffers before stream start
-        old_payload_size = -1;
-    }
 
     result = VmbFeatureEnumSet(vimbasrc->camera.handle,
                                "PixelFormat",
@@ -630,10 +619,11 @@ gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
     }
 
     // Buffer size needs to be increased if the new payload size is greater than the old one because
-    // that means the previously allocated buffers are not large enough
+    // that means the previously allocated buffers are not large enough. We simply check the size of
+    // the first buffer because they were all allocated with the same size
     VmbInt64_t new_payload_size;
     result = VmbFeatureIntGet(vimbasrc->camera.handle, "PayloadSize", &new_payload_size);
-    if (old_payload_size < new_payload_size || result != VmbErrorSuccess)
+    if (vimbasrc->frame_buffers[0].bufferSize < new_payload_size || result != VmbErrorSuccess)
     {
         // Also reallocate buffers if PayloadSize could not be read because it might have increased
         GST_DEBUG_OBJECT(vimbasrc,
