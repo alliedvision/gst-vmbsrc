@@ -573,12 +573,25 @@ gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
         return FALSE;
     }
 
+    // Apply the requested caps to appropriate camera settings
+    VmbError_t result;
     // Changing width, height and pixel format can not be done while images are acquired
-    stop_image_acquisition(vimbasrc);
+    result = stop_image_acquisition(vimbasrc);
+    // Store current PayloadSize to see if the frame buffer sizes need to be increased
+    VmbInt64_t old_payload_size;
+    result = VmbFeatureIntGet(vimbasrc->camera.handle, "PayloadSize", &old_payload_size);
+    if (result != VmbErrorSuccess)
+    {
+        GST_WARNING_OBJECT(vimbasrc,
+                           "Could not read \"PayloadSize\" feature. Got return code \"%s\"",
+                           ErrorCodeToMessage(result));
+        // Set a negative value so we are guaranteed to reallocate the buffers before stream start
+        old_payload_size = -1;
+    }
 
-    VmbError_t result = VmbFeatureEnumSet(vimbasrc->camera.handle,
-                                          "PixelFormat",
-                                          vimba_format);
+    result = VmbFeatureEnumSet(vimbasrc->camera.handle,
+                               "PixelFormat",
+                               vimba_format);
     if (result != VmbErrorSuccess)
     {
         GST_ERROR_OBJECT(vimbasrc,
@@ -616,9 +629,24 @@ gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
         return FALSE;
     }
 
-    start_image_acquisition(vimbasrc);
+    // Buffer size needs to be increased if the new payload size is greater than the old one because
+    // that means the previously allocated buffers are not large enough
+    VmbInt64_t new_payload_size;
+    result = VmbFeatureIntGet(vimbasrc->camera.handle, "PayloadSize", &new_payload_size);
+    if (old_payload_size < new_payload_size || result != VmbErrorSuccess)
+    {
+        // Also reallocate buffers if PayloadSize could not be read because it might have increased
+        GST_DEBUG_OBJECT(vimbasrc,
+                         "PayloadSize increased. Reallocating frame buffers to ensure enough space");
+        revoke_and_free_buffers(vimbasrc);
+        result = alloc_and_announce_buffers(vimbasrc);
+    }
+    if (result == VmbErrorSuccess)
+    {
+        result = start_image_acquisition(vimbasrc);
+    }
 
-    return TRUE;
+    return result == VmbErrorSuccess ? TRUE : FALSE;
 }
 
 /* start and stop processing, ideal for opening/closing the resource */
@@ -637,37 +665,10 @@ gst_vimbasrc_start(GstBaseSrc *src)
     // Prepare queue for filled frames from which vimbasrc_create can take them
     g_filled_frame_queue = g_async_queue_new();
 
-    // Determine required buffer size and allocate memory
-    VmbInt64_t payload_size;
-    VmbError_t result = VmbFeatureIntGet(vimbasrc->camera.handle, "PayloadSize", &payload_size);
+    VmbError_t result = alloc_and_announce_buffers(vimbasrc);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Got \"PayloadSize\" of: %llu", payload_size);
-        GST_DEBUG_OBJECT(vimbasrc, "Allocating and announcing %d vimba frames", NUM_VIMBA_FRAMES);
-        for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
-        {
-            vimbasrc->frame_buffers[i].buffer = (unsigned char *)malloc((VmbUint32_t)payload_size);
-            if (NULL == vimbasrc->frame_buffers[i].buffer)
-            {
-                result = VmbErrorResources;
-                break;
-            }
-            vimbasrc->frame_buffers[i].bufferSize = (VmbUint32_t)payload_size;
-
-            // Announce Frame
-            result = VmbFrameAnnounce(vimbasrc->camera.handle, &vimbasrc->frame_buffers[i], (VmbUint32_t)sizeof(VmbFrame_t));
-            if (result != VmbErrorSuccess)
-            {
-                free(vimbasrc->frame_buffers[i].buffer);
-                memset(&vimbasrc->frame_buffers[i], 0, sizeof(VmbFrame_t));
-                break;
-            }
-        }
-
-        if (result == VmbErrorSuccess)
-        {
-            result = start_image_acquisition(vimbasrc);
-        }
+        result = start_image_acquisition(vimbasrc);
     }
 
     // Is this necessary?
@@ -763,6 +764,50 @@ GST_PLUGIN_DEFINE(GST_VERSION_MAJOR,
                   "LGPL",
                   PACKAGE,
                   HOMEPAGE_URL)
+
+VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbasrc)
+{
+    VmbInt64_t payload_size;
+    VmbError_t result = VmbFeatureIntGet(vimbasrc->camera.handle, "PayloadSize", &payload_size);
+    if (result == VmbErrorSuccess)
+    {
+        GST_DEBUG_OBJECT(vimbasrc, "Got \"PayloadSize\" of: %llu", payload_size);
+        GST_DEBUG_OBJECT(vimbasrc, "Allocating and announcing %d vimba frames", NUM_VIMBA_FRAMES);
+        for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
+        {
+            vimbasrc->frame_buffers[i].buffer = (unsigned char *)malloc((VmbUint32_t)payload_size);
+            if (NULL == vimbasrc->frame_buffers[i].buffer)
+            {
+                result = VmbErrorResources;
+                break;
+            }
+            vimbasrc->frame_buffers[i].bufferSize = (VmbUint32_t)payload_size;
+
+            // Announce Frame
+            result = VmbFrameAnnounce(vimbasrc->camera.handle, &vimbasrc->frame_buffers[i], (VmbUint32_t)sizeof(VmbFrame_t));
+            if (result != VmbErrorSuccess)
+            {
+                free(vimbasrc->frame_buffers[i].buffer);
+                memset(&vimbasrc->frame_buffers[i], 0, sizeof(VmbFrame_t));
+                break;
+            }
+        }
+    }
+    return result;
+}
+
+void revoke_and_free_buffers(GstVimbaSrc *vimbasrc)
+{
+    for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
+    {
+        if (NULL != vimbasrc->frame_buffers[i].buffer)
+        {
+            VmbFrameRevoke(vimbasrc->camera.handle, &vimbasrc->frame_buffers[i]);
+            free(vimbasrc->frame_buffers[i].buffer);
+            memset(&vimbasrc->frame_buffers[i], 0, sizeof(VmbFrame_t));
+        }
+    }
+}
 
 VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc)
 {
