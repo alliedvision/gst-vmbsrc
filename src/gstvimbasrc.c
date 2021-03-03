@@ -236,6 +236,7 @@ static void
 gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
 {
     GST_DEBUG_OBJECT(vimbasrc, "init");
+    GST_INFO_OBJECT(vimbasrc, "gst-vimbasrc version %s", VERSION);
     // Start the Vimba API
     VmbError_t result = VmbStartup();
     GST_DEBUG_OBJECT(vimbasrc, "VmbStartup returned: %s", ErrorCodeToMessage(result));
