@@ -74,13 +74,14 @@ enum
 };
 
 /* pad templates */
-// TODO: Add Bayer formats to template
-// TODO: What other formats are needed in the template?
 static GstStaticPadTemplate gst_vimbasrc_src_template =
     GST_STATIC_PAD_TEMPLATE("src",
                             GST_PAD_SRC,
                             GST_PAD_ALWAYS,
-                            GST_STATIC_CAPS(GST_VIDEO_CAPS_MAKE(GST_VIDEO_FORMATS_ALL)));
+                            GST_STATIC_CAPS(
+                                GST_VIDEO_CAPS_MAKE(GST_VIDEO_FORMATS_ALL)
+                                ";"
+                                GST_BAYER_CAPS_MAKE(GST_BAYER_FORMATS_ALL)));
 
 /* Auto exposure modes */
 #define GST_ENUM_EXPOSUREAUTO_MODES (gst_vimbasrc_exposureauto_get_type())

@@ -3,6 +3,16 @@
 
 #include <VimbaC/Include/VmbCommonTypes.h>
 
+// Helper as GStreamer only provides these macros for x-raw formats
+#define GST_BAYER_FORMATS_ALL "{ bggr, grbg, gbrg, rggb }"
+
+#define GST_BAYER_CAPS_MAKE(format)       \
+    "video/x-bayer, "                     \
+    "format = (string) " format ", "      \
+    "width = " GST_VIDEO_SIZE_RANGE ", "  \
+    "height = " GST_VIDEO_SIZE_RANGE ", " \
+    "framerate = " GST_VIDEO_FPS_RANGE
+
 typedef struct
 {
     const char *vimba_format_name;
