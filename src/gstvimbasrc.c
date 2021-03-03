@@ -201,7 +201,7 @@ gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
         g_param_spec_double(
             "exposuretime",
             "ExposureTime feature setting",
-            "Sets the Exposure time when ExposureMode is Timed and ExposureAuto is Off. This controls the duration where the photosensitive cells are exposed to light",
+            "Sets the Exposure time (in microseconds) when ExposureMode is Timed and ExposureAuto is Off. This controls the duration where the photosensitive cells are exposed to light",
             0.,
             G_MAXDOUBLE,
             0.,
