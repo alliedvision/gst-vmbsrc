@@ -30,6 +30,7 @@
  */
 
 #include "gstvimbasrc.h"
+#include "helpers.h"
 #include "vimba_helpers.h"
 #include "pixelformats.h"
 
@@ -79,9 +80,7 @@ static GstStaticPadTemplate gst_vimbasrc_src_template =
                             GST_PAD_SRC,
                             GST_PAD_ALWAYS,
                             GST_STATIC_CAPS(
-                                GST_VIDEO_CAPS_MAKE(GST_VIDEO_FORMATS_ALL)
-                                ";"
-                                GST_BAYER_CAPS_MAKE(GST_BAYER_FORMATS_ALL)));
+                                GST_VIDEO_CAPS_MAKE(GST_VIDEO_FORMATS_ALL) ";" GST_BAYER_CAPS_MAKE(GST_BAYER_FORMATS_ALL)));
 
 /* Auto exposure modes */
 #define GST_ENUM_EXPOSUREAUTO_MODES (gst_vimbasrc_exposureauto_get_type())
@@ -503,15 +502,27 @@ gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
                                  (gint)height_increment);
 
     GstStructure *raw_caps = gst_caps_get_structure(caps, 0);
+    GstStructure *bayer_caps = gst_caps_get_structure(caps, 1);
+
     gst_structure_set_value(raw_caps,
                             "width",
                             &width_range);
-
     gst_structure_set_value(raw_caps,
                             "height",
                             &height_range);
-
     gst_structure_set(raw_caps,
+                      // TODO: Check if framerate should also be gotten from camera (e.g. as max-framerate here)
+                      // Mark the framerate as variable because triggering might cause variable framerate
+                      "framerate", GST_TYPE_FRACTION, 0, 1,
+                      NULL);
+
+    gst_structure_set_value(bayer_caps,
+                            "width",
+                            &width_range);
+    gst_structure_set_value(bayer_caps,
+                            "height",
+                            &height_range);
+    gst_structure_set(bayer_caps,
                       // TODO: Check if framerate should also be gotten from camera (e.g. as max-framerate here)
                       // Mark the framerate as variable because triggering might cause variable framerate
                       "framerate", GST_TYPE_FRACTION, 0, 1,
@@ -519,17 +530,30 @@ gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
 
     // Query supported pixel formats from camera and map them to GStreamer formats
     GValue pixel_format_raw_list = G_VALUE_INIT;
-    GValue pixel_format = G_VALUE_INIT;
     g_value_init(&pixel_format_raw_list, GST_TYPE_LIST);
+
+    GValue pixel_format_bayer_list = G_VALUE_INIT;
+    g_value_init(&pixel_format_bayer_list, GST_TYPE_LIST);
+
+    GValue pixel_format = G_VALUE_INIT;
     g_value_init(&pixel_format, G_TYPE_STRING);
 
     // Add all supported GStreamer format string to the reported caps
     for (unsigned int i = 0; i < vimbasrc->camera.supported_formats_count; i++)
     {
         g_value_set_static_string(&pixel_format, vimbasrc->camera.supported_formats[i]->gst_format_name);
-        gst_value_list_append_value(&pixel_format_raw_list, &pixel_format);
+        // TODO: Should this perhaps be done via a flag in vimba_gst_format_matches?
+        if (starts_with(vimbasrc->camera.supported_formats[i]->vimba_format_name, "Bayer"))
+        {
+            gst_value_list_append_value(&pixel_format_bayer_list, &pixel_format);
+        }
+        else
+        {
+            gst_value_list_append_value(&pixel_format_raw_list, &pixel_format);
+        }
     }
     gst_structure_set_value(raw_caps, "format", &pixel_format_raw_list);
+    gst_structure_set_value(bayer_caps, "format", &pixel_format_bayer_list);
 
     GST_DEBUG_OBJECT(vimbasrc, "returning caps: %" GST_PTR_FORMAT, caps);
 

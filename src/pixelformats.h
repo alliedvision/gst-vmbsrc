@@ -36,7 +36,11 @@ static VimbaGstFormatMatch_t vimba_gst_format_matches[] = {
     {"Yuv422", "UYVY"},
     {"YCbCr422_8_CbYCrY", "UYVY"},
     {"Yuv444", "IYU2"},
-    {"YCbCr8_CbYCr", "IYU2"}};
+    {"YCbCr8_CbYCr", "IYU2"},
+    {"BayerGR8", "grbg"},
+    {"BayerRG8", "rggb"},
+    {"BayerGB8", "gbrg"},
+    {"BayerBG8", "bggr"}};
 #define NUM_FORMAT_MATCHES (sizeof(vimba_gst_format_matches) / sizeof(vimba_gst_format_matches[0]))
 
 // lookup supported gst cap by format string from camera
