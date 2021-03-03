@@ -80,7 +80,9 @@ frames from a Vimba compatible camera into subsequent GStreamer elements.
 
 The following pipeline can for example be used to display the recorded camera image. The
 `camera=<CAMERA-ID>` parameter needs to be adjusted to use the correct camera ID. The `width` and
-`height` parameters are used to control the output size of the recorded camera images.
+`height` parameters are used to control the output size of the recorded camera images. These
+features correspond to the `Width` and `Height` camera features and crop the recorded sensor area if
+they are not set to the full sensor size.
 ```
 gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 ! video/x-raw,width=2592,height=1944 ! videoscale ! videoconvert ! queue ! autovideosink
 ```
