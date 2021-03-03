@@ -113,7 +113,7 @@ gst_vimbasrc_balancewhiteauto_get_type(void)
         {GST_VIMBASRC_AUTOFEATURE_OFF, "White balancing is user controlled using BalanceRatioSelector and BalanceRatio", "Off"},
         {GST_VIMBASRC_AUTOFEATURE_ONCE, "White balancing is automatically adjusted once by the device. Once it has converged, it automatically returns to the Off state", "Once"},
         {GST_VIMBASRC_AUTOFEATURE_CONTINUOUS, "White balancing is constantly adjusted by the device", "Continuous"},
-        {0, NULL, NULL} };
+        {0, NULL, NULL}};
     if (!vimbasrc_balancewhiteauto_type)
     {
         vimbasrc_balancewhiteauto_type =
@@ -232,7 +232,7 @@ gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
         GST_WARNING_OBJECT(vimbasrc, "VmbVersionQuery failed with Reason: %s", ErrorCodeToMessage(result));
     }
 
-    if (DiscoverGigECameras((GObject*)vimbasrc) == VmbBoolFalse)
+    if (DiscoverGigECameras((GObject *)vimbasrc) == VmbBoolFalse)
     {
         GST_INFO_OBJECT(vimbasrc, "GigE cameras will be ignored");
     }
@@ -252,7 +252,7 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
 
     VmbError_t result;
 
-    GEnumValue* enum_entry;
+    GEnumValue *enum_entry;
 
     gdouble double_entry;
 
@@ -350,7 +350,7 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id,
 {
     GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
 
-    const char* vmbfeature_value_char;
+    const char *vmbfeature_value_char;
 
     double vmbfeature_value_double;
 
