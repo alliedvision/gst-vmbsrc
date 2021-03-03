@@ -8,7 +8,7 @@ const VimbaGstFormatMatch_t *gst_format_from_vimba_format(const char *vimba_form
     {
         if (strcmp(vimba_format, vimba_gst_format_matches[i].vimba_format_name) == 0)
         {
-                return &vimba_gst_format_matches[i];
+            return &vimba_gst_format_matches[i];
         }
     }
     return NULL;

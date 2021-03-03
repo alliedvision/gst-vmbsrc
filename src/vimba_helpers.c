@@ -60,25 +60,24 @@ const char *ErrorCodeToMessage(VmbError_t eError)
     }
 }
 
-
 // Purpose: Discovers GigE cameras if GigE TL is present.
 //          Discovery is switched on only once so that the API can detect all currently connected cameras.
-VmbBool_t DiscoverGigECameras(GObject* object)
+VmbBool_t DiscoverGigECameras(GObject *object)
 {
-    VmbError_t  result = VmbErrorSuccess;
-    VmbBool_t   isGigE = VmbBoolFalse;
+    VmbError_t result = VmbErrorSuccess;
+    VmbBool_t isGigE = VmbBoolFalse;
 
-    VmbBool_t   ret = VmbBoolFalse;
+    VmbBool_t ret = VmbBoolFalse;
 
-    result = VmbFeatureBoolGet(gVimbaHandle, "GeVTLIsPresent", &isGigE);                 // Is Vimba connected to a GigE transport layer?
+    result = VmbFeatureBoolGet(gVimbaHandle, "GeVTLIsPresent", &isGigE); // Is Vimba connected to a GigE transport layer?
     if (VmbErrorSuccess == result)
     {
         if (VmbBoolTrue == isGigE)
         {
-            result = VmbFeatureIntSet(gVimbaHandle, "GeVDiscoveryAllDuration", 250);     // Set the waiting duration for discovery packets to return. If not set the default of 150 ms is used.
+            result = VmbFeatureIntSet(gVimbaHandle, "GeVDiscoveryAllDuration", 250); // Set the waiting duration for discovery packets to return. If not set the default of 150 ms is used.
             if (VmbErrorSuccess == result)
             {
-                result = VmbFeatureCommandRun(gVimbaHandle, "GeVDiscoveryAllOnce");      // Send discovery packets to GigE cameras and wait 250 ms until they are answered
+                result = VmbFeatureCommandRun(gVimbaHandle, "GeVDiscoveryAllOnce"); // Send discovery packets to GigE cameras and wait 250 ms until they are answered
                 if (VmbErrorSuccess == result)
                 {
                     ret = VmbBoolTrue;
