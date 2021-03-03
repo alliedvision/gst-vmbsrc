@@ -30,6 +30,7 @@
  */
 
 #include "gstvimbasrc.h"
+#include "helpers.h"
 #include "vimba_helpers.h"
 #include "pixelformats.h"
 
@@ -74,13 +75,12 @@ enum
 };
 
 /* pad templates */
-// TODO: Add Bayer formats to template
-// TODO: What other formats are needed in the template?
 static GstStaticPadTemplate gst_vimbasrc_src_template =
     GST_STATIC_PAD_TEMPLATE("src",
                             GST_PAD_SRC,
                             GST_PAD_ALWAYS,
-                            GST_STATIC_CAPS(GST_VIDEO_CAPS_MAKE(GST_VIDEO_FORMATS_ALL)));
+                            GST_STATIC_CAPS(
+                                GST_VIDEO_CAPS_MAKE(GST_VIDEO_FORMATS_ALL) ";" GST_BAYER_CAPS_MAKE(GST_BAYER_FORMATS_ALL)));
 
 /* Auto exposure modes */
 #define GST_ENUM_EXPOSUREAUTO_MODES (gst_vimbasrc_exposureauto_get_type())
@@ -113,7 +113,7 @@ gst_vimbasrc_balancewhiteauto_get_type(void)
         {GST_VIMBASRC_AUTOFEATURE_OFF, "White balancing is user controlled using BalanceRatioSelector and BalanceRatio", "Off"},
         {GST_VIMBASRC_AUTOFEATURE_ONCE, "White balancing is automatically adjusted once by the device. Once it has converged, it automatically returns to the Off state", "Once"},
         {GST_VIMBASRC_AUTOFEATURE_CONTINUOUS, "White balancing is constantly adjusted by the device", "Continuous"},
-        {0, NULL, NULL} };
+        {0, NULL, NULL}};
     if (!vimbasrc_balancewhiteauto_type)
     {
         vimbasrc_balancewhiteauto_type =
@@ -201,7 +201,7 @@ gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
         g_param_spec_double(
             "exposuretime",
             "ExposureTime feature setting",
-            "Sets the Exposure time when ExposureMode is Timed and ExposureAuto is Off. This controls the duration where the photosensitive cells are exposed to light",
+            "Sets the Exposure time (in microseconds) when ExposureMode is Timed and ExposureAuto is Off. This controls the duration where the photosensitive cells are exposed to light",
             0.,
             G_MAXDOUBLE,
             0.,
@@ -232,7 +232,7 @@ gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
         GST_WARNING_OBJECT(vimbasrc, "VmbVersionQuery failed with Reason: %s", ErrorCodeToMessage(result));
     }
 
-    if (DiscoverGigECameras((GObject*)vimbasrc) == VmbBoolFalse)
+    if (DiscoverGigECameras((GObject *)vimbasrc) == VmbBoolFalse)
     {
         GST_INFO_OBJECT(vimbasrc, "GigE cameras will be ignored");
     }
@@ -252,7 +252,7 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
 
     VmbError_t result;
 
-    GEnumValue* enum_entry;
+    GEnumValue *enum_entry;
 
     gdouble double_entry;
 
@@ -350,7 +350,7 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id,
 {
     GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
 
-    const char* vmbfeature_value_char;
+    const char *vmbfeature_value_char;
 
     double vmbfeature_value_double;
 
@@ -502,15 +502,27 @@ gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
                                  (gint)height_increment);
 
     GstStructure *raw_caps = gst_caps_get_structure(caps, 0);
+    GstStructure *bayer_caps = gst_caps_get_structure(caps, 1);
+
     gst_structure_set_value(raw_caps,
                             "width",
                             &width_range);
-
     gst_structure_set_value(raw_caps,
                             "height",
                             &height_range);
-
     gst_structure_set(raw_caps,
+                      // TODO: Check if framerate should also be gotten from camera (e.g. as max-framerate here)
+                      // Mark the framerate as variable because triggering might cause variable framerate
+                      "framerate", GST_TYPE_FRACTION, 0, 1,
+                      NULL);
+
+    gst_structure_set_value(bayer_caps,
+                            "width",
+                            &width_range);
+    gst_structure_set_value(bayer_caps,
+                            "height",
+                            &height_range);
+    gst_structure_set(bayer_caps,
                       // TODO: Check if framerate should also be gotten from camera (e.g. as max-framerate here)
                       // Mark the framerate as variable because triggering might cause variable framerate
                       "framerate", GST_TYPE_FRACTION, 0, 1,
@@ -518,17 +530,30 @@ gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
 
     // Query supported pixel formats from camera and map them to GStreamer formats
     GValue pixel_format_raw_list = G_VALUE_INIT;
-    GValue pixel_format = G_VALUE_INIT;
     g_value_init(&pixel_format_raw_list, GST_TYPE_LIST);
+
+    GValue pixel_format_bayer_list = G_VALUE_INIT;
+    g_value_init(&pixel_format_bayer_list, GST_TYPE_LIST);
+
+    GValue pixel_format = G_VALUE_INIT;
     g_value_init(&pixel_format, G_TYPE_STRING);
 
     // Add all supported GStreamer format string to the reported caps
     for (unsigned int i = 0; i < vimbasrc->camera.supported_formats_count; i++)
     {
         g_value_set_static_string(&pixel_format, vimbasrc->camera.supported_formats[i]->gst_format_name);
-        gst_value_list_append_value(&pixel_format_raw_list, &pixel_format);
+        // TODO: Should this perhaps be done via a flag in vimba_gst_format_matches?
+        if (starts_with(vimbasrc->camera.supported_formats[i]->vimba_format_name, "Bayer"))
+        {
+            gst_value_list_append_value(&pixel_format_bayer_list, &pixel_format);
+        }
+        else
+        {
+            gst_value_list_append_value(&pixel_format_raw_list, &pixel_format);
+        }
     }
     gst_structure_set_value(raw_caps, "format", &pixel_format_raw_list);
+    gst_structure_set_value(bayer_caps, "format", &pixel_format_bayer_list);
 
     GST_DEBUG_OBJECT(vimbasrc, "returning caps: %" GST_PTR_FORMAT, caps);
 
@@ -713,6 +738,12 @@ gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
 
     // Wait until we can get a filled frame (added to queue in vimba_frame_callback)
     VmbFrame_t *frame = g_async_queue_pop(g_filled_frame_queue);
+
+    if (frame->receiveStatus == VmbFrameStatusIncomplete)
+    {
+        GST_WARNING_OBJECT(vimbasrc,
+                           "Received frame with ID \"%llu\" was incomplete", frame->frameID);
+    }
 
     // Prepare output buffer that will be filled with frame data
     GstBuffer *buffer = gst_buffer_new_and_alloc(frame->bufferSize);

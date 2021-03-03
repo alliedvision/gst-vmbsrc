@@ -3,6 +3,16 @@
 
 #include <VimbaC/Include/VmbCommonTypes.h>
 
+// Helper as GStreamer only provides these macros for x-raw formats
+#define GST_BAYER_FORMATS_ALL "{ bggr, grbg, gbrg, rggb }"
+
+#define GST_BAYER_CAPS_MAKE(format)       \
+    "video/x-bayer, "                     \
+    "format = (string) " format ", "      \
+    "width = " GST_VIDEO_SIZE_RANGE ", "  \
+    "height = " GST_VIDEO_SIZE_RANGE ", " \
+    "framerate = " GST_VIDEO_FPS_RANGE
+
 typedef struct
 {
     const char *vimba_format_name;
@@ -26,7 +36,11 @@ static VimbaGstFormatMatch_t vimba_gst_format_matches[] = {
     {"Yuv422", "UYVY"},
     {"YCbCr422_8_CbYCrY", "UYVY"},
     {"Yuv444", "IYU2"},
-    {"YCbCr8_CbYCr", "IYU2"}};
+    {"YCbCr8_CbYCr", "IYU2"},
+    {"BayerGR8", "grbg"},
+    {"BayerRG8", "rggb"},
+    {"BayerGB8", "gbrg"},
+    {"BayerBG8", "bggr"}};
 #define NUM_FORMAT_MATCHES (sizeof(vimba_gst_format_matches) / sizeof(vimba_gst_format_matches[0]))
 
 // lookup supported gst cap by format string from camera

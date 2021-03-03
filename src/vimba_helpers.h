@@ -7,6 +7,6 @@
 
 const char *ErrorCodeToMessage(VmbError_t eError);
 
-VmbBool_t DiscoverGigECameras(GObject* object);
+VmbBool_t DiscoverGigECameras(GObject *object);
 
 #endif // VIMBA_HELPERS_H_
