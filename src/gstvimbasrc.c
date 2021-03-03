@@ -739,7 +739,7 @@ gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
     // Wait until we can get a filled frame (added to queue in vimba_frame_callback)
     VmbFrame_t *frame = g_async_queue_pop(g_filled_frame_queue);
 
-    if (VmbFrameStatusIncomplete == frame->receiveStatus)
+    if (frame->receiveStatus == VmbFrameStatusIncomplete)
     {
         GST_WARNING_OBJECT(vimbasrc,
                            "Received frame with ID \"%llu\" was incomplete", frame->frameID);
