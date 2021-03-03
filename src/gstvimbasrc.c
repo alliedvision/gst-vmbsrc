@@ -371,6 +371,13 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
         {
             GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
         }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc,
+                               "Failed to set \"OffsetX\" to value \"%d\". Return code was: %s",
+                               int_entry,
+                               ErrorCodeToMessage(result));
+        }
         break;
     case PROP_OFFSETY:
         int_entry = g_value_get_int(value);
@@ -379,6 +386,13 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
         if (result == VmbErrorSuccess)
         {
             GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc,
+                               "Failed to set \"OffsetY\" to value \"%d\". Return code was: %s",
+                               int_entry,
+                               ErrorCodeToMessage(result));
         }
         break;
     default:
