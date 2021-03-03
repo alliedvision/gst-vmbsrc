@@ -71,7 +71,9 @@ enum
     PROP_EXPOSUREAUTO,
     PROP_BALANCEWHITEAUTO,
     PROP_GAIN,
-    PROP_EXPOSURETIME
+    PROP_EXPOSURETIME,
+    PROP_OFFSETX,
+    PROP_OFFSETY
 };
 
 /* pad templates */
@@ -206,6 +208,28 @@ gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             G_MAXDOUBLE,
             0.,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_OFFSETX,
+        g_param_spec_int(
+            "offsetx",
+            "OffsetX feature setting",
+            "Horizontal offset from the origin to the region of interest (in pixels).",
+            0,
+            G_MAXINT,
+            0,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_OFFSETY,
+        g_param_spec_int(
+            "offsety",
+            "OffsetY feature setting",
+            "Vertical offset from the origin to the region of interest (in pixels).",
+            0,
+            G_MAXINT,
+            0,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -253,8 +277,8 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
     VmbError_t result;
 
     GEnumValue *enum_entry;
-
     gdouble double_entry;
+    gint int_entry;
 
     switch (property_id)
     {
@@ -339,6 +363,24 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
             }
         }
         break;
+    case PROP_OFFSETX:
+        int_entry = g_value_get_int(value);
+        GST_DEBUG_OBJECT(vimbasrc, "Setting \"OffsetX\" to %d", int_entry);
+        result = VmbFeatureIntSet(vimbasrc->camera.handle, "OffsetX", int_entry);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        }
+        break;
+    case PROP_OFFSETY:
+        int_entry = g_value_get_int(value);
+        GST_DEBUG_OBJECT(vimbasrc, "Setting \"OffsetY\" to %d", int_entry);
+        result = VmbFeatureIntSet(vimbasrc->camera.handle, "OffsetY", int_entry);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        }
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
         break;
@@ -350,11 +392,11 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id,
 {
     GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
 
-    const char *vmbfeature_value_char;
-
-    double vmbfeature_value_double;
-
     VmbError_t result;
+
+    const char *vmbfeature_value_char;
+    double vmbfeature_value_double;
+    VmbInt64_t vmbfeature_value_int64;
 
     GST_DEBUG_OBJECT(vimbasrc, "get_property");
 
@@ -422,6 +464,30 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id,
             {
                 GST_WARNING_OBJECT(vimbasrc, "Failed to read value of \"ExposureTimeAbs\" from camera. Return code was: %s", ErrorCodeToMessage(result));
             }
+        }
+        break;
+    case PROP_OFFSETX:
+        result = VmbFeatureIntGet(vimbasrc->camera.handle, "OffsetX", &vmbfeature_value_int64);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Camera returned the following value for \"OffsetX\": %lld", vmbfeature_value_int64);
+            g_value_set_int(value, (gint)vmbfeature_value_int64);
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Could not read value for \"OffsetX\". Got return code %s", ErrorCodeToMessage(result));
+        }
+        break;
+    case PROP_OFFSETY:
+        result = VmbFeatureIntGet(vimbasrc->camera.handle, "OffsetY", &vmbfeature_value_int64);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Camera returned the following value for \"OffsetY\": %lld", vmbfeature_value_int64);
+            g_value_set_int(value, (gint)vmbfeature_value_int64);
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Could not read value for \"OffsetY\". Got return code %s", ErrorCodeToMessage(result));
         }
         break;
     default:
