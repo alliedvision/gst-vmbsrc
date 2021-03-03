@@ -78,6 +78,8 @@ GType gst_vimbasrc_get_type(void);
 
 G_END_DECLS
 
+VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbasrc);
+void revoke_and_free_buffers(GstVimbaSrc *vimbasrc);
 VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc);
 VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc);
 void VMB_CALL vimba_frame_callback(const VmbHandle_t cameraHandle, VmbFrame_t *pFrame);
