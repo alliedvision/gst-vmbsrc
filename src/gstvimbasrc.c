@@ -73,7 +73,9 @@ enum
     PROP_GAIN,
     PROP_EXPOSURETIME,
     PROP_OFFSETX,
-    PROP_OFFSETY
+    PROP_OFFSETY,
+    PROP_WIDTH,
+    PROP_HEIGHT
 };
 
 /* pad templates */
@@ -226,6 +228,28 @@ gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             "offsety",
             "OffsetY feature setting",
             "Vertical offset from the origin to the region of interest (in pixels).",
+            0,
+            G_MAXINT,
+            0,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_WIDTH,
+        g_param_spec_int(
+            "width",
+            "Width feature setting",
+            "Width of the image provided by the device (in pixels).",
+            0,
+            G_MAXINT,
+            0,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_HEIGHT,
+        g_param_spec_int(
+            "height",
+            "Height feature setting",
+            "Height of the image provided by the device (in pixels).",
             0,
             G_MAXINT,
             0,
@@ -396,6 +420,38 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id,
                                ErrorCodeToMessage(result));
         }
         break;
+    case PROP_WIDTH:
+        int_entry = g_value_get_int(value);
+        GST_DEBUG_OBJECT(vimbasrc, "Setting \"Width\" to %d", int_entry);
+        result = VmbFeatureIntSet(vimbasrc->camera.handle, "Width", int_entry);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc,
+                               "Failed to set \"Width\" to value \"%d\". Return code was: %s",
+                               int_entry,
+                               ErrorCodeToMessage(result));
+        }
+        break;
+    case PROP_HEIGHT:
+        int_entry = g_value_get_int(value);
+        GST_DEBUG_OBJECT(vimbasrc, "Setting \"Height\" to %d", int_entry);
+        result = VmbFeatureIntSet(vimbasrc->camera.handle, "Height", int_entry);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc,
+                               "Failed to set \"Height\" to value \"%d\". Return code was: %s",
+                               int_entry,
+                               ErrorCodeToMessage(result));
+        }
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
         break;
@@ -505,6 +561,30 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id,
             GST_WARNING_OBJECT(vimbasrc, "Could not read value for \"OffsetY\". Got return code %s", ErrorCodeToMessage(result));
         }
         break;
+    case PROP_WIDTH:
+        result = VmbFeatureIntGet(vimbasrc->camera.handle, "Width", &vmbfeature_value_int64);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Camera returned the following value for \"Width\": %lld", vmbfeature_value_int64);
+            g_value_set_int(value, (gint)vmbfeature_value_int64);
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Could not read value for \"Width\". Got return code %s", ErrorCodeToMessage(result));
+        }
+        break;
+    case PROP_HEIGHT:
+        result = VmbFeatureIntGet(vimbasrc->camera.handle, "Height", &vmbfeature_value_int64);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc, "Camera returned the following value for \"Height\": %lld", vmbfeature_value_int64);
+            g_value_set_int(value, (gint)vmbfeature_value_int64);
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc, "Could not read value for \"Height\". Got return code %s", ErrorCodeToMessage(result));
+        }
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
         break;
@@ -557,40 +637,32 @@ gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
     caps = gst_caps_make_writable(caps);
 
     // TODO: Query the capabilities from the camera and return sensible values
-    VmbInt64_t width_min, width_max, width_increment;
-    VmbInt64_t height_min, height_max, height_increment;
+    VmbInt64_t vmb_width, vmb_height;
 
-    VmbFeatureIntRangeQuery(vimbasrc->camera.handle, "Width", &width_min, &width_max);
-    VmbFeatureIntRangeQuery(vimbasrc->camera.handle, "Height", &height_min, &height_max);
+    VmbFeatureIntGet(vimbasrc->camera.handle, "Width", &vmb_width);
+    VmbFeatureIntGet(vimbasrc->camera.handle, "Height", &vmb_height);
 
-    VmbFeatureIntIncrementQuery(vimbasrc->camera.handle, "Width", &width_increment);
-    VmbFeatureIntIncrementQuery(vimbasrc->camera.handle, "Height", &height_increment);
+    GValue width = G_VALUE_INIT;
+    GValue height = G_VALUE_INIT;
 
-    GValue width_range = G_VALUE_INIT;
-    GValue height_range = G_VALUE_INIT;
+    g_value_init(&width, G_TYPE_INT);
+    g_value_init(&height, G_TYPE_INT);
 
-    g_value_init(&width_range, GST_TYPE_INT_RANGE);
-    g_value_init(&height_range, GST_TYPE_INT_RANGE);
+    g_value_set_int(&width,
+                    (gint)vmb_width);
 
-    gst_value_set_int_range_step(&width_range,
-                                 (gint)width_min,
-                                 (gint)width_max,
-                                 (gint)width_increment);
-
-    gst_value_set_int_range_step(&height_range,
-                                 (gint)height_min,
-                                 (gint)height_max,
-                                 (gint)height_increment);
+    g_value_set_int(&height,
+                    (gint)vmb_height);
 
     GstStructure *raw_caps = gst_caps_get_structure(caps, 0);
     GstStructure *bayer_caps = gst_caps_get_structure(caps, 1);
 
     gst_structure_set_value(raw_caps,
                             "width",
-                            &width_range);
+                            &width);
     gst_structure_set_value(raw_caps,
                             "height",
-                            &height_range);
+                            &height);
     gst_structure_set(raw_caps,
                       // TODO: Check if framerate should also be gotten from camera (e.g. as max-framerate here)
                       // Mark the framerate as variable because triggering might cause variable framerate
@@ -599,10 +671,10 @@ gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
 
     gst_structure_set_value(bayer_caps,
                             "width",
-                            &width_range);
+                            &width);
     gst_structure_set_value(bayer_caps,
                             "height",
-                            &height_range);
+                            &height);
     gst_structure_set(bayer_caps,
                       // TODO: Check if framerate should also be gotten from camera (e.g. as max-framerate here)
                       // Mark the framerate as variable because triggering might cause variable framerate
@@ -681,7 +753,7 @@ gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
 
     // Apply the requested caps to appropriate camera settings
     VmbError_t result;
-    // Changing width, height and pixel format can not be done while images are acquired
+    // Changing the pixel format can not be done while images are acquired
     result = stop_image_acquisition(vimbasrc);
 
     result = VmbFeatureEnumSet(vimbasrc->camera.handle,
@@ -696,33 +768,9 @@ gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
         return FALSE;
     }
 
-    gint width;
-    gst_structure_get_int(structure, "width", &width);
-    result = VmbFeatureIntSet(vimbasrc->camera.handle,
-                              "Width",
-                              width);
-    if (result != VmbErrorSuccess)
-    {
-        GST_ERROR_OBJECT(vimbasrc,
-                         "Could not set \"Width\" to \"%d\". Got return code \"%s\"",
-                         width,
-                         ErrorCodeToMessage(result));
-        return FALSE;
-    }
-
-    gint height;
-    gst_structure_get_int(structure, "height", &height);
-    result = VmbFeatureIntSet(vimbasrc->camera.handle,
-                              "Height",
-                              height);
-    if (result != VmbErrorSuccess)
-    {
-        GST_ERROR_OBJECT(vimbasrc,
-                         "Could not set \"Height\" to \"%d\". Got return code \"%s\"",
-                         height,
-                         ErrorCodeToMessage(result));
-        return FALSE;
-    }
+    // width and height are always the value that is already written on the camera because get_caps
+    // only reports that value. Setting it here is not necessary as the feature values are
+    // controlled via properties of the element.
 
     // Buffer size needs to be increased if the new payload size is greater than the old one because
     // that means the previously allocated buffers are not large enough. We simply check the size of
