@@ -24,7 +24,7 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.19.4/cmake-3.19.4
     make install
 
 # This image will perform the actual GStreamer plugin build process
-FROM build_base as gst-vimba_builder
+FROM build_base as gst-vimbasrc_builder
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
         libgstreamer1.0-dev \
@@ -36,8 +36,8 @@ COPY --from=cmake_installer /usr/local /usr/local
 ENV VIMBA_HOME=/vimba
 
 # mount the checked out repository into this volume
-VOLUME ["/gst-vimba"]
-WORKDIR /gst-vimba
+VOLUME ["/gst-vimbasrc"]
+WORKDIR /gst-vimbasrc
 
 # Follow README
 CMD ["sh", "build.sh"]
