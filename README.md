@@ -1,6 +1,6 @@
 # gst-vimbasrc
-This project contains a plugin to make cameras supported by Allied Vision Technologies Vimba API
-available as GStreamer sources.
+This project contains the official plugin to make cameras supported by Allied Vision Technologies
+Vimba API available as GStreamer sources.
 
 ## Building
 A CMakeLists.txt file is provided that should be used to build the plugin. For convenience this
@@ -34,7 +34,7 @@ docker build -t gst-vimbasrc:18.04 .
 
 #### Compiling vimbasrc using the Docker image
 After running the build command described above, a Docker image with the tag `gst-vimbasrc:18.04`
-will be created. This which can be used to run the build process of the plugin.
+will be created. This can be used to run the build process of the plugin.
 
 Building the plugin with this image is simply a matter of mounting the source code directory and the
 desired Vimba installation directory into the image at appropriate paths, and letting it run the
@@ -70,7 +70,7 @@ adding an appropriate `.conf` file to `/etc/ld.so.conf.d/`.
 
 Correct installation of `libVimbaC.so` can be checked, by searching for its file name in the output
 of `ldconfig -v` (e.g.: `ldconfig -v | grep libVimbaC.so`). Alternatively correct loading of
-dependent shared libraries can be checked with `ldd` (e.g. `ldd libgstvimba.so`).
+dependent shared libraries can be checked with `ldd` (e.g. `ldd libgstvimbasrc.so`).
 
 ## Usage
 **The vimbasrc plugin is still in active development. Please keep the _Known issues and limitations_
