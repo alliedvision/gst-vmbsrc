@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(
     gstvimbasrc
-    VERSION 0.0.1
+    VERSION 0.1.0
     LANGUAGES C
     DESCRIPTION "GStreamer source plugin for Vimba cameras"
     # TODO: Should this URL instead point to the Github Repo we plan to use for this project?
@@ -15,6 +15,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 add_library(${PROJECT_NAME} SHARED
     src/gstvimbasrc.c
     src/vimba_helpers.c
+    src/pixelformats.c
 )
 
 # Defines used in gstplugin.c

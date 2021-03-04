@@ -79,29 +79,80 @@ in mind when specifying your GStreamer pipelines and using it**
 frames from a Vimba compatible camera into subsequent GStreamer elements.
 
 The following pipeline can for example be used to display the recorded camera image. The
-`camera=<CAMERA-ID>` parameter needs to be adjusted to use the correct camera ID. The `width` and
-`height` parameters are used to control the output size of the recorded camera images.
+`camera=<CAMERA-ID>` parameter needs to be adjusted to use the correct camera ID.
 ```
 gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 ! video/x-raw,width=2592,height=1944 ! videoscale ! videoconvert ! queue ! autovideosink
 ```
+The `width` and `height` parameters in the
+[capsfilter](https://gstreamer.freedesktop.org/documentation/coreelements/capsfilter.html) are used
+to control the output size of the recorded camera images. These features correspond to the `Width`
+and `Height` camera features and crop the recorded sensor area if they are not set to the full
+sensor size. Their respective values must be set to values accepted by the corresponding camera
+feature. Otherwise the GStreamer Pipeline will fail with a message informing the user, that linking
+of `vimbasrc` and the following element failed because "`vimbasrc` can't handle caps `<attempted
+caps printed here>`".
 
 ### Supported camera features
 A list of supported camera features can be found by using the `gst-inspect` tool on the `vimbasrc`
 element. This will display a list of available "Element Properties", which include the available
 camera features.
 
+For some of the exposed features camera specific restrictions in the allowed values may apply. For
+example the `OffsetX` and `OffsetY` features may only accept integer values between a minimum and a
+maximum value in a certain interval. In cases where the provided value could not be applied a
+logging message with level `WARNING` will be printed (make sure that an appropriate logging level is
+set: e.g. `GST_DEBUG=vimbasrc:WARNING` or higher) and image acquisition will proceed.
+
+### Supported pixel formats
+Selecting the desired format can be achieved by defining it in a GStreamer capsfilter element (e.g.
+`video/x-raw,format=GRAY8`). A full example pipeline setting the GStreamer GRAY8 format is shown
+below. Selecting the GStreamer GRAY8 format will set the Mono8 Vimba Format in the used camera to
+record images.
+```
+gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 ! video/x-raw,format=GRAY8,width=2592,height=1944 ! videoscale ! videoconvert ! queue ! autovideosink
+```
+
+Not all Vimba pixel formats can be mapped to compatible GStreamer video formats. This is especially
+true for the "packed" formats. The following tables provide a mapping where possible.
+
+#### GStreamer video/x-raw Formats
+| Vimba Format        | GStreamer video/x-raw Format |
+|---------------------|------------------------------|
+| Mono8               | GRAY8                        |
+| Mono10              | GRAY16_LE                    |
+| Mono12              | GRAY16_LE                    |
+| Mono14              | GRAY16_LE                    |
+| Mono16              | GRAY16_LE                    |
+| RGB8                | RGB                          |
+| BGR8                | BGR                          |
+| Argb8               | ARGB                         |
+| Rgba8               | RGBA                         |
+| Bgra8               | BGRA                         |
+| Yuv411              | IYU1                         |
+| YCbCr411_8_CbYYCrYY | IYU1                         |
+| Yuv422              | UYVY                         |
+| YCbCr422_8_CbYCrY   | UYVY                         |
+| Yuv444              | IYU2                         |
+| YCbCr8_CbYCr        | IYU2                         |
+
+#### GStreamer video/x-bayer Formats
+The GStreamer `x-bayer` formats in the following table are compatible with the GStreamer
+[`bayer2rgb`](https://gstreamer.freedesktop.org/documentation/bayer/bayer2rgb.html) element, which
+is able to debayer the data into a widely accepted RGBA format.
+
+| Vimba Format        | GStreamer video/x-bayer Format |
+|---------------------|--------------------------------|
+| BayerGR8            | grbg                           |
+| BayerRG8            | rggb                           |
+| BayerGB8            | gbrg                           |
+| BayerBG8            | bggr                           |
+
 ## Known issues and limitations
 - Frame status is not considered in `gst_vimbasrc_create`. This means that incomplete frames may get
   pushed out to the GStreamer pipeline where parts of the frame may contain garbage or old image
   data
-- `width` and `height` are not considered correctly. Currently resolution values for Alvium 500m
-  cameras are hard-coded. Other sensor sizes might or might not work but display will definitely be
-  incorrect
-- `gst_vimbasrc_set_caps` currently does not set negotiated settings on the camera.
-- Only the `Mono8` Vimba pixel format (GStreamer equivalent: `video/x-raw,format=GRAY8`) is
-  supported and hard coded into `gst_vimbasrc_get_caps`. The pixel format is not adjusted on the
-  camera but instead the default format is kept. On color cameras this might lead to incorrect
-  image/errors data due to pixel layout differences and unexpected buffer sizes
+    - A warning message is output if an incomplete frame is encountered (only displayed if logging
+      level is set appropriately)
 - When closing the camera connection the buffer storing the `camera_id` contains unexpected
   characters. Buffer might be emptied too early which could have an impact on the `VmbCameraClose`
   call

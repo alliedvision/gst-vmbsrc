@@ -19,6 +19,8 @@
 #ifndef _GST_vimbasrc_H_
 #define _GST_vimbasrc_H_
 
+#include "pixelformats.h"
+
 #include <gst/base/gstpushsrc.h>
 #include <glib.h>
 
@@ -58,6 +60,10 @@ struct _GstVimbaSrc
     {
         const gchar *id;
         VmbHandle_t handle;
+        VmbUint32_t supported_formats_count;
+        // TODO: This overallocates since no camera will actually support all possible format
+        // matches. Allocate and fill at runtime?
+        const VimbaGstFormatMatch_t *supported_formats[NUM_FORMAT_MATCHES];
     } camera;
 
     VmbFrame_t frame_buffers[NUM_VIMBA_FRAMES];
@@ -72,6 +78,11 @@ GType gst_vimbasrc_get_type(void);
 
 G_END_DECLS
 
+VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbasrc);
+void revoke_and_free_buffers(GstVimbaSrc *vimbasrc);
+VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc);
+VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc);
 void VMB_CALL vimba_frame_callback(const VmbHandle_t cameraHandle, VmbFrame_t *pFrame);
+void query_supported_pixel_formats(GstVimbaSrc *vimbasrc);
 
 #endif
