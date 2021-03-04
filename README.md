@@ -1,4 +1,4 @@
-# gst-vimba
+# gst-vimbasrc
 This project contains a plugin to make cameras supported by Allied Vision Technologies Vimba API
 available as GStreamer sources.
 
@@ -29,23 +29,24 @@ mounting a Vimba installation into the Docker container.
 In order to build the docker image from the `Dockerfile`, run the following command inside the
 directory containing it:
 ```
-docker build -t gst-vimba:18.04 .
+docker build -t gst-vimbasrc:18.04 .
 ```
 
 #### Compiling vimbasrc using the Docker image
-After running the build command described above, a Docker image with the tag `gst-vimba:18.04` will
-be created. This which can be used to run the build process of the plugin.
+After running the build command described above, a Docker image with the tag `gst-vimbasrc:18.04`
+will be created. This which can be used to run the build process of the plugin.
 
 Building the plugin with this image is simply a matter of mounting the source code directory and the
 desired Vimba installation directory into the image at appropriate paths, and letting it run the
 provided `build.sh` script. The expected paths into which to mount these directories are:
-- **/gst-vimba**: Path inside the Docker container in which the gst-vimba project should be mounted
+- **/gst-vimbasrc**: Path inside the Docker container in which the gst-vimbasrc project should be
+  mounted
 - **/vimba**: Path inside the Docker container under which the desired Vimba installation should be
   mounted
 
 The full build command to be executed on the host would be as follows:
 ```
-docker run --rm -it --volume /path/to/gst-vimba:/gst-vimba --volume /path/to/Vimba_X_Y:/vimba gst-vimba:18.04
+docker run --rm -it --volume /path/to/gst-vimbasrc:/gst-vimbasrc --volume /path/to/Vimba_X_Y:/vimba gst-vimbasrc:18.04
 ```
 
 ## Installation
