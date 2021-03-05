@@ -48,8 +48,8 @@ typedef struct _GstVimbaSrcClass GstVimbaSrcClass;
 
 #define NUM_VIMBA_FRAMES 3
 
-// global queue in which filled Vimba frames are placed in the vimba_frame_callback
-// (has to be global as no context can be passed to VmbFrameCallback functions)
+// global queue in which filled Vimba frames are placed in the vimba_frame_callback (has to be global as no context can
+// be passed to VmbFrameCallback functions)
 GAsyncQueue *g_filled_frame_queue;
 
 struct _GstVimbaSrc
@@ -61,8 +61,8 @@ struct _GstVimbaSrc
         const gchar *id;
         VmbHandle_t handle;
         VmbUint32_t supported_formats_count;
-        // TODO: This overallocates since no camera will actually support all possible format
-        // matches. Allocate and fill at runtime?
+        // TODO: This overallocates since no camera will actually support all possible format matches. Allocate and fill
+        // at runtime?
         const VimbaGstFormatMatch_t *supported_formats[NUM_FORMAT_MATCHES];
     } camera;
 
