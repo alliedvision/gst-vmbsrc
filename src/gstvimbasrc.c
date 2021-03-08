@@ -817,16 +817,7 @@ static gboolean gst_vimbasrc_stop(GstBaseSrc *src)
 
     stop_image_acquisition(vimbasrc);
 
-    // TODO: Do we need to ensure that revoking is not interrupted by a dangling frame callback?
-    for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
-    {
-        if (NULL != vimbasrc->frame_buffers[i].buffer)
-        {
-            VmbFrameRevoke(vimbasrc->camera.handle, &vimbasrc->frame_buffers[i]);
-            free(vimbasrc->frame_buffers[i].buffer);
-            memset(&vimbasrc->frame_buffers[i], 0, sizeof(VmbFrame_t));
-        }
-    }
+    revoke_and_free_buffers(vimbasrc);
 
     // Unref the filled frame queue so it is deleted properly
     g_async_queue_unref(g_filled_frame_queue);
