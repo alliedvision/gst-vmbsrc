@@ -27,6 +27,8 @@
 #include <VimbaC/Include/VimbaC.h>
 #include <VimbaC/Include/VmbCommonTypes.h>
 
+#include <stdbool.h>
+
 G_BEGIN_DECLS
 
 #define GST_TYPE_vimbasrc (gst_vimbasrc_get_type())
@@ -64,6 +66,7 @@ struct _GstVimbaSrc
         // TODO: This overallocates since no camera will actually support all possible format matches. Allocate and fill
         // at runtime?
         const VimbaGstFormatMatch_t *supported_formats[NUM_FORMAT_MATCHES];
+        bool is_connected;
     } camera;
     struct
     {
