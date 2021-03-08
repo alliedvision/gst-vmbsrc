@@ -65,6 +65,18 @@ struct _GstVimbaSrc
         // at runtime?
         const VimbaGstFormatMatch_t *supported_formats[NUM_FORMAT_MATCHES];
     } camera;
+    struct
+    {
+        const char *camera_id;
+        int exposureauto;
+        int balancewhiteauto;
+        double gain;
+        double exposuretime;
+        int offsetx;
+        int offsety;
+        int width;
+        int height;
+    } properties;
 
     VmbFrame_t frame_buffers[NUM_VIMBA_FRAMES];
 };
@@ -78,6 +90,9 @@ GType gst_vimbasrc_get_type(void);
 
 G_END_DECLS
 
+VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc);
+VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc);
+VmbError_t set_roi(GstVimbaSrc *vimbasrc);
 VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbasrc);
 void revoke_and_free_buffers(GstVimbaSrc *vimbasrc);
 VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc);
