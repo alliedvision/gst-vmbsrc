@@ -67,6 +67,7 @@ struct _GstVimbaSrc
         // at runtime?
         const VimbaGstFormatMatch_t *supported_formats[NUM_FORMAT_MATCHES];
         bool is_connected;
+        bool is_acquiring;
     } camera;
     struct
     {

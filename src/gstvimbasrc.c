@@ -908,11 +908,18 @@ VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc)
         // TODO: List available cameras in this case?
         // TODO: Can we signal an error to the pipeline to stop immediately?
     }
+    vimbasrc->camera.is_acquiring = false;
     return result;
 }
 
 VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
 {
+    bool was_acquiring = vimbasrc->camera.is_acquiring;
+    if (vimbasrc->camera.is_acquiring)
+    {
+        GST_DEBUG_OBJECT(vimbasrc, "Camera was acquiring. Stopping to change feature settings");
+        stop_image_acquisition(vimbasrc);
+    }
     GEnumValue *enum_entry;
     // Exposure Auto
     enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), vimbasrc->properties.exposureauto);
@@ -997,6 +1004,12 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
     }
 
     result = set_roi(vimbasrc);
+
+    if (was_acquiring)
+    {
+        GST_DEBUG_OBJECT(vimbasrc, "Camera was acquiring before changing feature settings. Restarting.");
+        result = start_image_acquisition(vimbasrc);
+    }
 
     return result;
 }
@@ -1175,6 +1188,7 @@ VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc)
             // Start Acquisition
             GST_DEBUG_OBJECT(vimbasrc, "Running \"AcquisitionStart\" feature");
             result = VmbFeatureCommandRun(vimbasrc->camera.handle, "AcquisitionStart");
+            vimbasrc->camera.is_acquiring = true;
         }
     }
     return result;
@@ -1185,6 +1199,7 @@ VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc)
     // Stop Acquisition
     GST_DEBUG_OBJECT(vimbasrc, "Running \"AcquisitionStop\" feature");
     VmbError_t result = VmbFeatureCommandRun(vimbasrc->camera.handle, "AcquisitionStop");
+    vimbasrc->camera.is_acquiring = false;
 
     // Stop Capture Engine
     GST_DEBUG_OBJECT(vimbasrc, "Stopping the capture engine");
