@@ -238,10 +238,10 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
         g_param_spec_int(
             "width",
             "Width feature setting",
-            "Width of the image provided by the device (in pixels).",
+            "Width of the image provided by the device (in pixels). If no explicit value is passed the full sensor width is used.",
             0,
             G_MAXINT,
-            0,
+            G_MAXINT,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -249,10 +249,10 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
         g_param_spec_int(
             "height",
             "Height feature setting",
-            "Height of the image provided by the device (in pixels).",
+            "Height of the image provided by the device (in pixels). If no explicit value is passed the full sensor height is used.",
             0,
             G_MAXINT,
-            0,
+            G_MAXINT,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
@@ -1001,9 +1001,80 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
 
 VmbError_t set_roi(GstVimbaSrc *vimbasrc)
 {
+    // TODO: Improve error handling (Perhaps more explicit allowed values are enough?) Early exit on errors?
+
+    // Reset OffsetX and OffsetY to 0 so that full sensor width is usable for width/height
+    VmbError_t result;
+    GST_DEBUG_OBJECT(vimbasrc, "Temporarily resetting \"OffsetX\" and \"OffsetY\" to 0");
+    result = VmbFeatureIntSet(vimbasrc->camera.handle, "OffsetX", 0);
+    if (result != VmbErrorSuccess)
+    {
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"OffsetX\" to 0. Return code was: %s",
+                         vimbasrc->properties.offsetx,
+                         ErrorCodeToMessage(result));
+    }
+    result = VmbFeatureIntSet(vimbasrc->camera.handle, "OffsetY", 0);
+    if (result != VmbErrorSuccess)
+    {
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"OffsetY\" to 0. Return code was: %s",
+                         vimbasrc->properties.offsetx,
+                         ErrorCodeToMessage(result));
+    }
+
+    // Set Width to full sensor if no explicit width was set
+    if (vimbasrc->properties.width == INT_MAX)
+    {
+        VmbInt64_t vmb_width;
+        result = VmbFeatureIntRangeQuery(vimbasrc->camera.handle, "Width", NULL, &vmb_width);
+        GST_DEBUG_OBJECT(vimbasrc,
+                         "Setting \"Width\" to full width. Got sensor width \"%lld\" (Return Code %s)",
+                         vmb_width,
+                         ErrorCodeToMessage(result));
+        g_object_set(vimbasrc, "width", (int)vmb_width, NULL);
+    }
+    GST_DEBUG_OBJECT(vimbasrc, "Setting \"Width\" to %d", vimbasrc->properties.width);
+    result = VmbFeatureIntSet(vimbasrc->camera.handle, "Width", vimbasrc->properties.width);
+    if (result == VmbErrorSuccess)
+    {
+        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+    }
+    else
+    {
+        GST_WARNING_OBJECT(vimbasrc,
+                           "Failed to set \"Width\" to value \"%d\". Return code was: %s",
+                           vimbasrc->properties.width,
+                           ErrorCodeToMessage(result));
+    }
+
+    // Set Height to full sensor if no explicit height was set
+    if (vimbasrc->properties.height == INT_MAX)
+    {
+        VmbInt64_t vmb_height;
+        result = VmbFeatureIntRangeQuery(vimbasrc->camera.handle, "Height", NULL, &vmb_height);
+        GST_DEBUG_OBJECT(vimbasrc,
+                         "Setting \"Height\" to full height. Got sensor height \"%lld\" (Return Code %s)",
+                         vmb_height,
+                         ErrorCodeToMessage(result));
+        g_object_set(vimbasrc, "height", (int)vmb_height, NULL);
+    }
+    GST_DEBUG_OBJECT(vimbasrc, "Setting \"Height\" to %d", vimbasrc->properties.height);
+    result = VmbFeatureIntSet(vimbasrc->camera.handle, "Height", vimbasrc->properties.height);
+    if (result == VmbErrorSuccess)
+    {
+        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+    }
+    else
+    {
+        GST_WARNING_OBJECT(vimbasrc,
+                           "Failed to set \"Height\" to value \"%d\". Return code was: %s",
+                           vimbasrc->properties.height,
+                           ErrorCodeToMessage(result));
+    }
     // offsetx
     GST_DEBUG_OBJECT(vimbasrc, "Setting \"OffsetX\" to %d", vimbasrc->properties.offsetx);
-    VmbError_t result = VmbFeatureIntSet(vimbasrc->camera.handle, "OffsetX", vimbasrc->properties.offsetx);
+    result = VmbFeatureIntSet(vimbasrc->camera.handle, "OffsetX", vimbasrc->properties.offsetx);
     if (result == VmbErrorSuccess)
     {
         GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
@@ -1030,37 +1101,7 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
                            vimbasrc->properties.offsety,
                            ErrorCodeToMessage(result));
     }
-
-    // width
-    GST_DEBUG_OBJECT(vimbasrc, "Setting \"Width\" to %d", vimbasrc->properties.width);
-    result = VmbFeatureIntSet(vimbasrc->camera.handle, "Width", vimbasrc->properties.width);
-    if (result == VmbErrorSuccess)
-    {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
-    }
-    else
-    {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Failed to set \"Width\" to value \"%d\". Return code was: %s",
-                           vimbasrc->properties.width,
-                           ErrorCodeToMessage(result));
-    }
-
-    // height
-    GST_DEBUG_OBJECT(vimbasrc, "Setting \"Height\" to %d", vimbasrc->properties.height);
-    result = VmbFeatureIntSet(vimbasrc->camera.handle, "Height", vimbasrc->properties.height);
-    if (result == VmbErrorSuccess)
-    {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
-    }
-    else
-    {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Failed to set \"Height\" to value \"%d\". Return code was: %s",
-                           vimbasrc->properties.height,
-                           ErrorCodeToMessage(result));
-    }
-    return VmbErrorSuccess;
+    return result;
 }
 
 VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbasrc)
