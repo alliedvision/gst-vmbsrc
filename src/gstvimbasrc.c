@@ -913,8 +913,9 @@ VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc)
 
 VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
 {
+    GEnumValue *enum_entry;
     // Exposure Auto
-    GEnumValue *enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), vimbasrc->properties.exposureauto);
+    enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), vimbasrc->properties.exposureauto);
     GST_DEBUG_OBJECT(vimbasrc, "Setting \"ExposureAuto\" to %s", enum_entry->value_nick);
     VmbError_t result = VmbFeatureEnumSet(vimbasrc->camera.handle, "ExposureAuto", enum_entry->value_nick);
     if (result == VmbErrorSuccess)
@@ -930,7 +931,8 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
     }
 
     // Auto whitebalance
-    enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_BALANCEWHITEAUTO_MODES), vimbasrc->properties.balancewhiteauto);
+    enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_BALANCEWHITEAUTO_MODES),
+                                  vimbasrc->properties.balancewhiteauto);
     GST_DEBUG_OBJECT(vimbasrc, "Setting \"BalanceWhiteAuto\" to %s", enum_entry->value_nick);
     result = VmbFeatureEnumSet(vimbasrc->camera.handle, "BalanceWhiteAuto", enum_entry->value_nick);
     if (result == VmbErrorSuccess)
