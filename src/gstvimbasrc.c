@@ -415,10 +415,10 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
                              vmbfeature_value_double);
             vimbasrc->properties.exposuretime = vmbfeature_value_double;
         }
-        else
+        else if (result == VmbErrorNotFound)
         {
             GST_WARNING_OBJECT(vimbasrc,
-                               "Failed to read value of \"ExposureTime\" from camera. Return code was: %s",
+                               "Failed to get \"ExposureTime\". Return code was: %s Attempting \"ExposureTimeAbs\"",
                                ErrorCodeToMessage(result));
             result = VmbFeatureFloatGet(vimbasrc->camera.handle, "ExposureTimeAbs", &vmbfeature_value_double);
             if (result == VmbErrorSuccess)
@@ -430,11 +430,18 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
             }
             else
             {
-                GST_WARNING_OBJECT(vimbasrc,
-                                   "Failed to read value of \"ExposureTimeAbs\" from camera. Return code was: %s",
-                                   ErrorCodeToMessage(result));
+                GST_ERROR_OBJECT(vimbasrc,
+                                 "Failed to read value of \"ExposureTimeAbs\" from camera. Return code was: %s",
+                                 ErrorCodeToMessage(result));
             }
         }
+        else
+        {
+            GST_ERROR_OBJECT(vimbasrc,
+                             "Failed to read value of \"ExposureTime\" from camera. Return code was: %s",
+                             ErrorCodeToMessage(result));
+        }
+
         g_value_set_double(value, vimbasrc->properties.exposuretime);
         break;
     case PROP_EXPOSUREAUTO:
@@ -944,10 +951,10 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
     {
         GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
     }
-    else
+    else if (result == VmbErrorNotFound)
     {
         GST_WARNING_OBJECT(vimbasrc,
-                           "Failed to set \"ExposureTime\" to %f. Return code was: %s Setting \"ExposureTimeAbs\"",
+                           "Failed to set \"ExposureTime\" to %f. Return code was: %s Attempting \"ExposureTimeAbs\"",
                            vimbasrc->properties.exposuretime,
                            ErrorCodeToMessage(result));
         result = VmbFeatureFloatSet(vimbasrc->camera.handle, "ExposureTimeAbs", vimbasrc->properties.exposuretime);
@@ -962,6 +969,13 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
                                vimbasrc->properties.exposuretime,
                                ErrorCodeToMessage(result));
         }
+    }
+    else
+    {
+        GST_WARNING_OBJECT(vimbasrc,
+                           "Failed to set \"ExposureTime\" to %f. Return code was: %s",
+                           vimbasrc->properties.exposuretime,
+                           ErrorCodeToMessage(result));
     }
 
     // Exposure Auto
