@@ -458,9 +458,9 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
-                               "Failed to read value of \"ExposureAuto\" from camera. Return code was: %s",
-                               ErrorCodeToMessage(result));
+            GST_ERROR_OBJECT(vimbasrc,
+                             "Failed to read value of \"ExposureAuto\" from camera. Return code was: %s",
+                             ErrorCodeToMessage(result));
         }
         g_value_set_enum(value, vimbasrc->properties.exposureauto);
         break;
@@ -478,9 +478,9 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
-                               "Failed to read value of \"BalanceWhiteAuto\" from camera. Return code was: %s",
-                               ErrorCodeToMessage(result));
+            GST_ERROR_OBJECT(vimbasrc,
+                             "Failed to read value of \"BalanceWhiteAuto\" from camera. Return code was: %s",
+                             ErrorCodeToMessage(result));
         }
         g_value_set_enum(value, vimbasrc->properties.balancewhiteauto);
         break;
@@ -495,9 +495,9 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
-                               "Failed to read value of \"Gain\" from camera. Return code was: %s",
-                               ErrorCodeToMessage(result));
+            GST_ERROR_OBJECT(vimbasrc,
+                             "Failed to read value of \"Gain\" from camera. Return code was: %s",
+                             ErrorCodeToMessage(result));
         }
         g_value_set_double(value, vimbasrc->properties.gain);
         break;
@@ -512,9 +512,9 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
-                               "Could not read value for \"OffsetX\". Got return code %s",
-                               ErrorCodeToMessage(result));
+            GST_ERROR_OBJECT(vimbasrc,
+                             "Could not read value for \"OffsetX\". Got return code %s",
+                             ErrorCodeToMessage(result));
         }
         g_value_set_int(value, vimbasrc->properties.offsetx);
         break;
@@ -529,9 +529,9 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
-                               "Could not read value for \"OffsetY\". Got return code %s",
-                               ErrorCodeToMessage(result));
+            GST_ERROR_OBJECT(vimbasrc,
+                             "Could not read value for \"OffsetY\". Got return code %s",
+                             ErrorCodeToMessage(result));
         }
         g_value_set_int(value, vimbasrc->properties.offsety);
         break;
@@ -546,9 +546,9 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
-                               "Could not read value for \"Width\". Got return code %s",
-                               ErrorCodeToMessage(result));
+            GST_ERROR_OBJECT(vimbasrc,
+                             "Could not read value for \"Width\". Got return code %s",
+                             ErrorCodeToMessage(result));
         }
         g_value_set_int(value, vimbasrc->properties.width);
         break;
@@ -563,9 +563,9 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
-                               "Could not read value for \"Height\". Got return code %s",
-                               ErrorCodeToMessage(result));
+            GST_ERROR_OBJECT(vimbasrc,
+                             "Could not read value for \"Height\". Got return code %s",
+                             ErrorCodeToMessage(result));
         }
         g_value_set_int(value, vimbasrc->properties.height);
         break;
@@ -599,10 +599,10 @@ void gst_vimbasrc_finalize(GObject *object)
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Closing camera %s failed. Got error code: %s",
-                           vimbasrc->camera.id,
-                           ErrorCodeToMessage(result));
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Closing camera %s failed. Got error code: %s",
+                         vimbasrc->camera.id,
+                         ErrorCodeToMessage(result));
     }
     vimbasrc->camera.is_connected = false;
 
@@ -849,8 +849,8 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
 
     if (frame->receiveStatus == VmbFrameStatusIncomplete)
     {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Received frame with ID \"%llu\" was incomplete", frame->frameID);
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Received frame with ID \"%llu\" was incomplete", frame->frameID);
     }
 
     // Prepare output buffer that will be filled with frame data
@@ -964,18 +964,18 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
-                               "Failed to set \"ExposureTimeAbs\" to %f. Return code was: %s",
-                               vimbasrc->properties.exposuretime,
-                               ErrorCodeToMessage(result));
+            GST_ERROR_OBJECT(vimbasrc,
+                             "Failed to set \"ExposureTimeAbs\" to %f. Return code was: %s",
+                             vimbasrc->properties.exposuretime,
+                             ErrorCodeToMessage(result));
         }
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Failed to set \"ExposureTime\" to %f. Return code was: %s",
-                           vimbasrc->properties.exposuretime,
-                           ErrorCodeToMessage(result));
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"ExposureTime\" to %f. Return code was: %s",
+                         vimbasrc->properties.exposuretime,
+                         ErrorCodeToMessage(result));
     }
 
     // Exposure Auto
@@ -988,10 +988,10 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Failed to set \"ExposureAuto\" to %s. Return code was: %s",
-                           enum_entry->value_nick,
-                           ErrorCodeToMessage(result));
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"ExposureAuto\" to %s. Return code was: %s",
+                         enum_entry->value_nick,
+                         ErrorCodeToMessage(result));
     }
 
     // Auto whitebalance
@@ -1005,10 +1005,10 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Failed to set \"BalanceWhiteAuto\" to %s. Return code was: %s",
-                           enum_entry->value_nick,
-                           ErrorCodeToMessage(result));
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"BalanceWhiteAuto\" to %s. Return code was: %s",
+                         enum_entry->value_nick,
+                         ErrorCodeToMessage(result));
     }
 
     // gain
@@ -1020,10 +1020,10 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Failed to set \"Gain\" to %f. Return code was: %s",
-                           vimbasrc->properties.gain,
-                           ErrorCodeToMessage(result));
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"Gain\" to %f. Return code was: %s",
+                         vimbasrc->properties.gain,
+                         ErrorCodeToMessage(result));
     }
 
     result = set_roi(vimbasrc);
@@ -1091,10 +1091,10 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Failed to set \"Width\" to value \"%d\". Return code was: %s",
-                           vimbasrc->properties.width,
-                           ErrorCodeToMessage(result));
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"Width\" to value \"%d\". Return code was: %s",
+                         vimbasrc->properties.width,
+                         ErrorCodeToMessage(result));
     }
 
     // Set Height to full sensor if no explicit height was set
@@ -1116,10 +1116,10 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Failed to set \"Height\" to value \"%d\". Return code was: %s",
-                           vimbasrc->properties.height,
-                           ErrorCodeToMessage(result));
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"Height\" to value \"%d\". Return code was: %s",
+                         vimbasrc->properties.height,
+                         ErrorCodeToMessage(result));
     }
     // offsetx
     GST_DEBUG_OBJECT(vimbasrc, "Setting \"OffsetX\" to %d", vimbasrc->properties.offsetx);
@@ -1130,10 +1130,10 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Failed to set \"OffsetX\" to value \"%d\". Return code was: %s",
-                           vimbasrc->properties.offsetx,
-                           ErrorCodeToMessage(result));
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"OffsetX\" to value \"%d\". Return code was: %s",
+                         vimbasrc->properties.offsetx,
+                         ErrorCodeToMessage(result));
     }
 
     // offsety
@@ -1145,10 +1145,10 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Failed to set \"OffsetY\" to value \"%d\". Return code was: %s",
-                           vimbasrc->properties.offsety,
-                           ErrorCodeToMessage(result));
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"OffsetY\" to value \"%d\". Return code was: %s",
+                         vimbasrc->properties.offsety,
+                         ErrorCodeToMessage(result));
     }
     return result;
 }
