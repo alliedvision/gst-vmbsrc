@@ -784,6 +784,11 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
     if (!vimbasrc->camera.is_connected)
     {
         result = open_camera_connection(vimbasrc);
+        if (result != VmbErrorSuccess)
+        {
+            // Can't connect to camera. Abort execution by returning FALSE. This stops the pipeline!
+            return FALSE;
+        }
     }
 
     result = apply_feature_settings(vimbasrc);
