@@ -1060,7 +1060,6 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
     {
         GST_WARNING_OBJECT(vimbasrc,
                            "Failed to set \"OffsetX\" to 0. Return code was: %s",
-                           vimbasrc->properties.offsetx,
                            ErrorCodeToMessage(result));
     }
     result = VmbFeatureIntSet(vimbasrc->camera.handle, "OffsetY", 0);
@@ -1068,7 +1067,6 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
     {
         GST_WARNING_OBJECT(vimbasrc,
                            "Failed to set \"OffsetY\" to 0. Return code was: %s",
-                           vimbasrc->properties.offsetx,
                            ErrorCodeToMessage(result));
     }
 
