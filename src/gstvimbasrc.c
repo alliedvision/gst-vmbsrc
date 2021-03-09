@@ -892,7 +892,7 @@ VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc)
     {
         GST_INFO_OBJECT(vimbasrc, "Successfully opened camera %s", vimbasrc->camera.id);
         vimbasrc->camera.is_connected = true;
-        query_supported_pixel_formats(vimbasrc);
+        map_supported_pixel_formats(vimbasrc);
     }
     else
     {
@@ -1216,7 +1216,13 @@ void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, VmbFrame_t *
     // requeueing the frame is done after it was consumed in vimbasrc_create
 }
 
-void query_supported_pixel_formats(GstVimbaSrc *vimbasrc)
+/**
+ * @brief Get the Vimba pixel formats the camera supports and create a mapping of them to compatible GStreamer formats
+ * (stored in vimbasrc->camera.supported_formats)
+ *
+ * @param vimbasrc provides the camera handle and holds the generated mapping
+ */
+void map_supported_pixel_formats(GstVimbaSrc *vimbasrc)
 {
     // get number of supported formats from the camera
     VmbUint32_t camera_format_count;
