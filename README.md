@@ -148,6 +148,3 @@ is able to debayer the data into a widely accepted RGBA format.
   data
     - A warning message is output if an incomplete frame is encountered (only displayed if logging
       level is set appropriately)
-- When closing the camera connection the buffer storing the `camera_id` contains unexpected
-  characters. Buffer might be emptied too early which could have an impact on the `VmbCameraClose`
-  call

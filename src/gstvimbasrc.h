@@ -27,6 +27,8 @@
 #include <VimbaC/Include/VimbaC.h>
 #include <VimbaC/Include/VmbCommonTypes.h>
 
+#include <stdbool.h>
+
 G_BEGIN_DECLS
 
 #define GST_TYPE_vimbasrc (gst_vimbasrc_get_type())
@@ -48,8 +50,8 @@ typedef struct _GstVimbaSrcClass GstVimbaSrcClass;
 
 #define NUM_VIMBA_FRAMES 3
 
-// global queue in which filled Vimba frames are placed in the vimba_frame_callback
-// (has to be global as no context can be passed to VmbFrameCallback functions)
+// global queue in which filled Vimba frames are placed in the vimba_frame_callback (has to be global as no context can
+// be passed to VmbFrameCallback functions)
 GAsyncQueue *g_filled_frame_queue;
 
 struct _GstVimbaSrc
@@ -61,10 +63,24 @@ struct _GstVimbaSrc
         const gchar *id;
         VmbHandle_t handle;
         VmbUint32_t supported_formats_count;
-        // TODO: This overallocates since no camera will actually support all possible format
-        // matches. Allocate and fill at runtime?
+        // TODO: This overallocates since no camera will actually support all possible format matches. Allocate and fill
+        // at runtime?
         const VimbaGstFormatMatch_t *supported_formats[NUM_FORMAT_MATCHES];
+        bool is_connected;
+        bool is_acquiring;
     } camera;
+    struct
+    {
+        const char *camera_id;
+        double exposuretime;
+        int exposureauto;
+        int balancewhiteauto;
+        double gain;
+        int offsetx;
+        int offsety;
+        int width;
+        int height;
+    } properties;
 
     VmbFrame_t frame_buffers[NUM_VIMBA_FRAMES];
 };
@@ -78,11 +94,14 @@ GType gst_vimbasrc_get_type(void);
 
 G_END_DECLS
 
+VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc);
+VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc);
+VmbError_t set_roi(GstVimbaSrc *vimbasrc);
 VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbasrc);
 void revoke_and_free_buffers(GstVimbaSrc *vimbasrc);
 VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc);
 VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc);
 void VMB_CALL vimba_frame_callback(const VmbHandle_t cameraHandle, VmbFrame_t *pFrame);
-void query_supported_pixel_formats(GstVimbaSrc *vimbasrc);
+void map_supported_pixel_formats(GstVimbaSrc *vimbasrc);
 
 #endif

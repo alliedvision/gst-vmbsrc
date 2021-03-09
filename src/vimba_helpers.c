@@ -69,27 +69,34 @@ VmbBool_t DiscoverGigECameras(GObject *object)
 
     VmbBool_t ret = VmbBoolFalse;
 
-    result = VmbFeatureBoolGet(gVimbaHandle, "GeVTLIsPresent", &isGigE); // Is Vimba connected to a GigE transport layer?
+    // Is Vimba connected to a GigE transport layer?
+    result = VmbFeatureBoolGet(gVimbaHandle, "GeVTLIsPresent", &isGigE);
     if (VmbErrorSuccess == result)
     {
         if (VmbBoolTrue == isGigE)
         {
-            result = VmbFeatureIntSet(gVimbaHandle, "GeVDiscoveryAllDuration", 250); // Set the waiting duration for discovery packets to return. If not set the default of 150 ms is used.
+            // Set the waiting duration for discovery packets to return. If not set the default of 150 ms is used.
+            result = VmbFeatureIntSet(gVimbaHandle, "GeVDiscoveryAllDuration", 250);
             if (VmbErrorSuccess == result)
             {
-                result = VmbFeatureCommandRun(gVimbaHandle, "GeVDiscoveryAllOnce"); // Send discovery packets to GigE cameras and wait 250 ms until they are answered
+                // Send discovery packets to GigE cameras and wait 250 ms until they are answered
+                result = VmbFeatureCommandRun(gVimbaHandle, "GeVDiscoveryAllOnce");
                 if (VmbErrorSuccess == result)
                 {
                     ret = VmbBoolTrue;
                 }
                 else
                 {
-                    GST_ERROR_OBJECT(object, "Could not ping GigE cameras over the network. Reason: %s", ErrorCodeToMessage(result));
+                    GST_WARNING_OBJECT(object,
+                                       "Could not ping GigE cameras over the network. Reason: %s",
+                                       ErrorCodeToMessage(result));
                 }
             }
             else
             {
-                GST_ERROR_OBJECT(object, "Could not set the discovery waiting duration. Reason: %s", ErrorCodeToMessage(result));
+                GST_WARNING_OBJECT(object,
+                                   "Could not set the discovery waiting duration. Reason: %s",
+                                   ErrorCodeToMessage(result));
             }
         }
         else
@@ -99,7 +106,9 @@ VmbBool_t DiscoverGigECameras(GObject *object)
     }
     else
     {
-        GST_ERROR_OBJECT(object, "Could not query Vimba for the presence of a GigE transport layer. Reason: %s", ErrorCodeToMessage(result));
+        GST_WARNING_OBJECT(object,
+                           "Could not query Vimba for the presence of a GigE transport layer. Reason: %s",
+                           ErrorCodeToMessage(result));
     }
 
     return ret;

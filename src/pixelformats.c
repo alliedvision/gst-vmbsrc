@@ -14,8 +14,8 @@ const VimbaGstFormatMatch_t *gst_format_from_vimba_format(const char *vimba_form
     return NULL;
 }
 
-// TODO: There may be multiple vimba format entries for the same gst_format. How to handle this?
-// Currently the first hit for the gst_format is returned and the rest ignored.
+// TODO: There may be multiple vimba format entries for the same gst_format. How to handle this? Currently the first hit
+// for the gst_format is returned and the rest ignored.
 const VimbaGstFormatMatch_t *vimba_format_from_gst_format(const char *gst_format)
 {
     VmbPixelFormat_t detected_format = 0;
