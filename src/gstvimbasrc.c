@@ -353,7 +353,7 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id, const GValue 
     switch (property_id)
     {
     case PROP_CAMERA_ID:
-        free(vimbasrc->camera.id); // Free memory of old entry
+        free((void *)vimbasrc->camera.id); // Free memory of old entry
         vimbasrc->camera.id = g_value_dup_string(value);
         break;
     case PROP_EXPOSURETIME:
@@ -1324,5 +1324,5 @@ void map_supported_pixel_formats(GstVimbaSrc *vimbasrc)
                              supported_formats[i]);
         }
     }
-    free(supported_formats);
+    free((void *)supported_formats);
 }
