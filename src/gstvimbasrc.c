@@ -616,7 +616,8 @@ static GstCaps *gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
     caps = gst_pad_get_pad_template_caps(GST_BASE_SRC_PAD(src));
     caps = gst_caps_make_writable(caps);
 
-    // TODO: Query the capabilities from the camera and return sensible values
+    // Query the capabilities from the camera and return sensible values. If no camera is connected the template caps
+    // are returned
     if (vimbasrc->camera.is_connected)
     {
         VmbInt64_t vmb_width, vmb_height;
@@ -772,7 +773,6 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
 
     /* TODO:
         - Clarify how Hardware triggering influences the setup required here
-        - Check if some state variables (is_acquiring, etc.) are helpful and should be added
     */
 
     // Prepare queue for filled frames from which vimbasrc_create can take them
