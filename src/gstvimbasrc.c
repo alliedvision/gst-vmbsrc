@@ -885,6 +885,12 @@ GST_PLUGIN_DEFINE(GST_VERSION_MAJOR,
                   PACKAGE,
                   HOMEPAGE_URL)
 
+/**
+ * @brief Opens the connection to the camera given by the ID passed as vimbasrc property and stores the resulting handle
+ *
+ * @param vimbasrc Provides access to the camera ID and holds the resulting handle
+ * @return VmbError_t Return status indicating errors if they occurred
+ */
 VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc)
 {
     VmbError_t result = VmbCameraOpen(vimbasrc->camera.id, VmbAccessModeFull, &vimbasrc->camera.handle);
@@ -908,6 +914,13 @@ VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc)
     return result;
 }
 
+/**
+ * @brief Applies the values defiend in the vimbasrc properties to their corresponding Vimba camera features
+ *
+ * @param vimbasrc Provides access to the camera handle used for the Vimba calls and holds the desired values for the
+ * modified features
+ * @return VmbError_t Return status indicating errors if they occurred
+ */
 VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
 {
     bool was_acquiring = vimbasrc->camera.is_acquiring;
@@ -1010,6 +1023,17 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
     return result;
 }
 
+/**
+ * @brief Helper function to set Width, Height, OffsetX and OffsetY feature in correct order to define the region of
+ * interest (ROI) on the sensor.
+ *
+ * The values for setting the ROI are defined as GStreamer properties of the vimbasrc element. If INT_MAX are used for
+ * the width/height property (the default value) the full corresponding sensor size for that feature is used.
+ *
+ * @param vimbasrc Provides access to the camera handle used for the Vimba calls and holds the desired values for the
+ * modified features
+ * @return VmbError_t Return status indicating errors if they occurred
+ */
 VmbError_t set_roi(GstVimbaSrc *vimbasrc)
 {
     // TODO: Improve error handling (Perhaps more explicit allowed values are enough?) Early exit on errors?
@@ -1115,6 +1139,12 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
     return result;
 }
 
+/**
+ * @brief Gets the PayloadSize from the connected camera, allocates and announces frame buffers for capturing
+ *
+ * @param vimbasrc Provides the camera handle used for the Vimba calls and holds the frame buffers
+ * @return VmbError_t Return status indicating errors if they occurred
+ */
 VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbasrc)
 {
     VmbInt64_t payload_size;
@@ -1148,6 +1178,11 @@ VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbasrc)
     return result;
 }
 
+/**
+ * @brief Revokes frame buffers, frees their memory and overwrites old pointers with 0
+ *
+ * @param vimbasrc Provides the camera handle used for the Vimba calls and the frame buffers
+ */
 void revoke_and_free_buffers(GstVimbaSrc *vimbasrc)
 {
     for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
@@ -1161,6 +1196,13 @@ void revoke_and_free_buffers(GstVimbaSrc *vimbasrc)
     }
 }
 
+/**
+ * @brief Starts the capture engine, queues Vimba frames and runs the AcquisitionStart command feature. Frame buffers
+ * must be allocated before running this function.
+ *
+ * @param vimbasrc Provides the camera handle used for the Vimba calls and access to the queued frame buffers
+ * @return VmbError_t Return status indicating errors if they occurred
+ */
 VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc)
 {
     // Start Capture Engine
@@ -1190,6 +1232,12 @@ VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc)
     return result;
 }
 
+/**
+ * @brief Runs the AcquisitionStop command feature, stops the capture engine and flushes the capture queue
+ *
+ * @param vimbasrc Provides the camera handle which is used for the Vimba function calls
+ * @return VmbError_t Return status indicating errors if they occurred
+ */
 VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc)
 {
     // Stop Acquisition
