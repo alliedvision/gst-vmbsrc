@@ -72,10 +72,10 @@ struct _GstVimbaSrc
     struct
     {
         const char *camera_id;
+        double exposuretime;
         int exposureauto;
         int balancewhiteauto;
         double gain;
-        double exposuretime;
         int offsetx;
         int offsety;
         int width;
