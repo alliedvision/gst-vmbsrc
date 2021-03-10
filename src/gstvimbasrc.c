@@ -592,19 +592,22 @@ void gst_vimbasrc_finalize(GObject *object)
 
     GST_DEBUG_OBJECT(vimbasrc, "finalize");
 
-    VmbError_t result = VmbCameraClose(vimbasrc->camera.handle);
-    if (result == VmbErrorSuccess)
+    if (vimbasrc->camera.is_connected)
     {
-        GST_INFO_OBJECT(vimbasrc, "Closed camera %s", vimbasrc->camera.id);
+        VmbError_t result = VmbCameraClose(vimbasrc->camera.handle);
+        if (result == VmbErrorSuccess)
+        {
+            GST_INFO_OBJECT(vimbasrc, "Closed camera %s", vimbasrc->camera.id);
+        }
+        else
+        {
+            GST_ERROR_OBJECT(vimbasrc,
+                             "Closing camera %s failed. Got error code: %s",
+                             vimbasrc->camera.id,
+                             ErrorCodeToMessage(result));
+        }
+        vimbasrc->camera.is_connected = false;
     }
-    else
-    {
-        GST_ERROR_OBJECT(vimbasrc,
-                         "Closing camera %s failed. Got error code: %s",
-                         vimbasrc->camera.id,
-                         ErrorCodeToMessage(result));
-    }
-    vimbasrc->camera.is_connected = false;
 
     VmbShutdown();
     GST_DEBUG_OBJECT(vimbasrc, "Vimba API was shut down");
