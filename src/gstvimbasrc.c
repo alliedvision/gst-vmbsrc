@@ -73,7 +73,11 @@ enum
     PROP_OFFSETX,
     PROP_OFFSETY,
     PROP_WIDTH,
-    PROP_HEIGHT
+    PROP_HEIGHT,
+    PROP_TRIGGERSELECTOR,
+    PROP_TRIGGERMODE,
+    PROP_TRIGGERSOURCE,
+    PROP_TRIGGERACTIVATION,
 };
 
 /* pad templates */
@@ -120,6 +124,115 @@ static GType gst_vimbasrc_balancewhiteauto_get_type(void)
             g_enum_register_static("GstVimbasrcBalanceWhiteAutoModes", balancewhiteauto_modes);
     }
     return vimbasrc_balancewhiteauto_type;
+}
+
+/* TriggerSelector values */
+// TODO: Which of these are really needed?
+#define GST_ENUM_TRIGGERSELECTOR_VALUES (gst_vimbasrc_triggerselector_get_type())
+static GType gst_vimbasrc_triggerselector_get_type(void)
+{
+    static GType vimbasrc_triggerselector_type = 0;
+    static const GEnumValue triggerselector_values[] = {
+        /* The "nick" (last entry) will be used to pass the setting value on to the Vimba FeatureEnum */
+        {GST_VIMBASRC_TRIGGERSELECTOR_ACQUISITION_START, "Selects a trigger that starts the Acquisition of one or many frames according to AcquisitionMode", "AcquisitionStart"},
+        {GST_VIMBASRC_TRIGGERSELECTOR_ACQUISITION_END, "Selects a trigger that ends the Acquisition of one or many frames according to AcquisitionMode", "AcquisitionEnd"},
+        {GST_VIMBASRC_TRIGGERSELECTOR_ACQUISITION_ACTIVE, "Selects a trigger that controls the duration of the Acquisition of one or many frames. The Acquisition is activated when the trigger signal becomes active and terminated when it goes back to the inactive state", "AcquisitionActive"},
+        {GST_VIMBASRC_TRIGGERSELECTOR_FRAME_START, "Selects a trigger starting the capture of one frame", "FrameStart"},
+        {GST_VIMBASRC_TRIGGERSELECTOR_FRAME_END, "Selects a trigger ending the capture of one frame (mainly used in linescanmode)", "FrameEnd"},
+        {GST_VIMBASRC_TRIGGERSELECTOR_FRAME_ACTIVE, "Selects a trigger controlling the duration of one frame (mainly used in linescanmode)", "FrameActive"},
+        {GST_VIMBASRC_TRIGGERSELECTOR_FRAME_BURST_START, "Selects a trigger starting the capture of the bursts of frames in an acquisition. AcquisitionBurstFrameCount controls the length of each burst unless a FrameBurstEnd trigger is active. The total number of frames captured is also conditioned by AcquisitionFrameCount if AcquisitionMode is MultiFrame", "FrameBurstStart"},
+        {GST_VIMBASRC_TRIGGERSELECTOR_FRAME_BURST_END, "Selects a trigger ending the capture of the bursts of frames in an acquisition", "FrameBurstEnd"},
+        {GST_VIMBASRC_TRIGGERSELECTOR_FRAME_BURST_ACTIVE, "Selects a trigger controlling the duration of the capture of the bursts of frames in an acquisition", "FrameBurstActive"},
+        {GST_VIMBASRC_TRIGGERSELECTOR_LINE_START, "Selects a trigger starting the capture of one Line of a Frame (mainly used in linescanmode)", "LineStart"},
+        {GST_VIMBASRC_TRIGGERSELECTOR_EXPOSURE_START, "Selects a trigger controlling the start of the exposure of one Frame (or Line)", "ExposureStart"},
+        {GST_VIMBASRC_TRIGGERSELECTOR_EXPOSURE_END, "Selects a trigger controlling the end of the exposure of one Frame (or Line)", "ExposureEnd"},
+        {GST_VIMBASRC_TRIGGERSELECTOR_EXPOSURE_ACTIVE, "Selects a trigger controlling the duration of the exposure of one frame (or Line)", "ExposureActive"},
+        {GST_VIMBASRC_TRIGGERSELECTOR_MULTI_SLOPE_EXPOSURE_LIMIT1, "Selects a trigger controlling the first duration of a multi-slope exposure. Exposure is continued according to the pre-defined multi-slope settings", "MultiSlopeExposureLimit1"},
+        {0, NULL, NULL}};
+    if (!vimbasrc_triggerselector_type)
+    {
+        vimbasrc_triggerselector_type =
+            g_enum_register_static("GstVimbasrcTriggerSelectorValues", triggerselector_values);
+    }
+    return vimbasrc_triggerselector_type;
+}
+
+/* TriggerMode values */
+#define GST_ENUM_TRIGGERMODE_VALUES (gst_vimbasrc_triggermode_get_type())
+static GType gst_vimbasrc_triggermode_get_type(void)
+{
+    static GType vimbasrc_triggermode_type = 0;
+    static const GEnumValue triggermode_values[] = {
+        /* The "nick" (last entry) will be used to pass the setting value on to the Vimba FeatureEnum */
+        {GST_VIMBASRC_TRIGGERMODE_OFF, "Disables the selected trigger", "Off"},
+        {GST_VIMBASRC_TRIGGERMODE_ON, "Enable the selected trigger", "On"},
+        {0, NULL, NULL}};
+    if (!vimbasrc_triggermode_type)
+    {
+        vimbasrc_triggermode_type =
+            g_enum_register_static("GstVimbasrcTriggerModeValues", triggermode_values);
+    }
+    return vimbasrc_triggermode_type;
+}
+
+/* TriggerSource values */
+// TODO: which of these are really needed? Current entries taken from SFNC
+#define GST_ENUM_TRIGGERSOURCE_VALUES (gst_vimbasrc_triggersource_get_type())
+static GType gst_vimbasrc_triggersource_get_type(void)
+{
+    static GType vimbasrc_triggersource_type = 0;
+    static const GEnumValue triggersource_values[] = {
+        /* The "nick" (last entry) will be used to pass the setting value on to the Vimba FeatureEnum */
+        {GST_VIMBASRC_TRIGGERSOURCE_SOFTWARE, "Specifies that the trigger source will be generated by software using the TriggerSoftware command", "Software"},
+        {GST_VIMBASRC_TRIGGERSOURCE_SOFTWARE_SIGNAL0, "Specifies that the trigger source will be a signal generated by software using the SoftwareSignalPulse command", "SoftwareSignal0"},
+        {GST_VIMBASRC_TRIGGERSOURCE_LINE0, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line0"},
+        {GST_VIMBASRC_TRIGGERSOURCE_LINE1, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line1"},
+        {GST_VIMBASRC_TRIGGERSOURCE_LINE2, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line2"},
+        {GST_VIMBASRC_TRIGGERSOURCE_LINE3, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line3"},
+        {GST_VIMBASRC_TRIGGERSOURCE_USER_OUTPUT0, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput0"},
+        {GST_VIMBASRC_TRIGGERSOURCE_USER_OUTPUT1, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput1"},
+        {GST_VIMBASRC_TRIGGERSOURCE_USER_OUTPUT2, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput2"},
+        {GST_VIMBASRC_TRIGGERSOURCE_USER_OUTPUT3, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput3"},
+        {GST_VIMBASRC_TRIGGERSOURCE_COUNTER0_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter0Start"},
+        {GST_VIMBASRC_TRIGGERSOURCE_COUNTER0_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter0End"},
+        {GST_VIMBASRC_TRIGGERSOURCE_TIMER0_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer0Start"},
+        {GST_VIMBASRC_TRIGGERSOURCE_TIMER0_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer0End"},
+        {GST_VIMBASRC_TRIGGERSOURCE_ENCODER0, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder0"},
+        {GST_VIMBASRC_TRIGGERSOURCE_ENCODER1, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder1"},
+        {GST_VIMBASRC_TRIGGERSOURCE_ENCODER2, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder2"},
+        {GST_VIMBASRC_TRIGGERSOURCE_ENCODER3, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder3"},
+        {GST_VIMBASRC_TRIGGERSOURCE_LOGIC_BLOCK0, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock0"},
+        {GST_VIMBASRC_TRIGGERSOURCE_ACTION0, "Specifies which Action command to use as internal source for the trigger", "Action0"},
+        {GST_VIMBASRC_TRIGGERSOURCE_LINK_TRIGGER0, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger0"},
+        {GST_VIMBASRC_TRIGGERSOURCE_CC1, "Index of the Camera Link physical line and associated I/O control block to use. This ensures a direct mapping between the lines on the frame grabber and on the camera. Applicable to CameraLink products only", "CC1"},
+        {0, NULL, NULL}};
+    if (!vimbasrc_triggersource_type)
+    {
+        vimbasrc_triggersource_type =
+            g_enum_register_static("GstVimbasrcTriggerSourceValues", triggersource_values);
+    }
+    return vimbasrc_triggersource_type;
+}
+
+/* TriggerActivation values */
+#define GST_ENUM_TRIGGERACTIVATION_VALUES (gst_vimbasrc_triggeractivation_get_type())
+static GType gst_vimbasrc_triggeractivation_get_type(void)
+{
+    static GType vimbasrc_triggeractivation_type = 0;
+    static const GEnumValue triggeractivation_values[] = {
+        /* The "nick" (last entry) will be used to pass the setting value on to the Vimba FeatureEnum */
+        {GST_VIMBASRC_TRIGGERACTIVATION_RISING_EDGE, "Specifies that the trigger is considered valid on the rising edge of the source signal", "RisingEdge"},
+        {GST_VIMBASRC_TRIGGERACTIVATION_FALLING_EDGE, "Specifies that the trigger is considered valid on the falling edge of the source signal", "FallingEdge"},
+        {GST_VIMBASRC_TRIGGERACTIVATION_ANY_EDGE, "Specifies that the trigger is considered valid on the falling or rising edge of the source signal", "AnyEdge"},
+        {GST_VIMBASRC_TRIGGERACTIVATION_LEVEL_HIGH, "Specifies that the trigger is considered valid as long as the level of the source signal is high", "LevelHigh"},
+        {GST_VIMBASRC_TRIGGERACTIVATION_LEVEL_LOW, "Specifies that the trigger is considered valid as long as the level of the source signal is low", "LevelLow"},
+        {0, NULL, NULL}};
+    if (!vimbasrc_triggeractivation_type)
+    {
+        vimbasrc_triggeractivation_type =
+            g_enum_register_static("GstVimbasrcTriggerActivationValues", triggeractivation_values);
+    }
+    return vimbasrc_triggeractivation_type;
 }
 
 /* class initialization */
@@ -254,6 +367,46 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             G_MAXINT,
             G_MAXINT,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_TRIGGERSELECTOR,
+        g_param_spec_enum(
+            "triggerselector",
+            "TriggerSelector feature setting",
+            "Selects the type of trigger to configure",
+            GST_ENUM_TRIGGERSELECTOR_VALUES,
+            GST_VIMBASRC_TRIGGERSELECTOR_ACQUISITION_START,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_TRIGGERMODE,
+        g_param_spec_enum(
+            "triggermode",
+            "TriggerMode feature setting",
+            "Controls if the selected trigger is active",
+            GST_ENUM_TRIGGERMODE_VALUES,
+            GST_VIMBASRC_TRIGGERMODE_OFF,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_TRIGGERSOURCE,
+        g_param_spec_enum(
+            "triggersource",
+            "TriggerSource feature setting",
+            "Specifies the internal signal or physical input Line to use as the trigger source. The selected trigger must have its TriggerMode set to On",
+            GST_ENUM_TRIGGERSOURCE_VALUES,
+            GST_VIMBASRC_TRIGGERSOURCE_SOFTWARE,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_TRIGGERACTIVATION,
+        g_param_spec_enum(
+            "triggeractivation",
+            "TriggerActivation feature setting",
+            "Specifies the activation mode of the trigger",
+            GST_ENUM_TRIGGERACTIVATION_VALUES,
+            GST_VIMBASRC_TRIGGERACTIVATION_RISING_EDGE,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
@@ -342,6 +495,26 @@ static void gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
             g_object_class_find_property(
                 gobject_class,
                 "height")));
+    vimbasrc->properties.triggerselector = g_value_get_enum(
+        g_param_spec_get_default_value(
+            g_object_class_find_property(
+                gobject_class,
+                "triggerselector")));
+    vimbasrc->properties.triggermode = g_value_get_enum(
+        g_param_spec_get_default_value(
+            g_object_class_find_property(
+                gobject_class,
+                "triggermode")));
+    vimbasrc->properties.triggersource = g_value_get_enum(
+        g_param_spec_get_default_value(
+            g_object_class_find_property(
+                gobject_class,
+                "triggersource")));
+    vimbasrc->properties.triggeractivation = g_value_get_enum(
+        g_param_spec_get_default_value(
+            g_object_class_find_property(
+                gobject_class,
+                "triggeractivation")));
 }
 
 void gst_vimbasrc_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
@@ -379,6 +552,18 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id, const GValue 
         break;
     case PROP_HEIGHT:
         vimbasrc->properties.height = g_value_get_int(value);
+        break;
+    case PROP_TRIGGERSELECTOR:
+        vimbasrc->properties.triggerselector = g_value_get_enum(value);
+        break;
+    case PROP_TRIGGERMODE:
+        vimbasrc->properties.triggermode = g_value_get_enum(value);
+        break;
+    case PROP_TRIGGERSOURCE:
+        vimbasrc->properties.triggersource = g_value_get_enum(value);
+        break;
+    case PROP_TRIGGERACTIVATION:
+        vimbasrc->properties.triggeractivation = g_value_get_enum(value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -568,6 +753,86 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
                                ErrorCodeToMessage(result));
         }
         g_value_set_int(value, vimbasrc->properties.height);
+        break;
+    case PROP_TRIGGERSELECTOR:
+        result = VmbFeatureEnumGet(vimbasrc->camera.handle, "TriggerSelector", &vmbfeature_value_char);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc,
+                             "Camera returned the following value for \"TriggerSelector\": %s",
+                             vmbfeature_value_char);
+            vimbasrc->properties.exposureauto = g_enum_get_value_by_nick(
+                                                    g_type_class_ref(GST_ENUM_TRIGGERSELECTOR_VALUES),
+                                                    vmbfeature_value_char)
+                                                    ->value;
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc,
+                               "Failed to read value of \"TriggerSelector\" from camera. Return code was: %s",
+                               ErrorCodeToMessage(result));
+        }
+        g_value_set_enum(value, vimbasrc->properties.triggerselector);
+        break;
+    case PROP_TRIGGERMODE:
+        result = VmbFeatureEnumGet(vimbasrc->camera.handle, "TriggerMode", &vmbfeature_value_char);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc,
+                             "Camera returned the following value for \"TriggerMode\": %s",
+                             vmbfeature_value_char);
+            vimbasrc->properties.exposureauto = g_enum_get_value_by_nick(
+                                                    g_type_class_ref(GST_ENUM_TRIGGERMODE_VALUES),
+                                                    vmbfeature_value_char)
+                                                    ->value;
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc,
+                               "Failed to read value of \"TriggerMode\" from camera. Return code was: %s",
+                               ErrorCodeToMessage(result));
+        }
+        g_value_set_enum(value, vimbasrc->properties.triggermode);
+        break;
+    case PROP_TRIGGERSOURCE:
+        result = VmbFeatureEnumGet(vimbasrc->camera.handle, "TriggerSource", &vmbfeature_value_char);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc,
+                             "Camera returned the following value for \"TriggerSource\": %s",
+                             vmbfeature_value_char);
+            vimbasrc->properties.exposureauto = g_enum_get_value_by_nick(
+                                                    g_type_class_ref(GST_ENUM_TRIGGERSOURCE_VALUES),
+                                                    vmbfeature_value_char)
+                                                    ->value;
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc,
+                               "Failed to read value of \"TriggerSource\" from camera. Return code was: %s",
+                               ErrorCodeToMessage(result));
+        }
+        g_value_set_enum(value, vimbasrc->properties.triggersource);
+        break;
+    case PROP_TRIGGERACTIVATION:
+        result = VmbFeatureEnumGet(vimbasrc->camera.handle, "TriggerActivation", &vmbfeature_value_char);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vimbasrc,
+                             "Camera returned the following value for \"TriggerActivation\": %s",
+                             vmbfeature_value_char);
+            vimbasrc->properties.exposureauto = g_enum_get_value_by_nick(
+                                                    g_type_class_ref(GST_ENUM_TRIGGERACTIVATION_VALUES),
+                                                    vmbfeature_value_char)
+                                                    ->value;
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vimbasrc,
+                               "Failed to read value of \"TriggerActivation\" from camera. Return code was: %s",
+                               ErrorCodeToMessage(result));
+        }
+        g_value_set_enum(value, vimbasrc->properties.triggeractivation);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -1028,6 +1293,8 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
 
     result = set_roi(vimbasrc);
 
+    result = apply_trigger_settings(vimbasrc);
+
     if (was_acquiring)
     {
         GST_DEBUG_OBJECT(vimbasrc, "Camera was acquiring before changing feature settings. Restarting.");
@@ -1148,6 +1415,105 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
                            vimbasrc->properties.offsety,
                            ErrorCodeToMessage(result));
     }
+    return result;
+}
+
+/**
+ * @brief Helper function to apply values to TriggerSelector, TriggerMode, TriggerSource and TriggerActivation in the
+ * correct order
+ *
+ * Trigger settings are always applied in the order
+ * 1. TriggerSelector
+ * 2. TriggerActivation
+ * 3. TriggerSource
+ * 4. TriggerMode
+ *
+ * @param vimbasrc Provides access to the camera handle used for the Vimba calls and holds the desired values for the
+ * modified features
+ * @return VmbError_t Return status indicating errors if they occurred
+ */
+VmbError_t apply_trigger_settings(GstVimbaSrc *vimbasrc)
+{
+    GST_DEBUG_OBJECT(vimbasrc, "Applying trigger settings");
+
+    VmbError_t result;
+    GEnumValue *enum_entry;
+
+    // TODO: Should  the function start by disabling triggering for all TriggerSelectors to make sure only one is
+    // enabled after the function is done?
+
+    // TriggerSelector
+    enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_TRIGGERSELECTOR_VALUES),
+                                  vimbasrc->properties.triggerselector);
+    GST_DEBUG_OBJECT(vimbasrc, "Setting \"TriggerSelector\" to %s", enum_entry->value_nick);
+    result = VmbFeatureEnumSet(vimbasrc->camera.handle, "TriggerSelector", enum_entry->value_nick);
+    if (result == VmbErrorSuccess)
+    {
+        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+    }
+    else
+    {
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"TriggerSelector\" to %s. Return code was: %s",
+                         enum_entry->value_nick,
+                         ErrorCodeToMessage(result));
+        // TODO: Print info about what feature values are available to help user
+    }
+
+    // TriggerActivation
+    enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_TRIGGERACTIVATION_VALUES),
+                                  vimbasrc->properties.triggeractivation);
+    GST_DEBUG_OBJECT(vimbasrc, "Setting \"TriggerActivation\" to %s", enum_entry->value_nick);
+    result = VmbFeatureEnumSet(vimbasrc->camera.handle, "TriggerActivation", enum_entry->value_nick);
+    if (result == VmbErrorSuccess)
+    {
+        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+    }
+    else
+    {
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"TriggerActivation\" to %s. Return code was: %s",
+                         enum_entry->value_nick,
+                         ErrorCodeToMessage(result));
+        // TODO: Print info about what feature values are available to help user
+    }
+
+    // TriggerSource
+    enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_TRIGGERSOURCE_VALUES),
+                                  vimbasrc->properties.triggersource);
+    GST_DEBUG_OBJECT(vimbasrc, "Setting \"TriggerSource\" to %s", enum_entry->value_nick);
+    result = VmbFeatureEnumSet(vimbasrc->camera.handle, "TriggerSource", enum_entry->value_nick);
+    if (result == VmbErrorSuccess)
+    {
+        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+    }
+    else
+    {
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"TriggerSource\" to %s. Return code was: %s",
+                         enum_entry->value_nick,
+                         ErrorCodeToMessage(result));
+        // TODO: Print info about what feature values are available to help user
+    }
+
+    // TriggerMode
+    enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_TRIGGERMODE_VALUES),
+                                  vimbasrc->properties.triggermode);
+    GST_DEBUG_OBJECT(vimbasrc, "Setting \"TriggerMode\" to %s", enum_entry->value_nick);
+    result = VmbFeatureEnumSet(vimbasrc->camera.handle, "TriggerMode", enum_entry->value_nick);
+    if (result == VmbErrorSuccess)
+    {
+        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+    }
+    else
+    {
+        GST_ERROR_OBJECT(vimbasrc,
+                         "Failed to set \"TriggerMode\" to %s. Return code was: %s",
+                         enum_entry->value_nick,
+                         ErrorCodeToMessage(result));
+        // TODO: Print info about what feature values are available to help user
+    }
+
     return result;
 }
 
