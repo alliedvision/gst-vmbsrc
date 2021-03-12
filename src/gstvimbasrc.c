@@ -1110,7 +1110,24 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
     GST_DEBUG_OBJECT(vimbasrc, "create");
 
     // Wait until we can get a filled frame (added to queue in vimba_frame_callback)
-    VmbFrame_t *frame = g_async_queue_pop(g_filled_frame_queue);
+    // TODO: Use g_async_queue_timeout_pop and check for state change to see if an early exit is desired
+    VmbFrame_t *frame = NULL;
+    GstStateChangeReturn ret;
+    GstState state;
+    do
+    {
+        // Try to get a filled frame for 10 microseconds
+        frame = g_async_queue_timeout_pop(g_filled_frame_queue, 10);
+        // Get the current state of the element. Should return immediately since we are not doing ASYNC state changes
+        // but wait at most for 100 nanoseconds
+        ret = gst_element_get_state(GST_ELEMENT(vimbasrc), &state, NULL, 100); // timeout is given in nanoseconds
+        if (ret == GST_STATE_CHANGE_SUCCESS && state != GST_STATE_PLAYING)
+        {
+            // The src should not create any more data. Stop waiting for frame and do not fill buf
+            // TODO: Is this the correct retrun value in this case?
+            return GST_FLOW_FLUSHING;
+        }
+    } while (frame == NULL);
 
     if (frame->receiveStatus == VmbFrameStatusIncomplete)
     {
