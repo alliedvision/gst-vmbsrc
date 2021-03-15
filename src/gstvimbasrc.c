@@ -1307,24 +1307,33 @@ void map_supported_pixel_formats(GstVimbaSrc *vimbasrc)
         camera_format_count,
         NULL);
 
-    GST_DEBUG_OBJECT(vimbasrc, "Got %d supported formats", camera_format_count);
+    GST_DEBUG_OBJECT(vimbasrc, "Camera returned %d supported formats", camera_format_count);
+    VmbBool_t is_available;
     for (unsigned int i = 0; i < camera_format_count; i++)
     {
-        const VimbaGstFormatMatch_t *format_map = gst_format_from_vimba_format(supported_formats[i]);
-        if (format_map != NULL)
+        VmbFeatureEnumIsAvailable(vimbasrc->camera.handle, "PixelFormat", supported_formats[i], &is_available);
+        if (is_available)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
-                             "Vimba format \"%s\" corresponds to GStreamer format \"%s\"",
-                             supported_formats[i],
-                             format_map->gst_format_name);
-            vimbasrc->camera.supported_formats[vimbasrc->camera.supported_formats_count] = format_map;
-            vimbasrc->camera.supported_formats_count++;
+            const VimbaGstFormatMatch_t *format_map = gst_format_from_vimba_format(supported_formats[i]);
+            if (format_map != NULL)
+            {
+                GST_DEBUG_OBJECT(vimbasrc,
+                                 "Vimba format \"%s\" corresponds to GStreamer format \"%s\"",
+                                 supported_formats[i],
+                                 format_map->gst_format_name);
+                vimbasrc->camera.supported_formats[vimbasrc->camera.supported_formats_count] = format_map;
+                vimbasrc->camera.supported_formats_count++;
+            }
+            else
+            {
+                GST_DEBUG_OBJECT(vimbasrc,
+                                 "No corresponding GStreamer format found for vimba format \"%s\"",
+                                 supported_formats[i]);
+            }
         }
         else
         {
-            GST_DEBUG_OBJECT(vimbasrc,
-                             "No corresponding GStreamer format found for vimba format \"%s\"",
-                             supported_formats[i]);
+            GST_DEBUG_OBJECT(vimbasrc, "Reported format \"%s\" is not available", supported_formats[i]);
         }
     }
     free(supported_formats);
