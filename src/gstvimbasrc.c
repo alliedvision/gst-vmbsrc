@@ -413,7 +413,7 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             "TriggerSource feature setting",
             "Specifies the internal signal or physical input Line to use as the trigger source. The selected trigger must have its TriggerMode set to On. Not all cameras support every trigger source listed below. Check which sources are supported by the used camera model",
             GST_ENUM_TRIGGERSOURCE_VALUES,
-            GST_VIMBASRC_TRIGGERSOURCE_SOFTWARE,
+            GST_VIMBASRC_TRIGGERSOURCE_LINE0,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
