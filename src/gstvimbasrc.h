@@ -46,7 +46,6 @@ typedef enum
 } GstVimbasrcAutoFeatureValue;
 
 // Possible values for TriggerSelector feature
-// TODO: Which of these are really needed?
 typedef enum
 {
     GST_VIMBASRC_TRIGGERSELECTOR_ACQUISITION_START,
@@ -72,7 +71,6 @@ typedef enum
 } GstVimbasrcTriggerModeValue;
 
 // Possible values for the TriggerSource feature
-// TODO: which of these are really needed? Current entries taken from SFNC
 typedef enum
 {
     GST_VIMBASRC_TRIGGERSOURCE_SOFTWARE,
@@ -127,12 +125,6 @@ typedef enum
     GST_VIMBASRC_TRIGGERACTIVATION_LEVEL_HIGH,
     GST_VIMBASRC_TRIGGERACTIVATION_LEVEL_LOW
 } GstVimbasrcTriggerActivationValue;
-
-// TODO: Do we also need any of the following features?
-// - TriggerOverlap
-// - TriggerDelay
-// - TriggerDivider
-// - TriggerMultiplier
 
 typedef struct _GstVimbaSrc GstVimbaSrc;
 typedef struct _GstVimbaSrcClass GstVimbaSrcClass;

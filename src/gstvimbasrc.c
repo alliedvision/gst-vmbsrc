@@ -127,7 +127,6 @@ static GType gst_vimbasrc_balancewhiteauto_get_type(void)
 }
 
 /* TriggerSelector values */
-// TODO: Which of these are really needed?
 #define GST_ENUM_TRIGGERSELECTOR_VALUES (gst_vimbasrc_triggerselector_get_type())
 static GType gst_vimbasrc_triggerselector_get_type(void)
 {
@@ -175,7 +174,6 @@ static GType gst_vimbasrc_triggermode_get_type(void)
 }
 
 /* TriggerSource values */
-// TODO: which of these are really needed? Current entries taken from SFNC
 #define GST_ENUM_TRIGGERSOURCE_VALUES (gst_vimbasrc_triggersource_get_type())
 static GType gst_vimbasrc_triggersource_get_type(void)
 {
@@ -1061,10 +1059,6 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
 
     GST_DEBUG_OBJECT(vimbasrc, "start");
 
-    /* TODO:
-        - Clarify how Hardware triggering influences the setup required here
-    */
-
     // Prepare queue for filled frames from which vimbasrc_create can take them
     g_filled_frame_queue = g_async_queue_new();
 
@@ -1128,7 +1122,6 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
     GST_DEBUG_OBJECT(vimbasrc, "create");
 
     // Wait until we can get a filled frame (added to queue in vimba_frame_callback)
-    // TODO: Use g_async_queue_timeout_pop and check for state change to see if an early exit is desired
     VmbFrame_t *frame = NULL;
     GstStateChangeReturn ret;
     GstState state;
