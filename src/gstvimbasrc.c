@@ -391,7 +391,7 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
         g_param_spec_enum(
             "triggerselector",
             "TriggerSelector feature setting",
-            "Selects the type of trigger to configure",
+            "Selects the type of trigger to configure. Not all cameras support every trigger selector listed below. Check which selectors are supported by the used camera model",
             GST_ENUM_TRIGGERSELECTOR_VALUES,
             GST_VIMBASRC_TRIGGERSELECTOR_ACQUISITION_START,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
@@ -411,7 +411,7 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
         g_param_spec_enum(
             "triggersource",
             "TriggerSource feature setting",
-            "Specifies the internal signal or physical input Line to use as the trigger source. The selected trigger must have its TriggerMode set to On",
+            "Specifies the internal signal or physical input Line to use as the trigger source. The selected trigger must have its TriggerMode set to On. Not all cameras support every trigger source listed below. Check which sources are supported by the used camera model",
             GST_ENUM_TRIGGERSOURCE_VALUES,
             GST_VIMBASRC_TRIGGERSOURCE_SOFTWARE,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
@@ -421,7 +421,7 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
         g_param_spec_enum(
             "triggeractivation",
             "TriggerActivation feature setting",
-            "Specifies the activation mode of the trigger",
+            "Specifies the activation mode of the trigger. Not all cameras support every trigger activation listed below. Check which activations are supported by the used camera model",
             GST_ENUM_TRIGGERACTIVATION_VALUES,
             GST_VIMBASRC_TRIGGERACTIVATION_RISING_EDGE,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
