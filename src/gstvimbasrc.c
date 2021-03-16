@@ -1474,7 +1474,10 @@ VmbError_t apply_trigger_settings(GstVimbaSrc *vimbasrc)
                          "Failed to set \"TriggerSelector\" to %s. Return code was: %s",
                          enum_entry->value_nick,
                          ErrorCodeToMessage(result));
-        // TODO: Print info about what feature values are available to help user
+        if (result == VmbErrorInvalidValue)
+        {
+            LogAvailableEnumEntries(vimbasrc, "TriggerSelector");
+        }
     }
 
     // TriggerActivation
@@ -1492,7 +1495,10 @@ VmbError_t apply_trigger_settings(GstVimbaSrc *vimbasrc)
                          "Failed to set \"TriggerActivation\" to %s. Return code was: %s",
                          enum_entry->value_nick,
                          ErrorCodeToMessage(result));
-        // TODO: Print info about what feature values are available to help user
+        if (result == VmbErrorInvalidValue)
+        {
+            LogAvailableEnumEntries(vimbasrc, "TriggerActivation");
+        }
     }
 
     // TriggerSource
@@ -1510,7 +1516,10 @@ VmbError_t apply_trigger_settings(GstVimbaSrc *vimbasrc)
                          "Failed to set \"TriggerSource\" to %s. Return code was: %s",
                          enum_entry->value_nick,
                          ErrorCodeToMessage(result));
-        // TODO: Print info about what feature values are available to help user
+        if (result == VmbErrorInvalidValue)
+        {
+            LogAvailableEnumEntries(vimbasrc, "TriggerSource");
+        }
     }
 
     // TriggerMode
@@ -1528,7 +1537,6 @@ VmbError_t apply_trigger_settings(GstVimbaSrc *vimbasrc)
                          "Failed to set \"TriggerMode\" to %s. Return code was: %s",
                          enum_entry->value_nick,
                          ErrorCodeToMessage(result));
-        // TODO: Print info about what feature values are available to help user
     }
 
     return result;
@@ -1706,4 +1714,39 @@ void map_supported_pixel_formats(GstVimbaSrc *vimbasrc)
         }
     }
     free((void *)supported_formats);
+}
+
+void LogAvailableEnumEntries(GstVimbaSrc *vimbasrc, const char *feat_name)
+{
+    VmbUint32_t trigger_source_count;
+    VmbFeatureEnumRangeQuery(
+        vimbasrc->camera.handle,
+        feat_name,
+        NULL,
+        0,
+        &trigger_source_count);
+
+    const char **trigger_source_values = malloc(trigger_source_count * sizeof(char *));
+    VmbFeatureEnumRangeQuery(
+        vimbasrc->camera.handle,
+        feat_name,
+        trigger_source_values,
+        trigger_source_count,
+        NULL);
+
+    VmbBool_t is_available;
+    GST_ERROR_OBJECT(vimbasrc, "The following values for the \"%s\" feature are available", feat_name);
+    for (unsigned int i = 0; i < trigger_source_count; i++)
+    {
+        VmbFeatureEnumIsAvailable(vimbasrc->camera.handle,
+                                  feat_name,
+                                  trigger_source_values[i],
+                                  &is_available);
+        if (is_available)
+        {
+            GST_ERROR_OBJECT(vimbasrc, "    %s", trigger_source_values[i]);
+        }
+    }
+
+    free((void *)trigger_source_values);
 }
