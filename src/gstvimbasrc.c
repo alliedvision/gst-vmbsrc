@@ -1487,7 +1487,7 @@ VmbError_t apply_trigger_settings(GstVimbaSrc *vimbasrc)
                          ErrorCodeToMessage(result));
         if (result == VmbErrorInvalidValue)
         {
-            LogAvailableEnumEntries(vimbasrc, "TriggerSelector");
+            log_available_enum_entries(vimbasrc, "TriggerSelector");
         }
     }
 
@@ -1508,7 +1508,7 @@ VmbError_t apply_trigger_settings(GstVimbaSrc *vimbasrc)
                          ErrorCodeToMessage(result));
         if (result == VmbErrorInvalidValue)
         {
-            LogAvailableEnumEntries(vimbasrc, "TriggerActivation");
+            log_available_enum_entries(vimbasrc, "TriggerActivation");
         }
     }
 
@@ -1529,7 +1529,7 @@ VmbError_t apply_trigger_settings(GstVimbaSrc *vimbasrc)
                          ErrorCodeToMessage(result));
         if (result == VmbErrorInvalidValue)
         {
-            LogAvailableEnumEntries(vimbasrc, "TriggerSource");
+            log_available_enum_entries(vimbasrc, "TriggerSource");
         }
     }
 
@@ -1727,7 +1727,7 @@ void map_supported_pixel_formats(GstVimbaSrc *vimbasrc)
     free((void *)supported_formats);
 }
 
-void LogAvailableEnumEntries(GstVimbaSrc *vimbasrc, const char *feat_name)
+void log_available_enum_entries(GstVimbaSrc *vimbasrc, const char *feat_name)
 {
     VmbUint32_t trigger_source_count;
     VmbFeatureEnumRangeQuery(

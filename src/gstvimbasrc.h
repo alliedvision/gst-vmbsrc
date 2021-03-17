@@ -189,6 +189,6 @@ VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc);
 VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc);
 void VMB_CALL vimba_frame_callback(const VmbHandle_t cameraHandle, VmbFrame_t *pFrame);
 void map_supported_pixel_formats(GstVimbaSrc *vimbasrc);
-void LogAvailableEnumEntries(GstVimbaSrc *vimbasrc, const char *feat_name);
+void log_available_enum_entries(GstVimbaSrc *vimbasrc, const char *feat_name);
 
 #endif
