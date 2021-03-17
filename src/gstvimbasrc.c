@@ -592,19 +592,22 @@ void gst_vimbasrc_finalize(GObject *object)
 
     GST_DEBUG_OBJECT(vimbasrc, "finalize");
 
-    VmbError_t result = VmbCameraClose(vimbasrc->camera.handle);
-    if (result == VmbErrorSuccess)
+    if (vimbasrc->camera.is_connected)
     {
-        GST_INFO_OBJECT(vimbasrc, "Closed camera %s", vimbasrc->camera.id);
+        VmbError_t result = VmbCameraClose(vimbasrc->camera.handle);
+        if (result == VmbErrorSuccess)
+        {
+            GST_INFO_OBJECT(vimbasrc, "Closed camera %s", vimbasrc->camera.id);
+        }
+        else
+        {
+            GST_ERROR_OBJECT(vimbasrc,
+                             "Closing camera %s failed. Got error code: %s",
+                             vimbasrc->camera.id,
+                             ErrorCodeToMessage(result));
+        }
+        vimbasrc->camera.is_connected = false;
     }
-    else
-    {
-        GST_ERROR_OBJECT(vimbasrc,
-                         "Closing camera %s failed. Got error code: %s",
-                         vimbasrc->camera.id,
-                         ErrorCodeToMessage(result));
-    }
-    vimbasrc->camera.is_connected = false;
 
     VmbShutdown();
     GST_DEBUG_OBJECT(vimbasrc, "Vimba API was shut down");
@@ -903,7 +906,28 @@ VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc)
     VmbError_t result = VmbCameraOpen(vimbasrc->camera.id, VmbAccessModeFull, &vimbasrc->camera.handle);
     if (result == VmbErrorSuccess)
     {
-        GST_INFO_OBJECT(vimbasrc, "Successfully opened camera %s", vimbasrc->camera.id);
+        VmbCameraInfo_t camera_info;
+        VmbCameraInfoQuery(vimbasrc->camera.id, &camera_info, sizeof(camera_info));
+        GST_INFO_OBJECT(vimbasrc,
+                        "Successfully opened camera %s (model \"%s\" on interface \"%s\")",
+                        vimbasrc->camera.id,
+                        camera_info.modelName,
+                        camera_info.interfaceIdString);
+
+        // Set the GeV packet size to the highest possible value if a GigE camera is used
+        if (VmbErrorSuccess == VmbFeatureCommandRun(vimbasrc->camera.handle, "GVSPAdjustPacketSize"))
+        {
+            VmbBool_t is_command_done = VmbBoolFalse;
+            do
+            {
+                if (VmbErrorSuccess != VmbFeatureCommandIsDone(vimbasrc->camera.handle,
+                                                               "GVSPAdjustPacketSize",
+                                                               &is_command_done))
+                {
+                    break;
+                }
+            } while (VmbBoolFalse == is_command_done);
+        }
         vimbasrc->camera.is_connected = true;
         map_supported_pixel_formats(vimbasrc);
     }
@@ -1302,24 +1326,33 @@ void map_supported_pixel_formats(GstVimbaSrc *vimbasrc)
         camera_format_count,
         NULL);
 
-    GST_DEBUG_OBJECT(vimbasrc, "Got %d supported formats", camera_format_count);
+    GST_DEBUG_OBJECT(vimbasrc, "Camera returned %d supported formats", camera_format_count);
+    VmbBool_t is_available;
     for (unsigned int i = 0; i < camera_format_count; i++)
     {
-        const VimbaGstFormatMatch_t *format_map = gst_format_from_vimba_format(supported_formats[i]);
-        if (format_map != NULL)
+        VmbFeatureEnumIsAvailable(vimbasrc->camera.handle, "PixelFormat", supported_formats[i], &is_available);
+        if (is_available)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
-                             "Vimba format \"%s\" corresponds to GStreamer format \"%s\"",
-                             supported_formats[i],
-                             format_map->gst_format_name);
-            vimbasrc->camera.supported_formats[vimbasrc->camera.supported_formats_count] = format_map;
-            vimbasrc->camera.supported_formats_count++;
+            const VimbaGstFormatMatch_t *format_map = gst_format_from_vimba_format(supported_formats[i]);
+            if (format_map != NULL)
+            {
+                GST_DEBUG_OBJECT(vimbasrc,
+                                 "Vimba format \"%s\" corresponds to GStreamer format \"%s\"",
+                                 supported_formats[i],
+                                 format_map->gst_format_name);
+                vimbasrc->camera.supported_formats[vimbasrc->camera.supported_formats_count] = format_map;
+                vimbasrc->camera.supported_formats_count++;
+            }
+            else
+            {
+                GST_DEBUG_OBJECT(vimbasrc,
+                                 "No corresponding GStreamer format found for vimba format \"%s\"",
+                                 supported_formats[i]);
+            }
         }
         else
         {
-            GST_DEBUG_OBJECT(vimbasrc,
-                             "No corresponding GStreamer format found for vimba format \"%s\"",
-                             supported_formats[i]);
+            GST_DEBUG_OBJECT(vimbasrc, "Reported format \"%s\" is not available", supported_formats[i]);
         }
     }
     free((void *)supported_formats);
