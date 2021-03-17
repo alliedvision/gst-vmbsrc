@@ -909,8 +909,10 @@ VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc)
         VmbCameraInfo_t camera_info;
         VmbCameraInfoQuery(vimbasrc->camera.id, &camera_info, sizeof(camera_info));
         GST_INFO_OBJECT(vimbasrc,
-                        "Successfully opened camera %s (model: %s)",
-                        vimbasrc->camera.id, camera_info.modelName);
+                        "Successfully opened camera %s (model \"%s\" on interface \"%s\")",
+                        vimbasrc->camera.id,
+                        camera_info.modelName,
+                        camera_info.interfaceIdString);
 
         // Set the GeV packet size to the highest possible value if a GigE camera is used
         if (VmbErrorSuccess == VmbFeatureCommandRun(vimbasrc->camera.handle, "GVSPAdjustPacketSize"))
