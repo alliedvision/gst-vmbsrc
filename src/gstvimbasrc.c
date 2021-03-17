@@ -911,6 +911,21 @@ VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc)
         GST_INFO_OBJECT(vimbasrc,
                         "Successfully opened camera %s (model: %s)",
                         vimbasrc->camera.id, camera_info.modelName);
+
+        // Set the GeV packet size to the highest possible value if a GigE camera is used
+        if (VmbErrorSuccess == VmbFeatureCommandRun(vimbasrc->camera.handle, "GVSPAdjustPacketSize"))
+        {
+            VmbBool_t is_command_done = VmbBoolFalse;
+            do
+            {
+                if (VmbErrorSuccess != VmbFeatureCommandIsDone(vimbasrc->camera.handle,
+                                                               "GVSPAdjustPacketSize",
+                                                               &is_command_done))
+                {
+                    break;
+                }
+            } while (VmbBoolFalse == is_command_done);
+        }
         vimbasrc->camera.is_connected = true;
         map_supported_pixel_formats(vimbasrc);
     }
