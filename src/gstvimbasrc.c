@@ -906,7 +906,11 @@ VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc)
     VmbError_t result = VmbCameraOpen(vimbasrc->camera.id, VmbAccessModeFull, &vimbasrc->camera.handle);
     if (result == VmbErrorSuccess)
     {
-        GST_INFO_OBJECT(vimbasrc, "Successfully opened camera %s", vimbasrc->camera.id);
+        VmbCameraInfo_t camera_info;
+        VmbCameraInfoQuery(vimbasrc->camera.id, &camera_info, sizeof(camera_info));
+        GST_INFO_OBJECT(vimbasrc,
+                        "Successfully opened camera %s (model: %s)",
+                        vimbasrc->camera.id, camera_info.modelName);
         vimbasrc->camera.is_connected = true;
         map_supported_pixel_formats(vimbasrc);
     }
