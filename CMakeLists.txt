@@ -9,6 +9,13 @@ project(
     HOMEPAGE_URL "https://alliedvision.com/"
 )
 
+# Turn on compiler warnings and treat them as errors
+if(MSVC)
+  add_compile_options(/W4 /WX)
+else()
+  add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif()
+
 # add local cmake modules to simplify detection of dependencies
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 

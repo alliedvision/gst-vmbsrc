@@ -259,7 +259,7 @@ G_DEFINE_TYPE_WITH_CODE(GstVimbaSrc,
                         GST_DEBUG_CATEGORY_INIT(gst_vimbasrc_debug_category,
                                                 "vimbasrc",
                                                 0,
-                                                "debug category for vimbasrc element"));
+                                                "debug category for vimbasrc element"))
 
 static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
 {
@@ -899,6 +899,7 @@ void gst_vimbasrc_finalize(GObject *object)
 /* get caps from subclass */
 static GstCaps *gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
 {
+    UNUSED(filter); // enable compilation while treating warning of unused vairable as error
     GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
     GST_DEBUG_OBJECT(vimbasrc, "get_caps");
@@ -973,7 +974,7 @@ static GstCaps *gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
         gst_structure_set_value(bayer_caps, "format", &pixel_format_bayer_list);
     }
 
-    GST_DEBUG_OBJECT(vimbasrc, "returning caps: %" GST_PTR_FORMAT, caps);
+    GST_DEBUG_OBJECT(vimbasrc, "returning caps: %s", gst_caps_to_string(caps));
 
     return caps;
 }
@@ -985,7 +986,7 @@ static gboolean gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
 
     GST_DEBUG_OBJECT(vimbasrc, "set_caps");
 
-    GST_DEBUG_OBJECT(vimbasrc, "caps requested to be set: %" GST_PTR_FORMAT, caps);
+    GST_DEBUG_OBJECT(vimbasrc, "caps requested to be set: %s", gst_caps_to_string(caps));
 
     // TODO: save to assume that "format" is always exactly one format and not a list? gst_caps_is_fixed might otherwise
     // be a good check and gst_caps_normalize could help make sure of it
@@ -1696,6 +1697,7 @@ VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc)
 
 void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, VmbFrame_t *frame)
 {
+    UNUSED(camera_handle); // enable compilation while treating warning of unused vairable as error
     GST_DEBUG("Got Frame");
     g_async_queue_push(g_filled_frame_queue, frame);
 
