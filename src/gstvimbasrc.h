@@ -141,7 +141,7 @@ struct _GstVimbaSrc
 
     struct
     {
-        const gchar *id;
+        char *id;
         VmbHandle_t handle;
         VmbUint32_t supported_formats_count;
         // TODO: This overallocates since no camera will actually support all possible format matches. Allocate and fill
@@ -152,7 +152,7 @@ struct _GstVimbaSrc
     } camera;
     struct
     {
-        const char *camera_id;
+        char *settings_file_path;
         double exposuretime;
         int exposureauto;
         int balancewhiteauto;

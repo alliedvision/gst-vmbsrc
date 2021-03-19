@@ -66,6 +66,7 @@ enum
 {
     PROP_0,
     PROP_CAMERA_ID,
+    PROP_SETTINGS_FILENAME,
     PROP_EXPOSURETIME,
     PROP_EXPOSUREAUTO,
     PROP_BALANCEWHITEAUTO,
@@ -299,6 +300,15 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
+        PROP_SETTINGS_FILENAME,
+        g_param_spec_string(
+            "settingsfile",
+            "Camera settings filepath",
+            "Path to XML file containing camera settings that should be applied. All settings from this file will be applied before any other property is set. Explicitely set properties will overwrite features set from this file!",
+            "",
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
         PROP_EXPOSURETIME,
         g_param_spec_double(
             "exposuretime",
@@ -466,11 +476,16 @@ static void gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
     // Set property helper variables to default values
     GObjectClass *gobject_class = G_OBJECT_GET_CLASS(vimbasrc);
 
-    vimbasrc->properties.camera_id = g_value_dup_string(
+    vimbasrc->camera.id = g_value_dup_string(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "camera")));
+    vimbasrc->properties.settings_file_path = g_value_dup_string(
+        g_param_spec_get_default_value(
+            g_object_class_find_property(
+                gobject_class,
+                "settingsfile")));
     vimbasrc->properties.exposuretime = g_value_get_double(
         g_param_spec_get_default_value(
             g_object_class_find_property(
@@ -542,8 +557,18 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id, const GValue 
     switch (property_id)
     {
     case PROP_CAMERA_ID:
-        free((void *)vimbasrc->camera.id); // Free memory of old entry
+        if (strcmp(vimbasrc->camera.id, "") != 0)
+        {
+            free((void *)vimbasrc->camera.id); // Free memory of old entry
+        }
         vimbasrc->camera.id = g_value_dup_string(value);
+        break;
+    case PROP_SETTINGS_FILENAME:
+        if (strcmp(vimbasrc->properties.settings_file_path, "") != 0)
+        {
+            free((void *)vimbasrc->properties.settings_file_path); // Free memory of old entry
+        }
+        vimbasrc->properties.settings_file_path = g_value_dup_string(value);
         break;
     case PROP_EXPOSURETIME:
         vimbasrc->properties.exposuretime = g_value_get_double(value);
@@ -603,6 +628,9 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
     {
     case PROP_CAMERA_ID:
         g_value_set_string(value, vimbasrc->camera.id);
+        break;
+    case PROP_SETTINGS_FILENAME:
+        g_value_set_string(value, vimbasrc->properties.settings_file_path);
         break;
     case PROP_EXPOSURETIME:
         // TODO: Workaround for cameras with legacy "ExposureTimeAbs" feature should be replaced with a general legacy
@@ -1076,6 +1104,25 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
         {
             // Can't connect to camera. Abort execution by returning FALSE. This stops the pipeline!
             return FALSE;
+        }
+    }
+
+    // Load settings from given file if a path was given (settings_file_path is not empty)
+    if (strcmp(vimbasrc->properties.settings_file_path, "") != 0)
+    {
+        GST_DEBUG_OBJECT(vimbasrc,
+                         "Loading camera settings from file \"%s\"",
+                         vimbasrc->properties.settings_file_path);
+        result = VmbCameraSettingsLoad(vimbasrc->camera.handle,
+                                       vimbasrc->properties.settings_file_path,
+                                       NULL,
+                                       0);
+        if (result != VmbErrorSuccess)
+        {
+            GST_ERROR_OBJECT(vimbasrc,
+                             "Could not load settings from file \"%s\". Got error code %s",
+                             vimbasrc->properties.settings_file_path,
+                             ErrorCodeToMessage(result));
         }
     }
 
