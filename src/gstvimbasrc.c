@@ -1110,9 +1110,9 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
     // Load settings from given file if a path was given (settings_file_path is not empty)
     if (strcmp(vimbasrc->properties.settings_file_path, "") != 0)
     {
-        GST_DEBUG_OBJECT(vimbasrc,
-                         "Loading camera settings from file \"%s\"",
-                         vimbasrc->properties.settings_file_path);
+        GST_WARNING_OBJECT(vimbasrc,
+                           "\"%s\" was given as settingsfile. Other feature settings passed as element properties will be ignored!",
+                           vimbasrc->properties.settings_file_path);
         result = VmbCameraSettingsLoad(vimbasrc->camera.handle,
                                        vimbasrc->properties.settings_file_path,
                                        NULL,
@@ -1125,8 +1125,12 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
                              ErrorCodeToMessage(result));
         }
     }
-
-    result = apply_feature_settings(vimbasrc);
+    else
+    {
+        // If no settings file is given, apply the passed properties as feature settings instead
+        GST_DEBUG_OBJECT(vimbasrc, "No settings file given. Applying features from element properties instead");
+        result = apply_feature_settings(vimbasrc);
+    }
 
     result = alloc_and_announce_buffers(vimbasrc);
     if (result == VmbErrorSuccess)
