@@ -203,11 +203,12 @@ is able to debayer the data into a widely accepted RGBA format.
     they are simply displayed as very dark pixels.
 
 ## Known issues and limitations
-- Frame status is not considered in `gst_vimbasrc_create`. This means that incomplete frames may get
-  pushed out to the GStreamer pipeline where parts of the frame may contain garbage or old image
-  data
-    - A warning message is output if an incomplete frame is encountered (only displayed if logging
-      level is set appropriately)
+- In situations where cameras submit many frames per second, visualization may slow down the
+  pipeline and lead to a large number of incomplete frames. For incomplete frames warnings are
+  logged. The user may select whether they want to drop incomplete frames (default behavior) or to
+  submit them into the pipeline for processing. Incomplete frames may contain pixel intensities from
+  old acquisitions or random data. The behavior is selectable with the `incompleteframehandling`
+  property.
 - Complex camera feature setups may not be possible using the provided properties (e.g. complex
   trigger setups for multiple trigger selectors). For those cases it is recommended to [use an XML
   file to pass the camera settings](####Using-an-XML-file).
