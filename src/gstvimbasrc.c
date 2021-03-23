@@ -66,6 +66,7 @@ enum
 {
     PROP_0,
     PROP_CAMERA_ID,
+    PROP_SETTINGS_FILENAME,
     PROP_EXPOSURETIME,
     PROP_EXPOSUREAUTO,
     PROP_BALANCEWHITEAUTO,
@@ -259,7 +260,7 @@ G_DEFINE_TYPE_WITH_CODE(GstVimbaSrc,
                         GST_DEBUG_CATEGORY_INIT(gst_vimbasrc_debug_category,
                                                 "vimbasrc",
                                                 0,
-                                                "debug category for vimbasrc element"));
+                                                "debug category for vimbasrc element"))
 
 static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
 {
@@ -295,6 +296,15 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             "camera",
             "Camera ID",
             "ID of the camera images should be recorded from",
+            "",
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_SETTINGS_FILENAME,
+        g_param_spec_string(
+            "settingsfile",
+            "Camera settings filepath",
+            "Path to XML file containing camera settings that should be applied. All settings from this file will be applied before any other property is set. Explicitely set properties will overwrite features set from this file!",
             "",
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
@@ -466,11 +476,16 @@ static void gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
     // Set property helper variables to default values
     GObjectClass *gobject_class = G_OBJECT_GET_CLASS(vimbasrc);
 
-    vimbasrc->properties.camera_id = g_value_dup_string(
+    vimbasrc->camera.id = g_value_dup_string(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "camera")));
+    vimbasrc->properties.settings_file_path = g_value_dup_string(
+        g_param_spec_get_default_value(
+            g_object_class_find_property(
+                gobject_class,
+                "settingsfile")));
     vimbasrc->properties.exposuretime = g_value_get_double(
         g_param_spec_get_default_value(
             g_object_class_find_property(
@@ -542,8 +557,18 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id, const GValue 
     switch (property_id)
     {
     case PROP_CAMERA_ID:
-        free((void *)vimbasrc->camera.id); // Free memory of old entry
+        if (strcmp(vimbasrc->camera.id, "") != 0)
+        {
+            free((void *)vimbasrc->camera.id); // Free memory of old entry
+        }
         vimbasrc->camera.id = g_value_dup_string(value);
+        break;
+    case PROP_SETTINGS_FILENAME:
+        if (strcmp(vimbasrc->properties.settings_file_path, "") != 0)
+        {
+            free((void *)vimbasrc->properties.settings_file_path); // Free memory of old entry
+        }
+        vimbasrc->properties.settings_file_path = g_value_dup_string(value);
         break;
     case PROP_EXPOSURETIME:
         vimbasrc->properties.exposuretime = g_value_get_double(value);
@@ -603,6 +628,9 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
     {
     case PROP_CAMERA_ID:
         g_value_set_string(value, vimbasrc->camera.id);
+        break;
+    case PROP_SETTINGS_FILENAME:
+        g_value_set_string(value, vimbasrc->properties.settings_file_path);
         break;
     case PROP_EXPOSURETIME:
         // TODO: Workaround for cameras with legacy "ExposureTimeAbs" feature should be replaced with a general legacy
@@ -899,6 +927,7 @@ void gst_vimbasrc_finalize(GObject *object)
 /* get caps from subclass */
 static GstCaps *gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
 {
+    UNUSED(filter); // enable compilation while treating warning of unused vairable as error
     GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
     GST_DEBUG_OBJECT(vimbasrc, "get_caps");
@@ -973,7 +1002,7 @@ static GstCaps *gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
         gst_structure_set_value(bayer_caps, "format", &pixel_format_bayer_list);
     }
 
-    GST_DEBUG_OBJECT(vimbasrc, "returning caps: %" GST_PTR_FORMAT, caps);
+    GST_DEBUG_OBJECT(vimbasrc, "returning caps: %s", gst_caps_to_string(caps));
 
     return caps;
 }
@@ -985,7 +1014,7 @@ static gboolean gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
 
     GST_DEBUG_OBJECT(vimbasrc, "set_caps");
 
-    GST_DEBUG_OBJECT(vimbasrc, "caps requested to be set: %" GST_PTR_FORMAT, caps);
+    GST_DEBUG_OBJECT(vimbasrc, "caps requested to be set: %s", gst_caps_to_string(caps));
 
     // TODO: save to assume that "format" is always exactly one format and not a list? gst_caps_is_fixed might otherwise
     // be a good check and gst_caps_normalize could help make sure of it
@@ -1078,7 +1107,30 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
         }
     }
 
-    result = apply_feature_settings(vimbasrc);
+    // Load settings from given file if a path was given (settings_file_path is not empty)
+    if (strcmp(vimbasrc->properties.settings_file_path, "") != 0)
+    {
+        GST_WARNING_OBJECT(vimbasrc,
+                           "\"%s\" was given as settingsfile. Other feature settings passed as element properties will be ignored!",
+                           vimbasrc->properties.settings_file_path);
+        result = VmbCameraSettingsLoad(vimbasrc->camera.handle,
+                                       vimbasrc->properties.settings_file_path,
+                                       NULL,
+                                       0);
+        if (result != VmbErrorSuccess)
+        {
+            GST_ERROR_OBJECT(vimbasrc,
+                             "Could not load settings from file \"%s\". Got error code %s",
+                             vimbasrc->properties.settings_file_path,
+                             ErrorCodeToMessage(result));
+        }
+    }
+    else
+    {
+        // If no settings file is given, apply the passed properties as feature settings instead
+        GST_DEBUG_OBJECT(vimbasrc, "No settings file given. Applying features from element properties instead");
+        result = apply_feature_settings(vimbasrc);
+    }
 
     result = alloc_and_announce_buffers(vimbasrc);
     if (result == VmbErrorSuccess)
@@ -1696,6 +1748,7 @@ VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc)
 
 void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, VmbFrame_t *frame)
 {
+    UNUSED(camera_handle); // enable compilation while treating warning of unused vairable as error
     GST_DEBUG("Got Frame");
     g_async_queue_push(g_filled_frame_queue, frame);
 

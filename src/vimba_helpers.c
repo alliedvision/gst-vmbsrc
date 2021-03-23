@@ -44,7 +44,7 @@ const char *ErrorCodeToMessage(VmbError_t eError)
     case VmbErrorTimeout:
         return "Timeout.";
     case VmbErrorOther:
-        return "TL error.";
+        return "Other error.";
     case VmbErrorResources:
         return "Resource not available.";
     case VmbErrorInvalidCall:

@@ -85,10 +85,40 @@ The following pipeline can for example be used to display the recorded camera im
 gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 ! videoscale ! videoconvert ! queue ! autovideosink
 ```
 
-### Supported camera features
+### Setting camera features
+To adjust the image acquisition process of the camera, access to settings like the exposure time are
+necessary. The `vimbasrc` element provides access to these camera features in one of two ways.
+1. If given, an XML file defining camera features and their corresponding values is parsed and all
+   features contained are applied to the camera (see [Using an XML file](####Using-an-XML-file))
+2. Otherwise selected camera features can be set via properties of the `vimbasrc` element (see
+   [Supported via GStreamer properties](####Supported-via-GStreamer-properties))
+
+The first approach allows the user to freely modify all features the used camera supports. The
+second one only gives access to a small selection of camera features that are supported by many, but
+not all camera models. The feature names (and in case of enum features their values) follow the
+Standard Feature Naming Convention (SFNC) for GenICam devices. For cameras not implementing the
+SFNC, this may lead to errors in setting some camera features. For these devices the feature setting
+via a provided XML file is recommended.
+
+#### Using an XML file
+Providing an XML file containing the desired feature values allows access to all supported camera
+features. A convenient way to creating such an XML file is configuring your camera as desired with
+the help of the VimbaViewer and saving the current configuration as an XML file from there. The path
+to this file may then be passed to `vimbasrc` via the `settingsfile` property as shown below
+```
+gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 settingsfile=path_to_settings.xml ! videoscale ! videoconvert ! queue ! autovideosink
+```
+
+**If a settings file is used no other parameters passed as element properties will be applied as
+feature values.** This is done to prevent accidental overwriting of previously set features. One
+exception from this rule is the format of the recorded image data. For details on this particular
+feature see [Supported pixel formats](###Supported-pixel-formats).
+
+#### Supported via GStreamer properties
 A list of supported camera features can be found by using the `gst-inspect` tool on the `vimbasrc`
 element. This will display a list of available "Element Properties", which include the available
-camera features.
+camera features. **Note that these properties are only applied to their corresponding feature, if no
+XML settings file is passed!**
 
 For some of the exposed features camera specific restrictions in the allowed values may apply. For
 example the `Width`, `Height`, `OffsetX` and `OffsetY` features may only accept integer values
@@ -97,7 +127,19 @@ not be applied a logging message with level `WARNING` will be printed (make sure
 logging level is set: e.g. `GST_DEBUG=vimbasrc:WARNING` or higher) and image acquisition will
 proceed with the feature values that were initially set on the camera.
 
+In addition to the camera features listed by `gst-inspect`, the pixel format the camera uses to
+record images can be influenced. For details on this see [Supported pixel
+formats](###Supported-pixel-formats).
+
 ### Supported pixel formats
+As the pixel format has direct impact on the layout of the image data that is moving down the
+GStreamer pipeline, it is necessary to ensure, that linked elements are able to correctly interpret
+the received data. This is done by negotiating the exchange format of two elements by finding a
+common data layout they both support. Supported formats are reported as `caps` of an elements pad.
+In order to support this standard negotiation procedure, the pixel format is therefore set depending
+on the negotiated data exchange format, instead of as a general element property like the other
+camera features.
+
 Selecting the desired format can be achieved by defining it in a GStreamer
 [capsfilter](https://gstreamer.freedesktop.org/documentation/coreelements/capsfilter.html) element
 (e.g. `video/x-raw,format=GRAY8`). A full example pipeline setting the GStreamer GRAY8 format is
@@ -142,9 +184,30 @@ is able to debayer the data into a widely accepted RGBA format.
 | BayerGB8            | gbrg                           |
 | BayerBG8            | bggr                           |
 
+## Troubleshooting
+- How can I enable logging for the plugin
+  - To enable logging set the `GST_DEBUG` environment variable to `GST_DEBUG=vimbasrc:DEBUG` or
+    another appropriate level. For further details see [the official
+    documentation](https://gstreamer.freedesktop.org/documentation/tutorials/basic/debugging-tools.html)
+- The camera features are not applied correctly
+  - Not all cameras support access to their features via the names agreed upon in the Standard
+    Feature Naming Convention. If your camera uses different names for its features, consider [using
+    an XML file to pass camera settings](####Using-an-XML-file) instead.
+- When displaying my images I only see black
+  - This may be due to the selected pixel format. If for example a Mono10 pixel format is chosen for
+    the camera, the resulting pixel intensities are written to 16bit fields in the used image buffer
+    (see table in [video/x-raw formats overview](####GStreamer-video/x-raw-Formats)). Because the
+    pixel data is only written to the least significant bits, the used pixel intensity range does
+    not cover the expected 16bit range. If the display assumes the 16bit data range to be fully
+    utilized, your recorded pixel intensities may be too small to show up on your display, because
+    they are simply displayed as very dark pixels.
+
 ## Known issues and limitations
 - Frame status is not considered in `gst_vimbasrc_create`. This means that incomplete frames may get
   pushed out to the GStreamer pipeline where parts of the frame may contain garbage or old image
   data
     - A warning message is output if an incomplete frame is encountered (only displayed if logging
       level is set appropriately)
+- Complex camera feature setups may not be possible using the provided properties (e.g. complex
+  trigger setups for multiple trigger selectors). For those cases it is recommended to [use an XML
+  file to pass the camera settings](####Using-an-XML-file).
