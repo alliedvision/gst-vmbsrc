@@ -79,6 +79,7 @@ enum
     PROP_TRIGGERMODE,
     PROP_TRIGGERSOURCE,
     PROP_TRIGGERACTIVATION,
+    PROP_INCOMPLETE_FRAME_HANDLING
 };
 
 /* pad templates */
@@ -250,6 +251,23 @@ static GType gst_vimbasrc_triggeractivation_get_type(void)
             g_enum_register_static("GstVimbasrcTriggerActivationValues", triggeractivation_values);
     }
     return vimbasrc_triggeractivation_type;
+}
+
+/* IncompleteFrameHandling values */
+#define GST_ENUM_INCOMPLETEFRAMEHANDLING_VALUES (gst_vimbasrc_incompleteframehandling_get_type())
+static GType gst_vimbasrc_incompleteframehandling_get_type(void)
+{
+    static GType vimbasrc_incompleteframehandling_type = 0;
+    static const GEnumValue incompleteframehandling_values[] = {
+        {GST_VIMBASRC_INCOMPLETE_FRAME_HANDLING_DROP, "Drop incomplete frames", "Drop"},
+        {GST_VIMBASRC_INCOMPLETE_FRAME_HANDLING_SUBMIT, "Use incomplete frames and submit them to the next element for processing", "Submit"},
+        {0, NULL, NULL}};
+    if (!vimbasrc_incompleteframehandling_type)
+    {
+        vimbasrc_incompleteframehandling_type =
+            g_enum_register_static("GstVimbasrcIncompleteFrameHandlingValues", incompleteframehandling_values);
+    }
+    return vimbasrc_incompleteframehandling_type;
 }
 
 /* class initialization */
@@ -433,6 +451,16 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             GST_ENUM_TRIGGERACTIVATION_VALUES,
             GST_VIMBASRC_TRIGGERACTIVATION_RISING_EDGE,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_INCOMPLETE_FRAME_HANDLING,
+        g_param_spec_enum(
+            "incompleteframehandling",
+            "Incomplete frame handline",
+            "Determines how the element should handle received frames where data transmission was incomplete. Incomplete frames may contain pixel intensities from old acquisitions or random data",
+            GST_ENUM_INCOMPLETEFRAMEHANDLING_VALUES,
+            GST_VIMBASRC_INCOMPLETE_FRAME_HANDLING_DROP,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
@@ -546,6 +574,11 @@ static void gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
             g_object_class_find_property(
                 gobject_class,
                 "triggeractivation")));
+    vimbasrc->properties.incomplete_frame_handling = g_value_get_enum(
+        g_param_spec_get_default_value(
+            g_object_class_find_property(
+                gobject_class,
+                "incompleteframehandling")));
 }
 
 void gst_vimbasrc_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
@@ -605,6 +638,9 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id, const GValue 
         break;
     case PROP_TRIGGERACTIVATION:
         vimbasrc->properties.triggeractivation = g_value_get_enum(value);
+        break;
+    case PROP_INCOMPLETE_FRAME_HANDLING:
+        vimbasrc->properties.incomplete_frame_handling = g_value_get_enum(value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -877,6 +913,9 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
                                ErrorCodeToMessage(result));
         }
         g_value_set_enum(value, vimbasrc->properties.triggeractivation);
+        break;
+    case PROP_INCOMPLETE_FRAME_HANDLING:
+        g_value_set_enum(value, vimbasrc->properties.incomplete_frame_handling);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -1176,30 +1215,54 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
 
     GST_DEBUG_OBJECT(vimbasrc, "create");
 
-    // Wait until we can get a filled frame (added to queue in vimba_frame_callback)
-    VmbFrame_t *frame = NULL;
-    GstStateChangeReturn ret;
-    GstState state;
+    bool submit_frame = false;
+    VmbFrame_t *frame;
     do
     {
-        // Try to get a filled frame for 10 microseconds
-        frame = g_async_queue_timeout_pop(g_filled_frame_queue, 10);
-        // Get the current state of the element. Should return immediately since we are not doing ASYNC state changes
-        // but wait at most for 100 nanoseconds
-        ret = gst_element_get_state(GST_ELEMENT(vimbasrc), &state, NULL, 100); // timeout is given in nanoseconds
-        if (ret == GST_STATE_CHANGE_SUCCESS && state != GST_STATE_PLAYING)
+        // Wait until we can get a filled frame (added to queue in vimba_frame_callback)
+        frame = NULL;
+        GstStateChangeReturn ret;
+        GstState state;
+        do
         {
-            // The src should not create any more data. Stop waiting for frame and do not fill buf
-            // TODO: Is this the correct retrun value in this case?
-            return GST_FLOW_FLUSHING;
-        }
-    } while (frame == NULL);
+            // Try to get a filled frame for 10 microseconds
+            frame = g_async_queue_timeout_pop(g_filled_frame_queue, 10);
+            // Get the current state of the element. Should return immediately since we are not doing ASYNC state changes
+            // but wait at most for 100 nanoseconds
+            ret = gst_element_get_state(GST_ELEMENT(vimbasrc), &state, NULL, 100); // timeout is given in nanoseconds
+            if (ret == GST_STATE_CHANGE_SUCCESS && state != GST_STATE_PLAYING)
+            {
+                // The src should not create any more data. Stop waiting for frame and do not fill buf
+                // TODO: Is this the correct retrun value in this case?
+                return GST_FLOW_FLUSHING;
+            }
 
-    if (frame->receiveStatus == VmbFrameStatusIncomplete)
-    {
-        GST_WARNING_OBJECT(vimbasrc,
-                           "Received frame with ID \"%llu\" was incomplete", frame->frameID);
-    }
+        } while (frame == NULL);
+        // We got a frame. Check receive status and handle incomplete frames according to
+        // vimbasrc->properties.incomplete_frame_handling
+        if (frame->receiveStatus == VmbFrameStatusIncomplete)
+        {
+            GST_WARNING_OBJECT(vimbasrc,
+                               "Received frame with ID \"%llu\" was incomplete", frame->frameID);
+            if (vimbasrc->properties.incomplete_frame_handling == GST_VIMBASRC_INCOMPLETE_FRAME_HANDLING_SUBMIT)
+            {
+                GST_DEBUG_OBJECT(vimbasrc,
+                                 "Submitting incomplete frame because \"incompleteframehandling\" requested it");
+                submit_frame = true;
+            }
+            else
+            {
+                // frame should be dropped -> requeue vimba buffer here since image data will not be used
+                GST_DEBUG_OBJECT(vimbasrc, "Dropping incomplete frame and requeueing buffer to capture queue");
+                VmbCaptureFrameQueue(vimbasrc->camera.handle, frame, &vimba_frame_callback);
+            }
+        }
+        else
+        {
+            GST_TRACE_OBJECT(vimbasrc, "frame was complete");
+            submit_frame = true;
+        }
+    } while (!submit_frame);
 
     // Prepare output buffer that will be filled with frame data
     GstBuffer *buffer = gst_buffer_new_and_alloc(frame->bufferSize);

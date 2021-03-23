@@ -126,6 +126,13 @@ typedef enum
     GST_VIMBASRC_TRIGGERACTIVATION_LEVEL_LOW
 } GstVimbasrcTriggerActivationValue;
 
+// Implemented handling approaches for incomplete frames
+typedef enum
+{
+    GST_VIMBASRC_INCOMPLETE_FRAME_HANDLING_DROP,
+    GST_VIMBASRC_INCOMPLETE_FRAME_HANDLING_SUBMIT
+} GstVimbasrcIncompleteFrameHandlingValue;
+
 typedef struct _GstVimbaSrc GstVimbaSrc;
 typedef struct _GstVimbaSrcClass GstVimbaSrcClass;
 
@@ -165,6 +172,7 @@ struct _GstVimbaSrc
         int triggermode;
         int triggersource;
         int triggeractivation;
+        int incomplete_frame_handling;
     } properties;
 
     VmbFrame_t frame_buffers[NUM_VIMBA_FRAMES];
