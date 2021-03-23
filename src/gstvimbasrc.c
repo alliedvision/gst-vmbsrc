@@ -465,7 +465,7 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
 
 static void gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
 {
-    GST_DEBUG_OBJECT(vimbasrc, "init");
+    GST_TRACE_OBJECT(vimbasrc, "init");
     GST_INFO_OBJECT(vimbasrc, "gst-vimbasrc version %s", VERSION);
     // Start the Vimba API
     VmbError_t result = VmbStartup();
@@ -658,7 +658,7 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
     double vmbfeature_value_double;
     VmbInt64_t vmbfeature_value_int64;
 
-    GST_DEBUG_OBJECT(vimbasrc, "get_property");
+    GST_TRACE_OBJECT(vimbasrc, "get_property");
 
     switch (property_id)
     {
@@ -927,7 +927,7 @@ void gst_vimbasrc_dispose(GObject *object)
 {
     GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
 
-    GST_DEBUG_OBJECT(vimbasrc, "dispose");
+    GST_TRACE_OBJECT(vimbasrc, "dispose");
 
     /* clean up as possible.  may be called multiple times */
 
@@ -938,7 +938,7 @@ void gst_vimbasrc_finalize(GObject *object)
 {
     GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
 
-    GST_DEBUG_OBJECT(vimbasrc, "finalize");
+    GST_TRACE_OBJECT(vimbasrc, "finalize");
 
     if (vimbasrc->camera.is_connected)
     {
@@ -969,7 +969,7 @@ static GstCaps *gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
     UNUSED(filter); // enable compilation while treating warning of unused vairable as error
     GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
-    GST_DEBUG_OBJECT(vimbasrc, "get_caps");
+    GST_TRACE_OBJECT(vimbasrc, "get_caps");
 
     GstCaps *caps;
     caps = gst_pad_get_pad_template_caps(GST_BASE_SRC_PAD(src));
@@ -1051,7 +1051,7 @@ static gboolean gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
 {
     GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
-    GST_DEBUG_OBJECT(vimbasrc, "set_caps");
+    GST_TRACE_OBJECT(vimbasrc, "set_caps");
 
     GST_DEBUG_OBJECT(vimbasrc, "caps requested to be set: %s", gst_caps_to_string(caps));
 
@@ -1128,7 +1128,7 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
 {
     GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
-    GST_DEBUG_OBJECT(vimbasrc, "start");
+    GST_TRACE_OBJECT(vimbasrc, "start");
 
     // Prepare queue for filled frames from which vimbasrc_create can take them
     g_filled_frame_queue = g_async_queue_new();
@@ -1196,7 +1196,7 @@ static gboolean gst_vimbasrc_stop(GstBaseSrc *src)
 {
     GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
-    GST_DEBUG_OBJECT(vimbasrc, "stop");
+    GST_TRACE_OBJECT(vimbasrc, "stop");
 
     stop_image_acquisition(vimbasrc);
 
@@ -1213,7 +1213,7 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
 {
     GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
 
-    GST_DEBUG_OBJECT(vimbasrc, "create");
+    GST_TRACE_OBJECT(vimbasrc, "create");
 
     bool submit_frame = false;
     VmbFrame_t *frame;
@@ -1812,7 +1812,7 @@ VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc)
 void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, VmbFrame_t *frame)
 {
     UNUSED(camera_handle); // enable compilation while treating warning of unused vairable as error
-    GST_DEBUG("Got Frame");
+    GST_TRACE("Got Frame");
     g_async_queue_push(g_filled_frame_queue, frame);
 
     // requeueing the frame is done after it was consumed in vimbasrc_create
