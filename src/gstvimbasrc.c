@@ -962,7 +962,7 @@ void gst_vimbasrc_finalize(GObject *object)
     }
 
     VmbShutdown();
-    GST_DEBUG_OBJECT(vimbasrc, "Vimba API was shut down");
+    GST_INFO_OBJECT(vimbasrc, "Vimba API was shut down");
 
     G_OBJECT_CLASS(gst_vimbasrc_parent_class)->finalize(object);
 }
