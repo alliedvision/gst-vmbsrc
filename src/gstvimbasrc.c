@@ -1234,13 +1234,13 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
             // Get the current state of the element. Should return immediately since we are not doing ASYNC state changes
             // but wait at most for 100 nanoseconds
             ret = gst_element_get_state(GST_ELEMENT(vimbasrc), &state, NULL, 100); // timeout is given in nanoseconds
-            if (ret == GST_STATE_CHANGE_SUCCESS && state != GST_STATE_PLAYING)
+            UNUSED(ret);
+            if (state != GST_STATE_PLAYING)
             {
                 // The src should not create any more data. Stop waiting for frame and do not fill buf
-                // TODO: Is this the correct retrun value in this case?
+                GST_INFO_OBJECT(vimbasrc, "Element state is no longer \"GST_STATE_PLAYING\". Aborting create call.");
                 return GST_FLOW_FLUSHING;
             }
-
         } while (frame == NULL);
         // We got a frame. Check receive status and handle incomplete frames according to
         // vimbasrc->properties.incomplete_frame_handling
