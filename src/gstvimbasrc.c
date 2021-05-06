@@ -1816,6 +1816,16 @@ VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc)
             // Start Acquisition
             GST_DEBUG_OBJECT(vimbasrc, "Running \"AcquisitionStart\" feature");
             result = VmbFeatureCommandRun(vimbasrc->camera.handle, "AcquisitionStart");
+            VmbBool_t acquisition_start_done = VmbBoolFalse;
+            do
+            {
+                if (VmbErrorSuccess != VmbFeatureCommandIsDone(vimbasrc->camera.handle,
+                                                               "AcquisitionStart",
+                                                               &acquisition_start_done))
+                {
+                    break;
+                }
+            } while (VmbBoolFalse == acquisition_start_done);
             vimbasrc->camera.is_acquiring = true;
         }
     }
@@ -1833,6 +1843,16 @@ VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc)
     // Stop Acquisition
     GST_DEBUG_OBJECT(vimbasrc, "Running \"AcquisitionStop\" feature");
     VmbError_t result = VmbFeatureCommandRun(vimbasrc->camera.handle, "AcquisitionStop");
+    VmbBool_t acquisition_stop_done = VmbBoolFalse;
+    do
+    {
+        if (VmbErrorSuccess != VmbFeatureCommandIsDone(vimbasrc->camera.handle,
+                                                       "AcquisitionStop",
+                                                       &acquisition_stop_done))
+        {
+            break;
+        }
+    } while (VmbBoolFalse == acquisition_stop_done);
     vimbasrc->camera.is_acquiring = false;
 
     // Stop Capture Engine
