@@ -1,12 +1,25 @@
 # gst-vimbasrc
-This project contains the official plugin to make cameras supported by Allied Vision Technologies
+This project contains the official GStreamer plugin to make cameras supported by Allied Visions
 Vimba API available as GStreamer sources.
 
+GStreamer is multimedia framework which assembles pipelines from multiple elements. Using the
+`vimbasrc` element it is possible to record images with industrial cameras supported by Vimba and
+pass them directly into these pipelines. This enables a wide variety of uses such as live displays
+of the image data or encoding them to a video format.
+
+`vimbasrc` is currently officially supported on the following systems and architectures:
+- AMD64 (Validated on Ubuntu 18.04)
+- ARM64 (Validated on NVIDIA L4T 32.4.4)
+
+The following library versions have been validated to work with `vimbasrc`:
+- Vimba 4.2
+- GStreamer 1.14
+
 ## Building
-A CMakeLists.txt file is provided that should be used to build the plugin. For convenience this
-repository also contains two scripts (`build.sh` and `build.bat`) that run the appropriate cmake
-commands for Linux and Windows systems respectively. They will create a directory named `build` in
-which the project files, as well as the built binary, will be placed.
+A `CMakeLists.txt` file is provided that helps build the plugin. For convenience this repository
+also contains two scripts (`build.sh` and `build.bat`) that run the appropriate cmake commands for
+Linux and Windows systems respectively. They create a directory named `build` in which the project
+files, as well as the built binary, are placed.
 
 As the build process relies on external libraries (such as GStreamer and Vimba), paths to these
 libraries have to be detected. The provided build scripts take guesses (where possible) to find
@@ -22,8 +35,8 @@ provided paths accordingly for your build system.
 ### Docker build environment (Linux only)
 To simplify the setup of a reproducible build environment, a `Dockerfile` based on an Ubuntu 18.04
 base image is provided, which when build includes all necessary dependencies, except the Vimba
-version against which vimbasrc should be linked. This is added when the compile command is run by
-mounting a Vimba installation into the Docker container.
+version against which `vimbasrc` is linked. This is added when the compile command is run by mounting
+a Vimba installation into the Docker container.
 
 #### Building the docker image
 In order to build the docker image from the `Dockerfile`, run the following command inside the
@@ -39,10 +52,8 @@ will be created. This can be used to run the build process of the plugin.
 Building the plugin with this image is simply a matter of mounting the source code directory and the
 desired Vimba installation directory into the image at appropriate paths, and letting it run the
 provided `build.sh` script. The expected paths into which to mount these directories are:
-- **/gst-vimbasrc**: Path inside the Docker container in which the gst-vimbasrc project should be
-  mounted
-- **/vimba**: Path inside the Docker container under which the desired Vimba installation should be
-  mounted
+- **/gst-vimbasrc**: Path inside the Docker container to mount the gst-vimbasrc project
+- **/vimba**: Path inside the Docker container to mount the desired Vimba installation
 
 The full build command to be executed on the host would be as follows:
 ```
@@ -59,8 +70,8 @@ matter of placing the compiled shared library into this search path and letting 
 
 ### Installation dependencies
 As the shared library containing the `vimbasrc` element  is dynamically linked, its linked
-dependencies need to loadable. As GStreamer itself will likely be installed system wide, the
-dependencies on glib and GStreamer libraries should already be satisfied.
+dependencies must be loadable. As GStreamer itself is likely installed system wide, the dependencies
+on glib and GStreamer libraries should already be satisfied.
 
 In order to satisfy the dependency on `libVimbaC.so` the shared library needs to be placed in an
 appropriate entry of the `LD_LIBRARY_PATH`. The exact method for this is a matter of preference and
@@ -109,21 +120,21 @@ to this file may then be passed to `vimbasrc` via the `settingsfile` property as
 gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 settingsfile=path_to_settings.xml ! videoscale ! videoconvert ! queue ! autovideosink
 ```
 
-**If a settings file is used no other parameters passed as element properties will be applied as
-feature values.** This is done to prevent accidental overwriting of previously set features. One
-exception from this rule is the format of the recorded image data. For details on this particular
-feature see [Supported pixel formats](###Supported-pixel-formats).
+**If a settings file is used no other parameters passed as element properties are applied as feature
+values.** This is done to prevent accidental overwriting of previously set features. One exception
+from this rule is the format of the recorded image data. For details on this particular feature see
+[Supported pixel formats](###Supported-pixel-formats).
 
 #### Supported via GStreamer properties
 A list of supported camera features can be found by using the `gst-inspect` tool on the `vimbasrc`
-element. This will display a list of available "Element Properties", which include the available
-camera features. **Note that these properties are only applied to their corresponding feature, if no
-XML settings file is passed!**
+element. This displays a list of available "Element Properties", which include the available camera
+features. **Note that these properties are only applied to their corresponding feature, if no XML
+settings file is passed!**
 
 For some of the exposed features camera specific restrictions in the allowed values may apply. For
 example the `Width`, `Height`, `OffsetX` and `OffsetY` features may only accept integer values
 between a minimum and a maximum value in a certain interval. In cases where the provided value could
-not be applied a logging message with level `WARNING` will be printed (make sure that an appropriate
+not be applied a logging message with level `WARNING` is printed (make sure that an appropriate
 logging level is set: e.g. `GST_DEBUG=vimbasrc:WARNING` or higher) and image acquisition will
 proceed with the feature values that were initially set on the camera.
 
@@ -153,24 +164,30 @@ Not all Vimba pixel formats can be mapped to compatible GStreamer video formats.
 true for the "packed" formats. The following tables provide a mapping where possible.
 
 #### GStreamer video/x-raw Formats
-| Vimba Format        | GStreamer video/x-raw Format |
-|---------------------|------------------------------|
-| Mono8               | GRAY8                        |
-| Mono10              | GRAY16_LE                    |
-| Mono12              | GRAY16_LE                    |
-| Mono14              | GRAY16_LE                    |
-| Mono16              | GRAY16_LE                    |
-| RGB8                | RGB                          |
-| BGR8                | BGR                          |
-| Argb8               | ARGB                         |
-| Rgba8               | RGBA                         |
-| Bgra8               | BGRA                         |
-| Yuv411              | IYU1                         |
-| YCbCr411_8_CbYYCrYY | IYU1                         |
-| Yuv422              | UYVY                         |
-| YCbCr422_8_CbYCrY   | UYVY                         |
-| Yuv444              | IYU2                         |
-| YCbCr8_CbYCr        | IYU2                         |
+| Vimba Format        | GStreamer video/x-raw Format | Comment                                                                     |
+|---------------------|------------------------------|-----------------------------------------------------------------------------|
+| Mono8               | GRAY8                        |                                                                             |
+| Mono10              | GRAY16_LE                    | Only the 10 least significant bits are filled. Image will appear very dark! |
+| Mono12              | GRAY16_LE                    | Only the 12 least significant bits are filled. Image will appear very dark! |
+| Mono14              | GRAY16_LE                    | Only the 14 least significant bits are filled. Image will appear very dark! |
+| Mono16              | GRAY16_LE                    |                                                                             |
+| RGB8                | RGB                          |                                                                             |
+| RGB8Packed          | RGB                          | Legacy GigE Vision Format. Does not follow PFNC                             |
+| BGR8                | BGR                          |                                                                             |
+| BGR8Packed          | BGR                          | Legacy GigE Vision Format. Does not follow PFNC                             |
+| Argb8               | ARGB                         |                                                                             |
+| Rgba8               | RGBA                         |                                                                             |
+| Bgra8               | BGRA                         |                                                                             |
+| Yuv411              | IYU1                         |                                                                             |
+| Yuv411Packed        | IYU1                         | Legacy GigE Vision Format. Does not follow PFNC                             |
+| YCbCr411_8_CbYYCrYY | IYU1                         |                                                                             |
+| Yuv422              | UYVY                         |                                                                             |
+| Yuv422Packed        | UYVY                         | Legacy GigE Vision Format. Does not follow PFNC                             |
+| YCbCr422_8_CbYCrY   | UYVY                         |                                                                             |
+| Yuv444              | IYU2                         |                                                                             |
+| Yuv444Packed        | IYU2                         | Legacy GigE Vision Format. Does not follow PFNC                             |
+| YCbCr8_CbYCr        | IYU2                         |                                                                             |
+
 
 #### GStreamer video/x-bayer Formats
 The GStreamer `x-bayer` formats in the following table are compatible with the GStreamer
@@ -201,6 +218,14 @@ is able to debayer the data into a widely accepted RGBA format.
     not cover the expected 16bit range. If the display assumes the 16bit data range to be fully
     utilized, your recorded pixel intensities may be too small to show up on your display, because
     they are simply displayed as very dark pixels.
+- When displaying my images I only see green
+  - This is possibly caused by an error in the `videoconvert` element. Try enabling error messages
+    for all elements (`GST_DEBUG=ERROR`) to see if there is a problem with the size of the data
+    buffer. If that is the case check the troubleshooting entry to "The `videoconvert` element
+    complains about too small buffer size"
+- The `videoconvert` element complains about too small buffer size
+  - This is most likely caused by the width of the image data not being evenly divisible by 4 as the
+    `videoconvert` element expects. Try setting the width to a value that is evenly divisible by 4.
 
 ## Known issues and limitations
 - In situations where cameras submit many frames per second, visualization may slow down the
@@ -212,3 +237,9 @@ is able to debayer the data into a widely accepted RGBA format.
 - Complex camera feature setups may not be possible using the provided properties (e.g. complex
   trigger setups for multiple trigger selectors). For those cases it is recommended to [use an XML
   file to pass the camera settings](####Using-an-XML-file).
+- If the width of the image data pushed out of the `gst-vimbasrc` element is not evenly divisible by
+  4, the image data can not be transformed with the `videoconvert` element. This is caused by the
+  `videoconvert` element expecting the width to always be a multiple of 4, or being explicitly told
+  the stride of the image data in the buffer. This explicit stride information is currently not
+  implemented. For now it is therefore recommended to use `width` settings that are evenly divisible
+  by 4.
