@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(
     gstvimbasrc
-    VERSION 0.3.0
+    VERSION 0.3.1
     LANGUAGES C
     DESCRIPTION "GStreamer source plugin for Vimba cameras"
     # TODO: Should this URL instead point to the Github Repo we plan to use for this project?
