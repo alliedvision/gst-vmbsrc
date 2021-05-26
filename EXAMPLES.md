@@ -9,7 +9,6 @@ Recording pictures from a camera and saving them to some common image format all
 inspections of the field of view, brightness and sharpness of the image. GStreamer provides image
 encoders different image formats. The example below uses the `png` encoder. A step by step
 explanation of the elements in the pipeline is given below.
-
 ```
 gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 num-buffers=1 ! pngenc ! filesink location=out.png
 ```
@@ -22,7 +21,6 @@ gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 num-buffers=1 ! pngenc ! filesin
 
 Similarly it is possible to save a number of camera frames to separate image files. This can be
 achieved by using the `multifilesink` element to save the images.
-
 ```
 gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 num-buffers=10 ! pngenc ! multifilesink location=tmp/out_%03d.png
 ```
@@ -42,7 +40,6 @@ video format and stored in an appropriate container format. This saves a loot of
 just saving the raw image data. This example uses `h264` encoding for the image data and saves the
 resulting video to an `avi` file. An explanation for the separate elements of the pipeline can be
 found below.
-
 ```
 gst-launch-1.0 vimbasrc camera=DEV_000F315B91E2 ! video/x-raw,format=RGB ! videorate ! video/x-raw,framerate=30/1 ! videoconvert ! queue ! x264enc ! avimux ! filesink location=output.avi
 ```

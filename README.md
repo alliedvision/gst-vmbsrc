@@ -35,8 +35,8 @@ provided paths accordingly for your build system.
 ### Docker build environment (Linux only)
 To simplify the setup of a reproducible build environment, a `Dockerfile` based on an Ubuntu 18.04
 base image is provided, which when build includes all necessary dependencies, except the Vimba
-version against which `vimbasrc` is linked. This is added when the compile command is run by mounting
-a Vimba installation into the Docker container.
+version against which `vimbasrc` is linked. This is added when the compile command is run by
+mounting a Vimba installation into the Docker container.
 
 #### Building the docker image
 In order to build the docker image from the `Dockerfile`, run the following command inside the
