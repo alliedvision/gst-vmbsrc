@@ -96,6 +96,8 @@ The following pipeline can for example be used to display the recorded camera im
 gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 ! videoscale ! videoconvert ! queue ! autovideosink
 ```
 
+For further usage examples also take a look at the included `EXAMPLES.md` file
+
 ### Setting camera features
 To adjust the image acquisition process of the camera, access to settings like the exposure time are
 necessary. The `vimbasrc` element provides access to these camera features in one of two ways.
