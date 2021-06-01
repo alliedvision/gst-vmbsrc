@@ -61,3 +61,76 @@ gst-launch-1.0 vimbasrc camera=DEV_000F315B91E2 ! video/x-raw,format=RGB ! video
 - `avimux`: multiplex the incoming video stream to save it as an `avi` file
 - `filesink location=output.avi`: saves the resulting video into a file named `output.avi` in the
   current working directory
+
+## Stream video via RTSP server
+
+RTSP (Real Time Streaming Protocol) is a network protocol designed to control streaming media
+servers. It allows clients to send commands such as "play" or "pause" to the server, to enable
+control of the media being streamed. The following example shows a minimal RTSP server using the
+`gst-vimbasrc` element to stream image data from a camera via the network to a client machine. This
+example uses Python to start a pre-implemented RTSP server that can be imported via the PyGObject
+package. To do this a few external dependencies must be installed.
+
+### Dependencies
+
+The following instructions assume an Ubuntu system. On other distributions different packages may be
+required. It is also assumed, that a working GStreamer installation exists on the system and that
+`gst-vimbasrc` is available to that installation.
+
+To have access to the GStreamer RTSP Server from python the following system packages need to be
+installed via the `apt` package manager:
+- gir1.2-gst-rtsp-server-1.0
+- libgirepository1.0-dev
+- libcairo2-dev
+
+Additionally the following python package needs to be installed. it is available via the Python
+packaging index and can be installed as usual via pip:
+- PyGObject
+
+### Example code
+
+The following python code will start an RTSP server on your machine listing on port `8554`. Be sure
+to adjust the ID of the camera you want to use in the pipeline! As before the pipeline may be
+adjusted to specify certain image formats to force for example color images or to change camera
+settings like the exposure time.
+
+```python
+# import required GStreamer and GLib modules
+import gi
+gi.require_version('Gst', '1.0')
+gi.require_version('GstRtspServer', '1.0')
+from gi.repository import Gst, GLib, GstRtspServer
+
+# initialize GStreamer and start the GLib Mainloop
+Gst.init(None)
+mainloop = GLib.MainLoop()
+
+# Create the RTSP Server
+server = GstRtspServer.RTSPServer()
+mounts = server.get_mount_points()
+
+# define the pipeline to record images ad attach it to the "stream1" endpoint
+vimbasrc_factory = GstRtspServer.RTSPMediaFactory()
+vimbasrc_factory.set_launch('vimbasrc camera=DEV_1AB22D01BBB8 ! videoconvert ! x264enc speed-preset=ultrafast tune=zerolatency ! rtph264pay name=pay0')
+mounts.add_factory("/stream1", vimbasrc_factory)
+server.attach(None)
+
+mainloop.run()
+```
+
+To start the server simply save the code above to a file (e.g. `RTSP_Server.py`) and run it with
+your python interpreter. The RTSP server can be stopped by halting the process. This is done by
+pressing `CTRL + c` in the terminal that is running the python script.
+
+### Displaying the stream
+
+After starting the python example a client must connect to the running RTSP server to receive and
+display the stream. This can for example be done with the VLC media player. To display the stream on
+the same machine that is running the RTSP server, open `rtsp://127.0.0.1:8554/stream1` as a Network
+Stream (in VLC open "Media" -> "Open Network Stream"). If you want to play the video on a different
+computer, ensure that a network connection between the two systems exists and use the IP address of
+the machine running the RTSP server for your Network Stream.
+
+Upon starting playback in VLC the RTSP Server will start the GStreamer pipeline that was defined in
+the python file and start streaming images. It may take some time for the stream to start. Stopping
+playback will also stop the GStreamer pipeline and close the connection to the camera being used.
