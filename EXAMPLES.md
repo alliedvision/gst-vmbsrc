@@ -22,7 +22,7 @@ gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 num-buffers=1 ! pngenc ! filesin
 Similarly it is possible to save a number of camera frames to separate image files. This can be
 achieved by using the `multifilesink` element to save the images.
 ```
-gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 num-buffers=10 ! pngenc ! multifilesink location=tmp/out_%03d.png
+gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 num-buffers=10 ! pngenc ! multifilesink location=out_%03d.png
 ```
 
 Similarly to the previous example, this pipeline uses the `gst-vimbasrc` element to record images
