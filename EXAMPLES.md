@@ -3,7 +3,7 @@
 GStreamer provides a larges selection of plugins, which can be used to define flexible pipelines for
 many uses. Some examples of common goals are provided in this file.
 
-## Saving camera frames as picture
+## Saving camera frames as pictures
 
 Recording pictures from a camera and saving them to some common image format allows for quick
 inspections of the field of view, brightness and sharpness of the image. GStreamer provides image
