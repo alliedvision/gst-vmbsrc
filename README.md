@@ -35,8 +35,8 @@ provided paths accordingly for your build system.
 ### Docker build environment (Linux only)
 To simplify the setup of a reproducible build environment, a `Dockerfile` based on an Ubuntu 18.04
 base image is provided, which when build includes all necessary dependencies, except the Vimba
-version against which `vimbasrc` is linked. This is added when the compile command is run by mounting
-a Vimba installation into the Docker container.
+version against which `vimbasrc` is linked. This is added when the compile command is run by
+mounting a Vimba installation into the Docker container.
 
 #### Building the docker image
 In order to build the docker image from the `Dockerfile`, run the following command inside the
@@ -95,6 +95,8 @@ The following pipeline can for example be used to display the recorded camera im
 ```
 gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 ! videoscale ! videoconvert ! queue ! autovideosink
 ```
+
+For further usage examples also take a look at the included `EXAMPLES.md` file
 
 ### Setting camera features
 To adjust the image acquisition process of the camera, access to settings like the exposure time are
