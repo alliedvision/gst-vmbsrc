@@ -7,7 +7,7 @@ many uses. Some examples of common goals are provided in this file.
 
 Recording pictures from a camera and saving them to some common image format allows for quick
 inspections of the field of view, brightness and sharpness of the image. GStreamer provides image
-encoders different image formats. The example below uses the `png` encoder. A step by step
+encoders for different image formats. The example below uses the `png` encoder. A step by step
 explanation of the elements in the pipeline is given below.
 ```
 gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 num-buffers=1 ! pngenc ! filesink location=out.png
@@ -16,8 +16,8 @@ gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 num-buffers=1 ! pngenc ! filesin
 - `vimbasrc camera=DEV_1AB22D01BBB8 num-buffers=1`: uses the `gst-vimbasrc` element to grab one
   single frame from the camera with the given ID and halt the pipeline afterwards
 - `pngenc`: takes the input image and encodes it into a `png` file
-- `filesink location=out.png`: saves the input data (the encoded `png` image) and saves it to the
-  file `out.png` in the current working directory
+- `filesink location=out.png`: writes the data it receives (the encoded `png` image) to the file
+  `out.png` in the current working directory
 
 Similarly it is possible to save a number of camera frames to separate image files. This can be
 achieved by using the `multifilesink` element to save the images.
@@ -36,7 +36,7 @@ see the README of the `gst-vimbasrc` element.
 ## Saving camera stream to a video file
 
 To save a stream of images recorded by a camera to a video file the images should be encoded in some
-video format and stored in an appropriate container format. This saves a loot of space compared to
+video format and stored in an appropriate container format. This saves a lot of space compared to
 just saving the raw image data. This example uses `h264` encoding for the image data and saves the
 resulting video to an `avi` file. An explanation for the separate elements of the pipeline can be
 found below.
@@ -51,7 +51,7 @@ gst-launch-1.0 vimbasrc camera=DEV_000F315B91E2 ! video/x-raw,format=RGB ! video
   to ensure color images for the resulting video stream. Without this the pipeline may negotiate
   grayscale images
 - `videorate ! video/x-raw,framerate=30/1`: `gst-vimbasrc` provides image data in a variable
-  framerate (due to effects like possible hardware triggers or frame jitter). Because `avi` file
+  framerate (due to effects like possible hardware triggers or frame jitter). Because `avi` files
   only support fixed framerates, it needs to be modified via the `videorate` plugin. This guarantees
   a fixed framerate output by either copying the input data if more frames are requested than
   received, or dropping unnecessary frames if more frames are received than requested.
@@ -84,7 +84,7 @@ installed via the `apt` package manager:
 - libcairo2-dev
 
 Additionally the following python package needs to be installed. it is available via the Python
-packaging index and can be installed as usual via pip:
+packaging index and can be installed as usual via `pip`:
 - PyGObject
 
 ### Example code
