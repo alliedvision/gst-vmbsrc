@@ -194,6 +194,16 @@ is able to debayer the data into a widely accepted RGBA format.
 | BayerBG8            | bggr                           |
 
 ## Troubleshooting
+- The `vimbasrc` element is not loadable
+  - Ensure that the installation of the plugin was successful and that all required dependencies are
+    available. Installation instructions can be found in `INSTALLING.md`. To verify that the element
+    can be loaded try to inspect it by calling `gst-inspect-1.0 vimbasrc`.
+  - It is possible that the `vimbasrc` element is blacklisted by GStreamer. This can be determined
+    by checking the list ob blacklisted elements with `gst-inspect-1.0 --print-blacklist`. Resetting
+    the registry may be done by removing the file in which it is stored. It is typically saved in
+    `~/.cache/gstreamer-1.0/registry.x86_64.bin`. The exact file name depends on the architecture of
+    the system. For more details see [the official documentation on the
+    registry](https://gstreamer.freedesktop.org/documentation/gstreamer/gstregistry.html)
 - How can I enable logging for the plugin
   - To enable logging set the `GST_DEBUG` environment variable to `GST_DEBUG=vimbasrc:DEBUG` or
     another appropriate level. For further details see [the official
