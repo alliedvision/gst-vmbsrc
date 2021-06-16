@@ -63,25 +63,15 @@ docker run --rm -it --volume /path/to/gst-vimbasrc:/gst-vimbasrc --volume /path/
 ## Installation
 GStreamer plugins become available for use in pipelines, when GStreamer is able to load the shared
 library containing the desired element. GStreamer typically searches the directories defined in
-`GST_PLUGIN_SYSTEM_PATH`. If this variable is not defined, the default paths of the system wide
-GStreamer installation, as well as the `~/.local/share/gstreamer-<GST_API_VERSION>/plugins`
-directory of the current user are searched. Installing the `vimbasrc` element is therefore simply a
-matter of placing the compiled shared library into this search path and letting GStreamer load it.
+`GST_PLUGIN_SYSTEM_PATH`. By setting this variable to a directory and placing the shared library
+file in it, GStreamer will pick up the `vimbasrc` element for use.
 
-### Installation dependencies
-As the shared library containing the `vimbasrc` element  is dynamically linked, its linked
-dependencies must be loadable. As GStreamer itself is likely installed system wide, the dependencies
-on glib and GStreamer libraries should already be satisfied.
+The `vimbasrc` element uses VimbaC. In order to be usable the VimbaC shared library therefore needs
+to also be loadable when the element is started. The VimbaC library is provided as part of the Vimba
+SDK.
 
-In order to satisfy the dependency on `libVimbaC.so` the shared library needs to be placed in an
-appropriate entry of the `LD_LIBRARY_PATH`. The exact method for this is a matter of preference and
-distribution dependant. On Ubuntu systems one option would be to copy `libVimbaC.so` into
-`/usr/local/lib` or to add the directory containing `libVimbaC.so` to the `LD_LIBRARY_PATH` by
-adding an appropriate `.conf` file to `/etc/ld.so.conf.d/`.
-
-Correct installation of `libVimbaC.so` can be checked, by searching for its file name in the output
-of `ldconfig -v` (e.g.: `ldconfig -v | grep libVimbaC.so`). Alternatively correct loading of
-dependent shared libraries can be checked with `ldd` (e.g. `ldd libgstvimbasrc.so`).
+More detailed installation instructions for Linux and Windows can be found in the `INSTALLING.md`
+file in this repository.
 
 ## Usage
 **The vimbasrc plugin is still in active development. Please keep the _Known issues and limitations_
