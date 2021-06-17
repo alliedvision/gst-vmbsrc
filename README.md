@@ -7,14 +7,6 @@ GStreamer is multimedia framework which assembles pipelines from multiple elemen
 pass them directly into these pipelines. This enables a wide variety of uses such as live displays
 of the image data or encoding them to a video format.
 
-`vimbasrc` is currently officially supported on the following systems and architectures:
-- AMD64 (Validated on Ubuntu 18.04)
-- ARM64 (Validated on NVIDIA L4T 32.4.4)
-
-The following library versions have been validated to work with `vimbasrc`:
-- Vimba 4.2
-- GStreamer 1.14
-
 ## Building
 A `CMakeLists.txt` file is provided that helps build the plugin. For convenience this repository
 also contains two scripts (`build.sh` and `build.bat`) that run the appropriate cmake commands for
@@ -245,3 +237,17 @@ is able to debayer the data into a widely accepted RGBA format.
   the stride of the image data in the buffer. This explicit stride information is currently not
   implemented. For now it is therefore recommended to use `width` settings that are evenly divisible
   by 4.
+
+## Compatibility
+`vimbasrc` is currently officially supported on the following operating systems and architectures:
+- AMD64 (Validated on Ubuntu 20.04, Debian 10, CentOS 8.3)
+- ARM64 (Validated on NVIDIA L4T 32.5.1)
+- ARM32 (Validated on Raspberry Pi OS)
+- WIN64 (Validated on Win10 20H2)
+- WIN32 (Validated on Win10 20H2, 32Bit)
+
+The following library versions have been validated to work with vimbasrc:
+- Vimba 5.0
+- GStreamer 1.14 (NVIDIA L4T 32.5.1, Debian 10, Raspberry OS)
+- GStreamer 1.16 (Ubuntu 20.04, CentOS 8.3)
+- GStreamer 1.18 (Win10 20H2)
