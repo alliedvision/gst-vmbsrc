@@ -45,6 +45,10 @@
 
 #include <VimbaC/Include/VimbaC.h>
 
+// Counter variable to keep track of calls to VmbStartup() and VmbShutdown()
+static unsigned int vmb_open_count = 0;
+G_LOCK_DEFINE(vmb_open_count);
+
 GST_DEBUG_CATEGORY_STATIC(gst_vimbasrc_debug_category);
 #define GST_CAT_DEFAULT gst_vimbasrc_debug_category
 
@@ -471,13 +475,23 @@ static void gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
 {
     GST_TRACE_OBJECT(vimbasrc, "init");
     GST_INFO_OBJECT(vimbasrc, "gst-vimbasrc version %s", VERSION);
+    VmbError_t result = VmbErrorSuccess;
     // Start the Vimba API
-    VmbError_t result = VmbStartup();
-    GST_DEBUG_OBJECT(vimbasrc, "VmbStartup returned: %s", ErrorCodeToMessage(result));
-    if (result != VmbErrorSuccess)
+    G_LOCK(vmb_open_count);
+    if (0 == vmb_open_count++)
     {
-        GST_ERROR_OBJECT(vimbasrc, "Vimba initialization failed");
+        result = VmbStartup();
+        GST_DEBUG_OBJECT(vimbasrc, "VmbStartup returned: %s", ErrorCodeToMessage(result));
+        if (result != VmbErrorSuccess)
+        {
+            GST_ERROR_OBJECT(vimbasrc, "Vimba initialization failed");
+        }
     }
+    else
+    {
+        GST_DEBUG_OBJECT(vimbasrc, "VmbStartup was already called. Current open count: %u", vmb_open_count);
+    }
+    G_UNLOCK(vmb_open_count);
 
     // Log the used VimbaC version
     VmbVersionInfo_t version_info;
@@ -961,8 +975,17 @@ void gst_vimbasrc_finalize(GObject *object)
         vimbasrc->camera.is_connected = false;
     }
 
-    VmbShutdown();
-    GST_INFO_OBJECT(vimbasrc, "Vimba API was shut down");
+    G_LOCK(vmb_open_count);
+    if (0 == --vmb_open_count)
+    {
+        VmbShutdown();
+        GST_INFO_OBJECT(vimbasrc, "Vimba API was shut down");
+    }
+    else
+    {
+        GST_DEBUG_OBJECT(vimbasrc, "VmbShutdown not called. Current open count: %u", vmb_open_count);
+    }
+    G_UNLOCK(vmb_open_count);
 
     G_OBJECT_CLASS(gst_vimbasrc_parent_class)->finalize(object);
 }
@@ -1135,7 +1158,7 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
     GST_TRACE_OBJECT(vimbasrc, "start");
 
     // Prepare queue for filled frames from which vimbasrc_create can take them
-    g_filled_frame_queue = g_async_queue_new();
+    vimbasrc->filled_frame_queue = g_async_queue_new();
 
     VmbError_t result;
 
@@ -1207,7 +1230,7 @@ static gboolean gst_vimbasrc_stop(GstBaseSrc *src)
     revoke_and_free_buffers(vimbasrc);
 
     // Unref the filled frame queue so it is deleted properly
-    g_async_queue_unref(g_filled_frame_queue);
+    g_async_queue_unref(vimbasrc->filled_frame_queue);
 
     return TRUE;
 }
@@ -1230,7 +1253,7 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
         do
         {
             // Try to get a filled frame for 10 microseconds
-            frame = g_async_queue_timeout_pop(g_filled_frame_queue, 10);
+            frame = g_async_queue_timeout_pop(vimbasrc->filled_frame_queue, 10);
             // Get the current state of the element. Should return immediately since we are not doing ASYNC state changes
             // but wait at most for 100 nanoseconds
             ret = gst_element_get_state(GST_ELEMENT(vimbasrc), &state, NULL, 100); // timeout is given in nanoseconds
@@ -1273,7 +1296,6 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
 
     // copy over frame data into the GStreamer buffer
     // TODO: Investigate if we can work without copying to improve performance?
-    // TODO: Add handling of incomplete frames here. This assumes that we got nice and working frames
     gst_buffer_fill(
         buffer,
         0,
@@ -1752,6 +1774,7 @@ VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbasrc)
                 break;
             }
             vimbasrc->frame_buffers[i].bufferSize = (VmbUint32_t)payload_size;
+            vimbasrc->frame_buffers[i].context[0] = vimbasrc->filled_frame_queue;
 
             // Announce Frame
             result = VmbFrameAnnounce(vimbasrc->camera.handle,
@@ -1870,7 +1893,7 @@ void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, VmbFrame_t *
 {
     UNUSED(camera_handle); // enable compilation while treating warning of unused vairable as error
     GST_TRACE("Got Frame");
-    g_async_queue_push(g_filled_frame_queue, frame);
+    g_async_queue_push(frame->context[0], frame); // context[0] holds vimbasrc->filled_frame_queue
 
     // requeueing the frame is done after it was consumed in vimbasrc_create
 }
