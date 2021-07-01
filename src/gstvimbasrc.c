@@ -45,6 +45,10 @@
 
 #include <VimbaC/Include/VimbaC.h>
 
+// Counter variable to keep track of calls to VmbStartup() and VmbShutdown()
+static unsigned int vmb_open_count = 0;
+G_LOCK_DEFINE(vmb_open_count);
+
 GST_DEBUG_CATEGORY_STATIC(gst_vimbasrc_debug_category);
 #define GST_CAT_DEFAULT gst_vimbasrc_debug_category
 
@@ -471,13 +475,23 @@ static void gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
 {
     GST_TRACE_OBJECT(vimbasrc, "init");
     GST_INFO_OBJECT(vimbasrc, "gst-vimbasrc version %s", VERSION);
+    VmbError_t result = VmbErrorSuccess;
     // Start the Vimba API
-    VmbError_t result = VmbStartup();
-    GST_DEBUG_OBJECT(vimbasrc, "VmbStartup returned: %s", ErrorCodeToMessage(result));
-    if (result != VmbErrorSuccess)
+    G_LOCK(vmb_open_count);
+    if (0 == vmb_open_count++)
     {
-        GST_ERROR_OBJECT(vimbasrc, "Vimba initialization failed");
+        result = VmbStartup();
+        GST_DEBUG_OBJECT(vimbasrc, "VmbStartup returned: %s", ErrorCodeToMessage(result));
+        if (result != VmbErrorSuccess)
+        {
+            GST_ERROR_OBJECT(vimbasrc, "Vimba initialization failed");
+        }
     }
+    else
+    {
+        GST_DEBUG_OBJECT(vimbasrc, "VmbStartup was already called. Current open count: %u", vmb_open_count);
+    }
+    G_UNLOCK(vmb_open_count);
 
     // Log the used VimbaC version
     VmbVersionInfo_t version_info;
@@ -961,8 +975,17 @@ void gst_vimbasrc_finalize(GObject *object)
         vimbasrc->camera.is_connected = false;
     }
 
-    VmbShutdown();
-    GST_INFO_OBJECT(vimbasrc, "Vimba API was shut down");
+    G_LOCK(vmb_open_count);
+    if (0 == --vmb_open_count)
+    {
+        VmbShutdown();
+        GST_INFO_OBJECT(vimbasrc, "Vimba API was shut down");
+    }
+    else
+    {
+        GST_DEBUG_OBJECT(vimbasrc, "VmbShutdown not called. Current open count: %u", vmb_open_count);
+    }
+    G_UNLOCK(vmb_open_count);
 
     G_OBJECT_CLASS(gst_vimbasrc_parent_class)->finalize(object);
 }
