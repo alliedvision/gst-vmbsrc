@@ -1135,7 +1135,7 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
     GST_TRACE_OBJECT(vimbasrc, "start");
 
     // Prepare queue for filled frames from which vimbasrc_create can take them
-    g_filled_frame_queue = g_async_queue_new();
+    vimbasrc->filled_frame_queue = g_async_queue_new();
 
     VmbError_t result;
 
@@ -1207,7 +1207,7 @@ static gboolean gst_vimbasrc_stop(GstBaseSrc *src)
     revoke_and_free_buffers(vimbasrc);
 
     // Unref the filled frame queue so it is deleted properly
-    g_async_queue_unref(g_filled_frame_queue);
+    g_async_queue_unref(vimbasrc->filled_frame_queue);
 
     return TRUE;
 }
@@ -1230,7 +1230,7 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
         do
         {
             // Try to get a filled frame for 10 microseconds
-            frame = g_async_queue_timeout_pop(g_filled_frame_queue, 10);
+            frame = g_async_queue_timeout_pop(vimbasrc->filled_frame_queue, 10);
             // Get the current state of the element. Should return immediately since we are not doing ASYNC state changes
             // but wait at most for 100 nanoseconds
             ret = gst_element_get_state(GST_ELEMENT(vimbasrc), &state, NULL, 100); // timeout is given in nanoseconds
@@ -1752,6 +1752,7 @@ VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbasrc)
                 break;
             }
             vimbasrc->frame_buffers[i].bufferSize = (VmbUint32_t)payload_size;
+            vimbasrc->frame_buffers[i].context[0] = vimbasrc->filled_frame_queue;
 
             // Announce Frame
             result = VmbFrameAnnounce(vimbasrc->camera.handle,
@@ -1870,7 +1871,7 @@ void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, VmbFrame_t *
 {
     UNUSED(camera_handle); // enable compilation while treating warning of unused vairable as error
     GST_TRACE("Got Frame");
-    g_async_queue_push(g_filled_frame_queue, frame);
+    g_async_queue_push(frame->context[0], frame); // context[0] holds vimbasrc->filled_frame_queue
 
     // requeueing the frame is done after it was consumed in vimbasrc_create
 }
