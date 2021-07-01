@@ -5,7 +5,6 @@ project(
     VERSION 0.3.1
     LANGUAGES C
     DESCRIPTION "GStreamer source plugin for Vimba cameras"
-    # TODO: Should this URL instead point to the Github Repo we plan to use for this project?
     HOMEPAGE_URL "https://alliedvision.com/"
 )
 

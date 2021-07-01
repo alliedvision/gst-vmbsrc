@@ -1296,7 +1296,6 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
 
     // copy over frame data into the GStreamer buffer
     // TODO: Investigate if we can work without copying to improve performance?
-    // TODO: Add handling of incomplete frames here. This assumes that we got nice and working frames
     gst_buffer_fill(
         buffer,
         0,
