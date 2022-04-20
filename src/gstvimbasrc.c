@@ -381,8 +381,8 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
         g_param_spec_int(
             "offsetx",
             "OffsetX feature setting",
-            "Horizontal offset from the origin to the region of interest (in pixels).",
-            0,
+            "Horizontal offset from the origin to the region of interest (in pixels). If -1 is passed the ROI will be centered in the sensor along the horizontal axis.",
+            -1,
             G_MAXINT,
             0,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
@@ -392,8 +392,8 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
         g_param_spec_int(
             "offsety",
             "OffsetY feature setting",
-            "Vertical offset from the origin to the region of interest (in pixels).",
-            0,
+            "Vertical offset from the origin to the region of interest (in pixels). If -1 is passed the ROI will be centered in the sensor along the vertical axis.",
+            -1,
             G_MAXINT,
             0,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
@@ -1530,11 +1530,12 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
                            ErrorCodeToMessage(result));
     }
 
+    VmbInt64_t vmb_width;
+    result = VmbFeatureIntRangeQuery(vimbasrc->camera.handle, "Width", NULL, &vmb_width);
+
     // Set Width to full sensor if no explicit width was set
     if (vimbasrc->properties.width == INT_MAX)
     {
-        VmbInt64_t vmb_width;
-        result = VmbFeatureIntRangeQuery(vimbasrc->camera.handle, "Width", NULL, &vmb_width);
         GST_DEBUG_OBJECT(vimbasrc,
                          "Setting \"Width\" to full width. Got sensor width \"%lld\" (Return Code %s)",
                          vmb_width,
@@ -1555,11 +1556,11 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
                            ErrorCodeToMessage(result));
     }
 
+    VmbInt64_t vmb_height;
+    result = VmbFeatureIntRangeQuery(vimbasrc->camera.handle, "Height", NULL, &vmb_height);
     // Set Height to full sensor if no explicit height was set
     if (vimbasrc->properties.height == INT_MAX)
     {
-        VmbInt64_t vmb_height;
-        result = VmbFeatureIntRangeQuery(vimbasrc->camera.handle, "Height", NULL, &vmb_height);
         GST_DEBUG_OBJECT(vimbasrc,
                          "Setting \"Height\" to full height. Got sensor height \"%lld\" (Return Code %s)",
                          vmb_height,
@@ -1580,6 +1581,12 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
                            ErrorCodeToMessage(result));
     }
     // offsetx
+    if (vimbasrc->properties.offsetx == -1) {
+        VmbInt64_t vmb_offsetx = (vmb_width - vimbasrc->properties.width) >> 1;
+        GST_DEBUG_OBJECT(vimbasrc, "ROI centering along x-axis requested. Calculated offsetx=%d",
+                         vmb_offsetx);
+        g_object_set(vimbasrc, "offsetx", (int) vmb_offsetx, NULL);
+    }
     GST_DEBUG_OBJECT(vimbasrc, "Setting \"OffsetX\" to %d", vimbasrc->properties.offsetx);
     result = VmbFeatureIntSet(vimbasrc->camera.handle, "OffsetX", vimbasrc->properties.offsetx);
     if (result == VmbErrorSuccess)
@@ -1595,6 +1602,12 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
     }
 
     // offsety
+    if (vimbasrc->properties.offsety == -1) {
+        VmbInt64_t vmb_offsety = (vmb_height - vimbasrc->properties.height) >> 1;
+        GST_DEBUG_OBJECT(vimbasrc, "ROI centering along y-axis requested. Calculated offsety=%d",
+                         vmb_offsety);
+        g_object_set(vimbasrc, "offsety", (int)vmb_offsety, NULL);
+    }
     GST_DEBUG_OBJECT(vimbasrc, "Setting \"OffsetY\" to %d", vimbasrc->properties.offsety);
     result = VmbFeatureIntSet(vimbasrc->camera.handle, "OffsetY", vimbasrc->properties.offsety);
     if (result == VmbErrorSuccess)
