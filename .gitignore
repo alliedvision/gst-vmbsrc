@@ -1,7 +1,3 @@
-
-# Created by https://www.toptal.com/developers/gitignore/api/cmake,c,windows,linux
-# Edit at https://www.toptal.com/developers/gitignore?templates=cmake,c,windows,linux
-
 ### C ###
 # Prerequisites
 *.d
@@ -114,5 +110,3 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-
-# End of https://www.toptal.com/developers/gitignore/api/cmake,c,windows,linux
