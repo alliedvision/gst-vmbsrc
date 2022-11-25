@@ -1,0 +1,96 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "win64",
+      "inherits": "win64-template",
+      "cacheVariables": {
+        "GSTREAMER_ROOT": {
+          "type": "PATH",
+          "value": "PATH_TO_GSTREAMER_INSTALLATION"
+        },
+        "Vmb_DIR": {
+          "type": "PATH",
+          "value": "PATH_TO_VimbaX/api/lib/cmake/vmb"
+        }
+      }
+    },
+    {
+      "name": "linux64",
+      "inherits": "linux64-template",
+      "displayName": "Linux 64 Release Config",
+      "description": "Linux 64 Release Config",
+      "cacheVariables": {
+        "Vmb_DIR": {
+          "type": "PATH",
+          "value": "PATH_TO_VimbaX/api/lib/cmake/vmb"
+        }
+      }
+    },
+    {
+      "name": "linux64-debug",
+      "inherits": ["linux64-debug-template", "linux64"],
+      "displayName": "Linux 64 Debug Config",
+      "description": "Linux 64 Debug Config"
+    },
+    {
+      "name": "arm64",
+      "inherits": "arm64-template",
+      "displayName": "Linux ARM64 Release Config",
+      "description": "Linux ARM64 Release Config",
+      "cacheVariables": {
+      }
+    },
+    {
+      "name": "arm64-debug",
+      "inherits": ["arm64-debug-template", "arm64"],
+      "displayName": "Linux ARM64 Debug Config",
+      "description": "Linux ARM64 Debug Config"
+    }
+  ],
+  
+  "buildPresets": [
+    {
+      "name": "build-template",
+      "hidden": true,
+      "jobs": 8,
+      "targets": ["gstvimbaxsrc"]
+    },
+    {
+      "name": "win64",
+      "inherits": "build-template",
+      "configurePreset": "win64",
+      "configuration": "Release"
+    },
+    {
+      "name": "win64-debug",
+      "inherits": "win64",
+      "configuration": "Debug"      
+    },
+    {
+      "name": "linux64",
+      "inherits": "build-template",
+      "configurePreset": "linux64"
+    },
+    {
+      "name": "linux64-debug",
+      "inherits": "build-template",
+      "configurePreset": "linux64-debug"
+    },
+    {
+      "name": "arm64",
+      "inherits": "build-template",
+      "configurePreset": "arm64"
+    },
+    {
+      "name": "arm64-debug",
+      "inherits": "build-template",
+      "configurePreset": "arm64-debug"
+    }
+  ]
+}
