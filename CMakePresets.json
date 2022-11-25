@@ -1,0 +1,93 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "config-template",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": {
+                    "type": "PATH",
+                    "value": "TODO_${presetName}"
+                }
+            },
+            "binaryDir": "${sourceDir}/build-${presetName}"
+        },
+        {
+            "name": "linux64-template",
+            "displayName": "Release Config Linux",
+            "inherits": "config-template",
+            "hidden": true,
+            "description": "Makefiles project for Release configuration targeting the host OS",
+            "generator": "Unix Makefiles",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                }
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "linux64-debug-template",
+            "inherits": "linux64-template",
+            "hidden": true,
+            "displayName": "Debug Config Linux",
+            "description": "Makefiles project for Debug configuration targeting the host OS",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                }
+            }
+        },
+        {
+            "name": "arm64-template",
+            "inherits": "linux64-template",
+            "hidden": true,
+            "displayName": "Release Config Linux ARM64",
+            "description": "ARM64 Cross-compile Makefiles project for Release configuration ",
+            "toolchainFile": "cmake/aarch64-linux-gnu.toolchain.cmake"
+        },
+        {
+            "name": "arm64-debug-template",
+            "inherits": [
+                "linux64-debug-template",
+                "arm64-template"
+            ],
+            "hidden": true,
+            "displayName": "Debug Config Linux ARM64",
+            "description": "ARM64 Cross-compile Makefiles project for Debug configuration "
+        },
+        {
+            "name": "win64-template",
+            "displayName": "64 bit windows template",
+            "description": "VS Project for 64 bit windows target",
+            "inherits": "config-template",
+            "hidden": true,
+            "generator": "Visual Studio 16 2019",
+            "architecture": "x64",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "win32-template",
+            "inherits": "win64-template",
+            "displayName": "32 bit windows template",
+            "hidden": true,
+            "description": "VS Project for 32 bit windows target",
+            "architecture": "Win32"
+        }
+    ]
+}
