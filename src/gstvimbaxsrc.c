@@ -16,20 +16,21 @@
  * Boston, MA 02110-1301, USA.
  */
 /**
- * SECTION:element-gstvimbasrc
+ * SECTION:element-gstvimbaxsrc
  *
- * The vimbasrc element does FIXME stuff.
+ * The vimbaxsrc element provides a way to stream image data into GStreamer pipelines from cameras
+ * using the Vimba X API
  *
  * <refsect2>
  * <title>Example launch line</title>
  * |[
- * gst-launch-1.0 -v fakesrc ! vimbasrc ! FIXME ! fakesink
+ * gst-launch-1.0 -v vimbaxsrc camera=<CAMERAID> ! videoconvert ! autovideosink
  * ]|
- * FIXME Describe what the pipeline does.
+ * Display a stream from the given camera
  * </refsect2>
  */
 
-#include "gstvimbasrc.h"
+#include "gstvimbaxsrc.h"
 #include "helpers.h"
 #include "vimba_helpers.h"
 #include "pixelformats.h"
@@ -43,7 +44,7 @@
 #include <gst/video/video-info.h>
 #include <glib.h>
 
-#include <VimbaC/Include/VimbaC.h>
+#include <VmbC/VmbC.h>
 
 // Counter variable to keep track of calls to VmbStartup() and VmbShutdown()
 static unsigned int vmb_open_count = 0;
@@ -480,7 +481,7 @@ static void gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
     G_LOCK(vmb_open_count);
     if (0 == vmb_open_count++)
     {
-        result = VmbStartup();
+        result = VmbStartup(NULL);
         GST_DEBUG_OBJECT(vimbasrc, "VmbStartup returned: %s", ErrorCodeToMessage(result));
         if (result != VmbErrorSuccess)
         {
@@ -1179,10 +1180,12 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
         GST_WARNING_OBJECT(vimbasrc,
                            "\"%s\" was given as settingsfile. Other feature settings passed as element properties will be ignored!",
                            vimbasrc->properties.settings_file_path);
-        result = VmbCameraSettingsLoad(vimbasrc->camera.handle,
-                                       vimbasrc->properties.settings_file_path,
-                                       NULL,
-                                       0);
+        // FIXME: Move to new settings save/load implementation
+        // result = VmbCameraSettingsLoad(vimbasrc->camera.handle,
+        //                                vimbasrc->properties.settings_file_path,
+        //                                NULL,
+        //                                0);
+        result = VmbErrorSuccess;
         if (result != VmbErrorSuccess)
         {
             GST_ERROR_OBJECT(vimbasrc,
@@ -1342,11 +1345,12 @@ VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc)
     {
         VmbCameraInfo_t camera_info;
         VmbCameraInfoQuery(vimbasrc->camera.id, &camera_info, sizeof(camera_info));
-        GST_INFO_OBJECT(vimbasrc,
-                        "Successfully opened camera %s (model \"%s\" on interface \"%s\")",
-                        vimbasrc->camera.id,
-                        camera_info.modelName,
-                        camera_info.interfaceIdString);
+        // FIXME: Decide how this should be formatted
+        // GST_INFO_OBJECT(vimbasrc,
+        //                 "Successfully opened camera %s (model \"%s\" on interface \"%s\")",
+        //                 vimbasrc->camera.id,
+        //                 camera_info.modelName,
+        //                 camera_info.interfaceIdString);
 
         // Set the GeV packet size to the highest possible value if a GigE camera is used
         if (VmbErrorSuccess == VmbFeatureCommandRun(vimbasrc->camera.handle, "GVSPAdjustPacketSize"))
@@ -1902,9 +1906,10 @@ VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc)
     return result;
 }
 
-void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, VmbFrame_t *frame)
+void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, const VmbHandle_t stream_handle, VmbFrame_t *frame)
 {
     UNUSED(camera_handle); // enable compilation while treating warning of unused vairable as error
+    UNUSED(stream_handle);
     GST_TRACE("Got Frame");
     g_async_queue_push(frame->context[0], frame); // context[0] holds vimbasrc->filled_frame_queue
 

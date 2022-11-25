@@ -3,7 +3,7 @@
 
 #include <glib-object.h>
 
-#include <VimbaC/Include/VmbCommonTypes.h>
+#include <VmbC/VmbCommonTypes.h>
 
 const char *ErrorCodeToMessage(VmbError_t eError);
 

@@ -24,8 +24,8 @@
 #include <gst/base/gstpushsrc.h>
 #include <glib.h>
 
-#include <VimbaC/Include/VimbaC.h>
-#include <VimbaC/Include/VmbCommonTypes.h>
+#include <VmbC/VmbC.h>
+#include <VmbC/VmbCommonTypes.h>
 
 #include <stdbool.h>
 
@@ -198,7 +198,7 @@ VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbasrc);
 void revoke_and_free_buffers(GstVimbaSrc *vimbasrc);
 VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc);
 VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc);
-void VMB_CALL vimba_frame_callback(const VmbHandle_t cameraHandle, VmbFrame_t *pFrame);
+void VMB_CALL vimba_frame_callback(const VmbHandle_t cameraHandle, const VmbHandle_t stream_handle, VmbFrame_t *pFrame);
 void map_supported_pixel_formats(GstVimbaSrc *vimbasrc);
 void log_available_enum_entries(GstVimbaSrc *vimbasrc, const char *feat_name);
 

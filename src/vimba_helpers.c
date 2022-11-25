@@ -2,7 +2,7 @@
 
 #include <gst/gstinfo.h>
 
-#include <VimbaC/Include/VimbaC.h>
+#include <VmbC/VmbC.h>
 
 //
 // Translates Vimba error codes to readable error messages
@@ -70,17 +70,17 @@ VmbBool_t DiscoverGigECameras(GObject *object)
     VmbBool_t ret = VmbBoolFalse;
 
     // Is Vimba connected to a GigE transport layer?
-    result = VmbFeatureBoolGet(gVimbaHandle, "GeVTLIsPresent", &isGigE);
+    result = VmbFeatureBoolGet(gVmbHandle, "GeVTLIsPresent", &isGigE);
     if (VmbErrorSuccess == result)
     {
         if (VmbBoolTrue == isGigE)
         {
             // Set the waiting duration for discovery packets to return. If not set the default of 150 ms is used.
-            result = VmbFeatureIntSet(gVimbaHandle, "GeVDiscoveryAllDuration", 250);
+            result = VmbFeatureIntSet(gVmbHandle, "GeVDiscoveryAllDuration", 250);
             if (VmbErrorSuccess == result)
             {
                 // Send discovery packets to GigE cameras and wait 250 ms until they are answered
-                result = VmbFeatureCommandRun(gVimbaHandle, "GeVDiscoveryAllOnce");
+                result = VmbFeatureCommandRun(gVmbHandle, "GeVDiscoveryAllOnce");
                 if (VmbErrorSuccess == result)
                 {
                     ret = VmbBoolTrue;

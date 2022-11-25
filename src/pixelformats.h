@@ -1,7 +1,7 @@
 #ifndef PIXELFORMATS_H_
 #define PIXELFORMATS_H_
 
-#include <VimbaC/Include/VmbCommonTypes.h>
+#include <VmbC/VmbCommonTypes.h>
 
 // Helper as GStreamer only provides these macros for x-raw formats
 #define GST_BAYER_FORMATS_ALL "{ bggr, grbg, gbrg, rggb }"
