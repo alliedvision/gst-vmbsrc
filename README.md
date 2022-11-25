@@ -1,3 +1,7 @@
+# WORK IN PROGRESS
+
+THIS REPOSITORY IS STILL A WORK IN PROGRES. IT IS CURRENTLY BEING MIGRATED FROM VIMBA TO VIMBA X.
+
 # gst-vimbasrc
 This project contains the official GStreamer plugin to make cameras supported by Allied Visions
 Vimba API available as GStreamer sources.
