@@ -12,7 +12,7 @@
             "cacheVariables": {
                 "CMAKE_INSTALL_PREFIX": {
                     "type": "PATH",
-                    "value": "TODO_${presetName}"
+                    "value": "install_${presetName}"
                 }
             },
             "binaryDir": "${sourceDir}/build-${presetName}"

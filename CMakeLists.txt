@@ -54,3 +54,7 @@ target_link_libraries (${PROJECT_NAME}
     ${GSTREAMER_BASE_LIBRARY}
     Vmb::C
 )
+
+install(
+    TARGETS ${PROJECT_NAME}
+)
