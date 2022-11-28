@@ -50,22 +50,22 @@
 static unsigned int vmb_open_count = 0;
 G_LOCK_DEFINE(vmb_open_count);
 
-GST_DEBUG_CATEGORY_STATIC(gst_vimbasrc_debug_category);
-#define GST_CAT_DEFAULT gst_vimbasrc_debug_category
+GST_DEBUG_CATEGORY_STATIC(gst_vimbaxsrc_debug_category);
+#define GST_CAT_DEFAULT gst_vimbaxsrc_debug_category
 
 /* prototypes */
 
-static void gst_vimbasrc_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
-static void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
-static void gst_vimbasrc_dispose(GObject *object);
-static void gst_vimbasrc_finalize(GObject *object);
+static void gst_vimbaxsrc_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
+static void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
+static void gst_vimbaxsrc_dispose(GObject *object);
+static void gst_vimbaxsrc_finalize(GObject *object);
 
-static GstCaps *gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter);
-static gboolean gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps);
-static gboolean gst_vimbasrc_start(GstBaseSrc *src);
-static gboolean gst_vimbasrc_stop(GstBaseSrc *src);
+static GstCaps *gst_vimbaxsrc_get_caps(GstBaseSrc *src, GstCaps *filter);
+static gboolean gst_vimbaxsrc_set_caps(GstBaseSrc *src, GstCaps *caps);
+static gboolean gst_vimbaxsrc_start(GstBaseSrc *src);
+static gboolean gst_vimbaxsrc_stop(GstBaseSrc *src);
 
-static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf);
+static GstFlowReturn gst_vimbaxsrc_create(GstPushSrc *src, GstBuffer **buf);
 
 enum
 {
@@ -88,7 +88,7 @@ enum
 };
 
 /* pad templates */
-static GstStaticPadTemplate gst_vimbasrc_src_template =
+static GstStaticPadTemplate gst_vimbaxsrc_src_template =
     GST_STATIC_PAD_TEMPLATE("src",
                             GST_PAD_SRC,
                             GST_PAD_ALWAYS,
@@ -96,200 +96,200 @@ static GstStaticPadTemplate gst_vimbasrc_src_template =
                                 GST_VIDEO_CAPS_MAKE(GST_VIDEO_FORMATS_ALL) ";" GST_BAYER_CAPS_MAKE(GST_BAYER_FORMATS_ALL)));
 
 /* Auto exposure modes */
-#define GST_ENUM_EXPOSUREAUTO_MODES (gst_vimbasrc_exposureauto_get_type())
-static GType gst_vimbasrc_exposureauto_get_type(void)
+#define GST_ENUM_EXPOSUREAUTO_MODES (gst_vimbaxsrc_exposureauto_get_type())
+static GType gst_vimbaxsrc_exposureauto_get_type(void)
 {
-    static GType vimbasrc_exposureauto_type = 0;
+    static GType vimbaxsrc_exposureauto_type = 0;
     static const GEnumValue exposureauto_modes[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the Vimba FeatureEnum */
-        {GST_VIMBASRC_AUTOFEATURE_OFF, "Exposure duration is usercontrolled using ExposureTime", "Off"},
-        {GST_VIMBASRC_AUTOFEATURE_ONCE, "Exposure duration is adapted once by the device. Once it has converged, it returns to the Offstate", "Once"},
-        {GST_VIMBASRC_AUTOFEATURE_CONTINUOUS, "Exposure duration is constantly adapted by the device to maximize the dynamic range", "Continuous"},
+        {GST_VIMBAXSRC_AUTOFEATURE_OFF, "Exposure duration is usercontrolled using ExposureTime", "Off"},
+        {GST_VIMBAXSRC_AUTOFEATURE_ONCE, "Exposure duration is adapted once by the device. Once it has converged, it returns to the Offstate", "Once"},
+        {GST_VIMBAXSRC_AUTOFEATURE_CONTINUOUS, "Exposure duration is constantly adapted by the device to maximize the dynamic range", "Continuous"},
         {0, NULL, NULL}};
-    if (!vimbasrc_exposureauto_type)
+    if (!vimbaxsrc_exposureauto_type)
     {
-        vimbasrc_exposureauto_type =
+        vimbaxsrc_exposureauto_type =
             g_enum_register_static("GstVimbasrcExposureAutoModes", exposureauto_modes);
     }
-    return vimbasrc_exposureauto_type;
+    return vimbaxsrc_exposureauto_type;
 }
 
 /* Auto white balance modes */
-#define GST_ENUM_BALANCEWHITEAUTO_MODES (gst_vimbasrc_balancewhiteauto_get_type())
-static GType gst_vimbasrc_balancewhiteauto_get_type(void)
+#define GST_ENUM_BALANCEWHITEAUTO_MODES (gst_vimbaxsrc_balancewhiteauto_get_type())
+static GType gst_vimbaxsrc_balancewhiteauto_get_type(void)
 {
-    static GType vimbasrc_balancewhiteauto_type = 0;
+    static GType vimbaxsrc_balancewhiteauto_type = 0;
     static const GEnumValue balancewhiteauto_modes[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the Vimba FeatureEnum */
-        {GST_VIMBASRC_AUTOFEATURE_OFF, "White balancing is user controlled using BalanceRatioSelector and BalanceRatio", "Off"},
-        {GST_VIMBASRC_AUTOFEATURE_ONCE, "White balancing is automatically adjusted once by the device. Once it has converged, it automatically returns to the Off state", "Once"},
-        {GST_VIMBASRC_AUTOFEATURE_CONTINUOUS, "White balancing is constantly adjusted by the device", "Continuous"},
+        {GST_VIMBAXSRC_AUTOFEATURE_OFF, "White balancing is user controlled using BalanceRatioSelector and BalanceRatio", "Off"},
+        {GST_VIMBAXSRC_AUTOFEATURE_ONCE, "White balancing is automatically adjusted once by the device. Once it has converged, it automatically returns to the Off state", "Once"},
+        {GST_VIMBAXSRC_AUTOFEATURE_CONTINUOUS, "White balancing is constantly adjusted by the device", "Continuous"},
         {0, NULL, NULL}};
-    if (!vimbasrc_balancewhiteauto_type)
+    if (!vimbaxsrc_balancewhiteauto_type)
     {
-        vimbasrc_balancewhiteauto_type =
+        vimbaxsrc_balancewhiteauto_type =
             g_enum_register_static("GstVimbasrcBalanceWhiteAutoModes", balancewhiteauto_modes);
     }
-    return vimbasrc_balancewhiteauto_type;
+    return vimbaxsrc_balancewhiteauto_type;
 }
 
 /* TriggerSelector values */
-#define GST_ENUM_TRIGGERSELECTOR_VALUES (gst_vimbasrc_triggerselector_get_type())
-static GType gst_vimbasrc_triggerselector_get_type(void)
+#define GST_ENUM_TRIGGERSELECTOR_VALUES (gst_vimbaxsrc_triggerselector_get_type())
+static GType gst_vimbaxsrc_triggerselector_get_type(void)
 {
-    static GType vimbasrc_triggerselector_type = 0;
+    static GType vimbaxsrc_triggerselector_type = 0;
     static const GEnumValue triggerselector_values[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the Vimba FeatureEnum */
-        {GST_VIMBASRC_TRIGGERSELECTOR_UNCHANGED, "Does not change the currently applied triggerselector value on the device", "UNCHANGED"},
-        {GST_VIMBASRC_TRIGGERSELECTOR_ACQUISITION_START, "Selects a trigger that starts the Acquisition of one or many frames according to AcquisitionMode", "AcquisitionStart"},
-        {GST_VIMBASRC_TRIGGERSELECTOR_ACQUISITION_END, "Selects a trigger that ends the Acquisition of one or many frames according to AcquisitionMode", "AcquisitionEnd"},
-        {GST_VIMBASRC_TRIGGERSELECTOR_ACQUISITION_ACTIVE, "Selects a trigger that controls the duration of the Acquisition of one or many frames. The Acquisition is activated when the trigger signal becomes active and terminated when it goes back to the inactive state", "AcquisitionActive"},
-        {GST_VIMBASRC_TRIGGERSELECTOR_FRAME_START, "Selects a trigger starting the capture of one frame", "FrameStart"},
-        {GST_VIMBASRC_TRIGGERSELECTOR_FRAME_END, "Selects a trigger ending the capture of one frame (mainly used in linescanmode)", "FrameEnd"},
-        {GST_VIMBASRC_TRIGGERSELECTOR_FRAME_ACTIVE, "Selects a trigger controlling the duration of one frame (mainly used in linescanmode)", "FrameActive"},
-        {GST_VIMBASRC_TRIGGERSELECTOR_FRAME_BURST_START, "Selects a trigger starting the capture of the bursts of frames in an acquisition. AcquisitionBurstFrameCount controls the length of each burst unless a FrameBurstEnd trigger is active. The total number of frames captured is also conditioned by AcquisitionFrameCount if AcquisitionMode is MultiFrame", "FrameBurstStart"},
-        {GST_VIMBASRC_TRIGGERSELECTOR_FRAME_BURST_END, "Selects a trigger ending the capture of the bursts of frames in an acquisition", "FrameBurstEnd"},
-        {GST_VIMBASRC_TRIGGERSELECTOR_FRAME_BURST_ACTIVE, "Selects a trigger controlling the duration of the capture of the bursts of frames in an acquisition", "FrameBurstActive"},
-        {GST_VIMBASRC_TRIGGERSELECTOR_LINE_START, "Selects a trigger starting the capture of one Line of a Frame (mainly used in linescanmode)", "LineStart"},
-        {GST_VIMBASRC_TRIGGERSELECTOR_EXPOSURE_START, "Selects a trigger controlling the start of the exposure of one Frame (or Line)", "ExposureStart"},
-        {GST_VIMBASRC_TRIGGERSELECTOR_EXPOSURE_END, "Selects a trigger controlling the end of the exposure of one Frame (or Line)", "ExposureEnd"},
-        {GST_VIMBASRC_TRIGGERSELECTOR_EXPOSURE_ACTIVE, "Selects a trigger controlling the duration of the exposure of one frame (or Line)", "ExposureActive"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_UNCHANGED, "Does not change the currently applied triggerselector value on the device", "UNCHANGED"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_ACQUISITION_START, "Selects a trigger that starts the Acquisition of one or many frames according to AcquisitionMode", "AcquisitionStart"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_ACQUISITION_END, "Selects a trigger that ends the Acquisition of one or many frames according to AcquisitionMode", "AcquisitionEnd"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_ACQUISITION_ACTIVE, "Selects a trigger that controls the duration of the Acquisition of one or many frames. The Acquisition is activated when the trigger signal becomes active and terminated when it goes back to the inactive state", "AcquisitionActive"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_FRAME_START, "Selects a trigger starting the capture of one frame", "FrameStart"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_FRAME_END, "Selects a trigger ending the capture of one frame (mainly used in linescanmode)", "FrameEnd"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_FRAME_ACTIVE, "Selects a trigger controlling the duration of one frame (mainly used in linescanmode)", "FrameActive"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_FRAME_BURST_START, "Selects a trigger starting the capture of the bursts of frames in an acquisition. AcquisitionBurstFrameCount controls the length of each burst unless a FrameBurstEnd trigger is active. The total number of frames captured is also conditioned by AcquisitionFrameCount if AcquisitionMode is MultiFrame", "FrameBurstStart"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_FRAME_BURST_END, "Selects a trigger ending the capture of the bursts of frames in an acquisition", "FrameBurstEnd"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_FRAME_BURST_ACTIVE, "Selects a trigger controlling the duration of the capture of the bursts of frames in an acquisition", "FrameBurstActive"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_LINE_START, "Selects a trigger starting the capture of one Line of a Frame (mainly used in linescanmode)", "LineStart"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_EXPOSURE_START, "Selects a trigger controlling the start of the exposure of one Frame (or Line)", "ExposureStart"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_EXPOSURE_END, "Selects a trigger controlling the end of the exposure of one Frame (or Line)", "ExposureEnd"},
+        {GST_VIMBAXSRC_TRIGGERSELECTOR_EXPOSURE_ACTIVE, "Selects a trigger controlling the duration of the exposure of one frame (or Line)", "ExposureActive"},
         {0, NULL, NULL}};
-    if (!vimbasrc_triggerselector_type)
+    if (!vimbaxsrc_triggerselector_type)
     {
-        vimbasrc_triggerselector_type =
+        vimbaxsrc_triggerselector_type =
             g_enum_register_static("GstVimbasrcTriggerSelectorValues", triggerselector_values);
     }
-    return vimbasrc_triggerselector_type;
+    return vimbaxsrc_triggerselector_type;
 }
 
 /* TriggerMode values */
-#define GST_ENUM_TRIGGERMODE_VALUES (gst_vimbasrc_triggermode_get_type())
-static GType gst_vimbasrc_triggermode_get_type(void)
+#define GST_ENUM_TRIGGERMODE_VALUES (gst_vimbaxsrc_triggermode_get_type())
+static GType gst_vimbaxsrc_triggermode_get_type(void)
 {
-    static GType vimbasrc_triggermode_type = 0;
+    static GType vimbaxsrc_triggermode_type = 0;
     static const GEnumValue triggermode_values[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the Vimba FeatureEnum */
-        {GST_VIMBASRC_TRIGGERMODE_UNCHANGED, "Does not change the currently applied triggermode value on the device", "UNCHANGED"},
-        {GST_VIMBASRC_TRIGGERMODE_OFF, "Disables the selected trigger", "Off"},
-        {GST_VIMBASRC_TRIGGERMODE_ON, "Enable the selected trigger", "On"},
+        {GST_VIMBAXSRC_TRIGGERMODE_UNCHANGED, "Does not change the currently applied triggermode value on the device", "UNCHANGED"},
+        {GST_VIMBAXSRC_TRIGGERMODE_OFF, "Disables the selected trigger", "Off"},
+        {GST_VIMBAXSRC_TRIGGERMODE_ON, "Enable the selected trigger", "On"},
         {0, NULL, NULL}};
-    if (!vimbasrc_triggermode_type)
+    if (!vimbaxsrc_triggermode_type)
     {
-        vimbasrc_triggermode_type =
+        vimbaxsrc_triggermode_type =
             g_enum_register_static("GstVimbasrcTriggerModeValues", triggermode_values);
     }
-    return vimbasrc_triggermode_type;
+    return vimbaxsrc_triggermode_type;
 }
 
 /* TriggerSource values */
-#define GST_ENUM_TRIGGERSOURCE_VALUES (gst_vimbasrc_triggersource_get_type())
-static GType gst_vimbasrc_triggersource_get_type(void)
+#define GST_ENUM_TRIGGERSOURCE_VALUES (gst_vimbaxsrc_triggersource_get_type())
+static GType gst_vimbaxsrc_triggersource_get_type(void)
 {
-    static GType vimbasrc_triggersource_type = 0;
+    static GType vimbaxsrc_triggersource_type = 0;
     static const GEnumValue triggersource_values[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the Vimba FeatureEnum */
-        {GST_VIMBASRC_TRIGGERSOURCE_UNCHANGED, "Does not change the currently applied triggersource value on the device", "UNCHANGED"},
-        {GST_VIMBASRC_TRIGGERSOURCE_SOFTWARE, "Specifies that the trigger source will be generated by software using the TriggerSoftware command", "Software"},
-        {GST_VIMBASRC_TRIGGERSOURCE_LINE0, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line0"},
-        {GST_VIMBASRC_TRIGGERSOURCE_LINE1, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line1"},
-        {GST_VIMBASRC_TRIGGERSOURCE_LINE2, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line2"},
-        {GST_VIMBASRC_TRIGGERSOURCE_LINE3, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line3"},
-        {GST_VIMBASRC_TRIGGERSOURCE_USER_OUTPUT0, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput0"},
-        {GST_VIMBASRC_TRIGGERSOURCE_USER_OUTPUT1, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput1"},
-        {GST_VIMBASRC_TRIGGERSOURCE_USER_OUTPUT2, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput2"},
-        {GST_VIMBASRC_TRIGGERSOURCE_USER_OUTPUT3, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput3"},
-        {GST_VIMBASRC_TRIGGERSOURCE_COUNTER0_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter0Start"},
-        {GST_VIMBASRC_TRIGGERSOURCE_COUNTER1_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter1Start"},
-        {GST_VIMBASRC_TRIGGERSOURCE_COUNTER2_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter2Start"},
-        {GST_VIMBASRC_TRIGGERSOURCE_COUNTER3_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter3Start"},
-        {GST_VIMBASRC_TRIGGERSOURCE_COUNTER0_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter0End"},
-        {GST_VIMBASRC_TRIGGERSOURCE_COUNTER1_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter1End"},
-        {GST_VIMBASRC_TRIGGERSOURCE_COUNTER2_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter2End"},
-        {GST_VIMBASRC_TRIGGERSOURCE_COUNTER3_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter3End"},
-        {GST_VIMBASRC_TRIGGERSOURCE_TIMER0_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer0Start"},
-        {GST_VIMBASRC_TRIGGERSOURCE_TIMER1_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer1Start"},
-        {GST_VIMBASRC_TRIGGERSOURCE_TIMER2_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer2Start"},
-        {GST_VIMBASRC_TRIGGERSOURCE_TIMER3_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer3Start"},
-        {GST_VIMBASRC_TRIGGERSOURCE_TIMER0_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer0End"},
-        {GST_VIMBASRC_TRIGGERSOURCE_TIMER1_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer1End"},
-        {GST_VIMBASRC_TRIGGERSOURCE_TIMER2_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer2End"},
-        {GST_VIMBASRC_TRIGGERSOURCE_TIMER3_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer3End"},
-        {GST_VIMBASRC_TRIGGERSOURCE_ENCODER0, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder0"},
-        {GST_VIMBASRC_TRIGGERSOURCE_ENCODER1, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder1"},
-        {GST_VIMBASRC_TRIGGERSOURCE_ENCODER2, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder2"},
-        {GST_VIMBASRC_TRIGGERSOURCE_ENCODER3, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder3"},
-        {GST_VIMBASRC_TRIGGERSOURCE_LOGIC_BLOCK0, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock0"},
-        {GST_VIMBASRC_TRIGGERSOURCE_LOGIC_BLOCK1, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock1"},
-        {GST_VIMBASRC_TRIGGERSOURCE_LOGIC_BLOCK2, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock2"},
-        {GST_VIMBASRC_TRIGGERSOURCE_LOGIC_BLOCK3, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock3"},
-        {GST_VIMBASRC_TRIGGERSOURCE_ACTION0, "Specifies which Action command to use as internal source for the trigger", "Action0"},
-        {GST_VIMBASRC_TRIGGERSOURCE_ACTION1, "Specifies which Action command to use as internal source for the trigger", "Action1"},
-        {GST_VIMBASRC_TRIGGERSOURCE_ACTION2, "Specifies which Action command to use as internal source for the trigger", "Action2"},
-        {GST_VIMBASRC_TRIGGERSOURCE_ACTION3, "Specifies which Action command to use as internal source for the trigger", "Action3"},
-        {GST_VIMBASRC_TRIGGERSOURCE_LINK_TRIGGER0, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger0"},
-        {GST_VIMBASRC_TRIGGERSOURCE_LINK_TRIGGER1, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger1"},
-        {GST_VIMBASRC_TRIGGERSOURCE_LINK_TRIGGER2, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger2"},
-        {GST_VIMBASRC_TRIGGERSOURCE_LINK_TRIGGER3, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger3"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_UNCHANGED, "Does not change the currently applied triggersource value on the device", "UNCHANGED"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_SOFTWARE, "Specifies that the trigger source will be generated by software using the TriggerSoftware command", "Software"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_LINE0, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line0"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_LINE1, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line1"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_LINE2, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line2"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_LINE3, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line3"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_USER_OUTPUT0, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput0"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_USER_OUTPUT1, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput1"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_USER_OUTPUT2, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput2"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_USER_OUTPUT3, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput3"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER0_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter0Start"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER1_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter1Start"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER2_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter2Start"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER3_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter3Start"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER0_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter0End"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER1_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter1End"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER2_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter2End"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER3_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter3End"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER0_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer0Start"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER1_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer1Start"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER2_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer2Start"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER3_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer3Start"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER0_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer0End"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER1_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer1End"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER2_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer2End"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER3_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer3End"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_ENCODER0, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder0"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_ENCODER1, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder1"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_ENCODER2, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder2"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_ENCODER3, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder3"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_LOGIC_BLOCK0, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock0"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_LOGIC_BLOCK1, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock1"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_LOGIC_BLOCK2, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock2"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_LOGIC_BLOCK3, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock3"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_ACTION0, "Specifies which Action command to use as internal source for the trigger", "Action0"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_ACTION1, "Specifies which Action command to use as internal source for the trigger", "Action1"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_ACTION2, "Specifies which Action command to use as internal source for the trigger", "Action2"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_ACTION3, "Specifies which Action command to use as internal source for the trigger", "Action3"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER0, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger0"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER1, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger1"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER2, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger2"},
+        {GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER3, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger3"},
         {0, NULL, NULL}};
-    if (!vimbasrc_triggersource_type)
+    if (!vimbaxsrc_triggersource_type)
     {
-        vimbasrc_triggersource_type =
+        vimbaxsrc_triggersource_type =
             g_enum_register_static("GstVimbasrcTriggerSourceValues", triggersource_values);
     }
-    return vimbasrc_triggersource_type;
+    return vimbaxsrc_triggersource_type;
 }
 
 /* TriggerActivation values */
-#define GST_ENUM_TRIGGERACTIVATION_VALUES (gst_vimbasrc_triggeractivation_get_type())
-static GType gst_vimbasrc_triggeractivation_get_type(void)
+#define GST_ENUM_TRIGGERACTIVATION_VALUES (gst_vimbaxsrc_triggeractivation_get_type())
+static GType gst_vimbaxsrc_triggeractivation_get_type(void)
 {
-    static GType vimbasrc_triggeractivation_type = 0;
+    static GType vimbaxsrc_triggeractivation_type = 0;
     static const GEnumValue triggeractivation_values[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the Vimba FeatureEnum */
-        {GST_VIMBASRC_TRIGGERACTIVATION_UNCHANGED, "Does not change the currently applied triggeractivation value on the device", "UNCHANGED"},
-        {GST_VIMBASRC_TRIGGERACTIVATION_RISING_EDGE, "Specifies that the trigger is considered valid on the rising edge of the source signal", "RisingEdge"},
-        {GST_VIMBASRC_TRIGGERACTIVATION_FALLING_EDGE, "Specifies that the trigger is considered valid on the falling edge of the source signal", "FallingEdge"},
-        {GST_VIMBASRC_TRIGGERACTIVATION_ANY_EDGE, "Specifies that the trigger is considered valid on the falling or rising edge of the source signal", "AnyEdge"},
-        {GST_VIMBASRC_TRIGGERACTIVATION_LEVEL_HIGH, "Specifies that the trigger is considered valid as long as the level of the source signal is high", "LevelHigh"},
-        {GST_VIMBASRC_TRIGGERACTIVATION_LEVEL_LOW, "Specifies that the trigger is considered valid as long as the level of the source signal is low", "LevelLow"},
+        {GST_VIMBAXSRC_TRIGGERACTIVATION_UNCHANGED, "Does not change the currently applied triggeractivation value on the device", "UNCHANGED"},
+        {GST_VIMBAXSRC_TRIGGERACTIVATION_RISING_EDGE, "Specifies that the trigger is considered valid on the rising edge of the source signal", "RisingEdge"},
+        {GST_VIMBAXSRC_TRIGGERACTIVATION_FALLING_EDGE, "Specifies that the trigger is considered valid on the falling edge of the source signal", "FallingEdge"},
+        {GST_VIMBAXSRC_TRIGGERACTIVATION_ANY_EDGE, "Specifies that the trigger is considered valid on the falling or rising edge of the source signal", "AnyEdge"},
+        {GST_VIMBAXSRC_TRIGGERACTIVATION_LEVEL_HIGH, "Specifies that the trigger is considered valid as long as the level of the source signal is high", "LevelHigh"},
+        {GST_VIMBAXSRC_TRIGGERACTIVATION_LEVEL_LOW, "Specifies that the trigger is considered valid as long as the level of the source signal is low", "LevelLow"},
         {0, NULL, NULL}};
-    if (!vimbasrc_triggeractivation_type)
+    if (!vimbaxsrc_triggeractivation_type)
     {
-        vimbasrc_triggeractivation_type =
+        vimbaxsrc_triggeractivation_type =
             g_enum_register_static("GstVimbasrcTriggerActivationValues", triggeractivation_values);
     }
-    return vimbasrc_triggeractivation_type;
+    return vimbaxsrc_triggeractivation_type;
 }
 
 /* IncompleteFrameHandling values */
-#define GST_ENUM_INCOMPLETEFRAMEHANDLING_VALUES (gst_vimbasrc_incompleteframehandling_get_type())
-static GType gst_vimbasrc_incompleteframehandling_get_type(void)
+#define GST_ENUM_INCOMPLETEFRAMEHANDLING_VALUES (gst_vimbaxsrc_incompleteframehandling_get_type())
+static GType gst_vimbaxsrc_incompleteframehandling_get_type(void)
 {
-    static GType vimbasrc_incompleteframehandling_type = 0;
+    static GType vimbaxsrc_incompleteframehandling_type = 0;
     static const GEnumValue incompleteframehandling_values[] = {
-        {GST_VIMBASRC_INCOMPLETE_FRAME_HANDLING_DROP, "Drop incomplete frames", "Drop"},
-        {GST_VIMBASRC_INCOMPLETE_FRAME_HANDLING_SUBMIT, "Use incomplete frames and submit them to the next element for processing", "Submit"},
+        {GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_DROP, "Drop incomplete frames", "Drop"},
+        {GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_SUBMIT, "Use incomplete frames and submit them to the next element for processing", "Submit"},
         {0, NULL, NULL}};
-    if (!vimbasrc_incompleteframehandling_type)
+    if (!vimbaxsrc_incompleteframehandling_type)
     {
-        vimbasrc_incompleteframehandling_type =
+        vimbaxsrc_incompleteframehandling_type =
             g_enum_register_static("GstVimbasrcIncompleteFrameHandlingValues", incompleteframehandling_values);
     }
-    return vimbasrc_incompleteframehandling_type;
+    return vimbaxsrc_incompleteframehandling_type;
 }
 
 /* class initialization */
 
 G_DEFINE_TYPE_WITH_CODE(GstVimbaSrc,
-                        gst_vimbasrc,
+                        gst_vimbaxsrc,
                         GST_TYPE_PUSH_SRC,
-                        GST_DEBUG_CATEGORY_INIT(gst_vimbasrc_debug_category,
-                                                "vimbasrc",
+                        GST_DEBUG_CATEGORY_INIT(gst_vimbaxsrc_debug_category,
+                                                "vimbaxsrc",
                                                 0,
-                                                "debug category for vimbasrc element"))
+                                                "debug category for vimbaxsrc element"))
 
-static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
+static void gst_vimbaxsrc_class_init(GstVimbaSrcClass *klass)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
     GstBaseSrcClass *base_src_class = GST_BASE_SRC_CLASS(klass);
@@ -297,7 +297,7 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
 
     /* Setting up pads and setting metadata should be moved to base_class_init if you intend to subclass this class. */
     gst_element_class_add_static_pad_template(GST_ELEMENT_CLASS(klass),
-                                              &gst_vimbasrc_src_template);
+                                              &gst_vimbaxsrc_src_template);
 
     gst_element_class_set_static_metadata(GST_ELEMENT_CLASS(klass),
                                           "Vimba GStreamer source",
@@ -305,15 +305,15 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
                                           DESCRIPTION,
                                           "Allied Vision Technologies GmbH");
 
-    gobject_class->set_property = gst_vimbasrc_set_property;
-    gobject_class->get_property = gst_vimbasrc_get_property;
-    gobject_class->dispose = gst_vimbasrc_dispose;
-    gobject_class->finalize = gst_vimbasrc_finalize;
-    base_src_class->get_caps = GST_DEBUG_FUNCPTR(gst_vimbasrc_get_caps);
-    base_src_class->set_caps = GST_DEBUG_FUNCPTR(gst_vimbasrc_set_caps);
-    base_src_class->start = GST_DEBUG_FUNCPTR(gst_vimbasrc_start);
-    base_src_class->stop = GST_DEBUG_FUNCPTR(gst_vimbasrc_stop);
-    push_src_class->create = GST_DEBUG_FUNCPTR(gst_vimbasrc_create);
+    gobject_class->set_property = gst_vimbaxsrc_set_property;
+    gobject_class->get_property = gst_vimbaxsrc_get_property;
+    gobject_class->dispose = gst_vimbaxsrc_dispose;
+    gobject_class->finalize = gst_vimbaxsrc_finalize;
+    base_src_class->get_caps = GST_DEBUG_FUNCPTR(gst_vimbaxsrc_get_caps);
+    base_src_class->set_caps = GST_DEBUG_FUNCPTR(gst_vimbaxsrc_set_caps);
+    base_src_class->start = GST_DEBUG_FUNCPTR(gst_vimbaxsrc_start);
+    base_src_class->stop = GST_DEBUG_FUNCPTR(gst_vimbaxsrc_stop);
+    push_src_class->create = GST_DEBUG_FUNCPTR(gst_vimbaxsrc_create);
 
     // Install properties
     g_object_class_install_property(
@@ -353,7 +353,7 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             "ExposureAuto feature setting",
             "Sets the auto exposure mode. The output of the auto exposure function affects the whole image",
             GST_ENUM_EXPOSUREAUTO_MODES,
-            GST_VIMBASRC_AUTOFEATURE_OFF,
+            GST_VIMBAXSRC_AUTOFEATURE_OFF,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -363,7 +363,7 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             "BalanceWhiteAuto feature setting",
             "Controls the mode for automatic white balancing between the color channels. The white balancing ratios are automatically adjusted",
             GST_ENUM_BALANCEWHITEAUTO_MODES,
-            GST_VIMBASRC_AUTOFEATURE_OFF,
+            GST_VIMBAXSRC_AUTOFEATURE_OFF,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -428,7 +428,7 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             "TriggerSelector feature setting",
             "Selects the type of trigger to configure. Not all cameras support every trigger selector listed below. Check which selectors are supported by the used camera model",
             GST_ENUM_TRIGGERSELECTOR_VALUES,
-            GST_VIMBASRC_TRIGGERSELECTOR_UNCHANGED,
+            GST_VIMBAXSRC_TRIGGERSELECTOR_UNCHANGED,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -438,7 +438,7 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             "TriggerMode feature setting",
             "Controls if the selected trigger is active",
             GST_ENUM_TRIGGERMODE_VALUES,
-            GST_VIMBASRC_TRIGGERMODE_UNCHANGED,
+            GST_VIMBAXSRC_TRIGGERMODE_UNCHANGED,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -448,7 +448,7 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             "TriggerSource feature setting",
             "Specifies the internal signal or physical input Line to use as the trigger source. The selected trigger must have its TriggerMode set to On. Not all cameras support every trigger source listed below. Check which sources are supported by the used camera model",
             GST_ENUM_TRIGGERSOURCE_VALUES,
-            GST_VIMBASRC_TRIGGERSOURCE_UNCHANGED,
+            GST_VIMBAXSRC_TRIGGERSOURCE_UNCHANGED,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -458,7 +458,7 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             "TriggerActivation feature setting",
             "Specifies the activation mode of the trigger. Not all cameras support every trigger activation listed below. Check which activations are supported by the used camera model",
             GST_ENUM_TRIGGERACTIVATION_VALUES,
-            GST_VIMBASRC_TRIGGERACTIVATION_UNCHANGED,
+            GST_VIMBAXSRC_TRIGGERACTIVATION_UNCHANGED,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -468,29 +468,29 @@ static void gst_vimbasrc_class_init(GstVimbaSrcClass *klass)
             "Incomplete frame handline",
             "Determines how the element should handle received frames where data transmission was incomplete. Incomplete frames may contain pixel intensities from old acquisitions or random data",
             GST_ENUM_INCOMPLETEFRAMEHANDLING_VALUES,
-            GST_VIMBASRC_INCOMPLETE_FRAME_HANDLING_DROP,
+            GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_DROP,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
-static void gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
+static void gst_vimbaxsrc_init(GstVimbaSrc *vimbaxsrc)
 {
-    GST_TRACE_OBJECT(vimbasrc, "init");
-    GST_INFO_OBJECT(vimbasrc, "gst-vimbasrc version %s", VERSION);
+    GST_TRACE_OBJECT(vimbaxsrc, "init");
+    GST_INFO_OBJECT(vimbaxsrc, "gst-vimbaxsrc version %s", VERSION);
     VmbError_t result = VmbErrorSuccess;
     // Start the Vimba API
     G_LOCK(vmb_open_count);
     if (0 == vmb_open_count++)
     {
         result = VmbStartup(NULL);
-        GST_DEBUG_OBJECT(vimbasrc, "VmbStartup returned: %s", ErrorCodeToMessage(result));
+        GST_DEBUG_OBJECT(vimbaxsrc, "VmbStartup returned: %s", ErrorCodeToMessage(result));
         if (result != VmbErrorSuccess)
         {
-            GST_ERROR_OBJECT(vimbasrc, "Vimba initialization failed");
+            GST_ERROR_OBJECT(vimbaxsrc, "Vimba initialization failed");
         }
     }
     else
     {
-        GST_DEBUG_OBJECT(vimbasrc, "VmbStartup was already called. Current open count: %u", vmb_open_count);
+        GST_DEBUG_OBJECT(vimbaxsrc, "VmbStartup was already called. Current open count: %u", vmb_open_count);
     }
     G_UNLOCK(vmb_open_count);
 
@@ -499,7 +499,7 @@ static void gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
     result = VmbVersionQuery(&version_info, sizeof(version_info));
     if (result == VmbErrorSuccess)
     {
-        GST_INFO_OBJECT(vimbasrc,
+        GST_INFO_OBJECT(vimbaxsrc,
                         "Running with VimbaC Version %u.%u.%u",
                         version_info.major,
                         version_info.minor,
@@ -507,159 +507,159 @@ static void gst_vimbasrc_init(GstVimbaSrc *vimbasrc)
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc, "VmbVersionQuery failed with Reason: %s", ErrorCodeToMessage(result));
+        GST_WARNING_OBJECT(vimbaxsrc, "VmbVersionQuery failed with Reason: %s", ErrorCodeToMessage(result));
     }
 
-    if (DiscoverGigECameras((GObject *)vimbasrc) == VmbBoolFalse)
+    if (DiscoverGigECameras((GObject *)vimbaxsrc) == VmbBoolFalse)
     {
-        GST_INFO_OBJECT(vimbasrc, "GigE cameras will be ignored");
+        GST_INFO_OBJECT(vimbaxsrc, "GigE cameras will be ignored");
     }
 
     // Mark this element as a live source (disable preroll)
-    gst_base_src_set_live(GST_BASE_SRC(vimbasrc), TRUE);
-    gst_base_src_set_format(GST_BASE_SRC(vimbasrc), GST_FORMAT_TIME);
-    gst_base_src_set_do_timestamp(GST_BASE_SRC(vimbasrc), TRUE);
+    gst_base_src_set_live(GST_BASE_SRC(vimbaxsrc), TRUE);
+    gst_base_src_set_format(GST_BASE_SRC(vimbaxsrc), GST_FORMAT_TIME);
+    gst_base_src_set_do_timestamp(GST_BASE_SRC(vimbaxsrc), TRUE);
 
     // Set property helper variables to default values
-    GObjectClass *gobject_class = G_OBJECT_GET_CLASS(vimbasrc);
+    GObjectClass *gobject_class = G_OBJECT_GET_CLASS(vimbaxsrc);
 
-    vimbasrc->camera.id = g_value_dup_string(
+    vimbaxsrc->camera.id = g_value_dup_string(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "camera")));
-    vimbasrc->properties.settings_file_path = g_value_dup_string(
+    vimbaxsrc->properties.settings_file_path = g_value_dup_string(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "settingsfile")));
-    vimbasrc->properties.exposuretime = g_value_get_double(
+    vimbaxsrc->properties.exposuretime = g_value_get_double(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "exposuretime")));
-    vimbasrc->properties.exposureauto = g_value_get_enum(
+    vimbaxsrc->properties.exposureauto = g_value_get_enum(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "exposureauto")));
-    vimbasrc->properties.balancewhiteauto = g_value_get_enum(
+    vimbaxsrc->properties.balancewhiteauto = g_value_get_enum(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "balancewhiteauto")));
-    vimbasrc->properties.gain = g_value_get_double(
+    vimbaxsrc->properties.gain = g_value_get_double(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "gain")));
-    vimbasrc->properties.offsetx = g_value_get_int(
+    vimbaxsrc->properties.offsetx = g_value_get_int(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "offsetx")));
-    vimbasrc->properties.offsety = g_value_get_int(
+    vimbaxsrc->properties.offsety = g_value_get_int(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "offsety")));
-    vimbasrc->properties.width = g_value_get_int(
+    vimbaxsrc->properties.width = g_value_get_int(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "width")));
-    vimbasrc->properties.height = g_value_get_int(
+    vimbaxsrc->properties.height = g_value_get_int(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "height")));
-    vimbasrc->properties.triggerselector = g_value_get_enum(
+    vimbaxsrc->properties.triggerselector = g_value_get_enum(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "triggerselector")));
-    vimbasrc->properties.triggermode = g_value_get_enum(
+    vimbaxsrc->properties.triggermode = g_value_get_enum(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "triggermode")));
-    vimbasrc->properties.triggersource = g_value_get_enum(
+    vimbaxsrc->properties.triggersource = g_value_get_enum(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "triggersource")));
-    vimbasrc->properties.triggeractivation = g_value_get_enum(
+    vimbaxsrc->properties.triggeractivation = g_value_get_enum(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "triggeractivation")));
-    vimbasrc->properties.incomplete_frame_handling = g_value_get_enum(
+    vimbaxsrc->properties.incomplete_frame_handling = g_value_get_enum(
         g_param_spec_get_default_value(
             g_object_class_find_property(
                 gobject_class,
                 "incompleteframehandling")));
 }
 
-void gst_vimbasrc_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
+void gst_vimbaxsrc_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
-    GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
+    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(object);
 
-    GST_DEBUG_OBJECT(vimbasrc, "set_property");
+    GST_DEBUG_OBJECT(vimbaxsrc, "set_property");
 
     switch (property_id)
     {
     case PROP_CAMERA_ID:
-        if (strcmp(vimbasrc->camera.id, "") != 0)
+        if (strcmp(vimbaxsrc->camera.id, "") != 0)
         {
-            free((void *)vimbasrc->camera.id); // Free memory of old entry
+            free((void *)vimbaxsrc->camera.id); // Free memory of old entry
         }
-        vimbasrc->camera.id = g_value_dup_string(value);
+        vimbaxsrc->camera.id = g_value_dup_string(value);
         break;
     case PROP_SETTINGS_FILENAME:
-        if (strcmp(vimbasrc->properties.settings_file_path, "") != 0)
+        if (strcmp(vimbaxsrc->properties.settings_file_path, "") != 0)
         {
-            free((void *)vimbasrc->properties.settings_file_path); // Free memory of old entry
+            free((void *)vimbaxsrc->properties.settings_file_path); // Free memory of old entry
         }
-        vimbasrc->properties.settings_file_path = g_value_dup_string(value);
+        vimbaxsrc->properties.settings_file_path = g_value_dup_string(value);
         break;
     case PROP_EXPOSURETIME:
-        vimbasrc->properties.exposuretime = g_value_get_double(value);
+        vimbaxsrc->properties.exposuretime = g_value_get_double(value);
         break;
     case PROP_EXPOSUREAUTO:
-        vimbasrc->properties.exposureauto = g_value_get_enum(value);
+        vimbaxsrc->properties.exposureauto = g_value_get_enum(value);
         break;
     case PROP_BALANCEWHITEAUTO:
-        vimbasrc->properties.balancewhiteauto = g_value_get_enum(value);
+        vimbaxsrc->properties.balancewhiteauto = g_value_get_enum(value);
         break;
     case PROP_GAIN:
-        vimbasrc->properties.gain = g_value_get_double(value);
+        vimbaxsrc->properties.gain = g_value_get_double(value);
         break;
     case PROP_OFFSETX:
-        vimbasrc->properties.offsetx = g_value_get_int(value);
+        vimbaxsrc->properties.offsetx = g_value_get_int(value);
         break;
     case PROP_OFFSETY:
-        vimbasrc->properties.offsety = g_value_get_int(value);
+        vimbaxsrc->properties.offsety = g_value_get_int(value);
         break;
     case PROP_WIDTH:
-        vimbasrc->properties.width = g_value_get_int(value);
+        vimbaxsrc->properties.width = g_value_get_int(value);
         break;
     case PROP_HEIGHT:
-        vimbasrc->properties.height = g_value_get_int(value);
+        vimbaxsrc->properties.height = g_value_get_int(value);
         break;
     case PROP_TRIGGERSELECTOR:
-        vimbasrc->properties.triggerselector = g_value_get_enum(value);
+        vimbaxsrc->properties.triggerselector = g_value_get_enum(value);
         break;
     case PROP_TRIGGERMODE:
-        vimbasrc->properties.triggermode = g_value_get_enum(value);
+        vimbaxsrc->properties.triggermode = g_value_get_enum(value);
         break;
     case PROP_TRIGGERSOURCE:
-        vimbasrc->properties.triggersource = g_value_get_enum(value);
+        vimbaxsrc->properties.triggersource = g_value_get_enum(value);
         break;
     case PROP_TRIGGERACTIVATION:
-        vimbasrc->properties.triggeractivation = g_value_get_enum(value);
+        vimbaxsrc->properties.triggeractivation = g_value_get_enum(value);
         break;
     case PROP_INCOMPLETE_FRAME_HANDLING:
-        vimbasrc->properties.incomplete_frame_handling = g_value_get_enum(value);
+        vimbaxsrc->properties.incomplete_frame_handling = g_value_get_enum(value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -667,9 +667,9 @@ void gst_vimbasrc_set_property(GObject *object, guint property_id, const GValue 
     }
 }
 
-void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
+void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
-    GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
+    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(object);
 
     VmbError_t result;
 
@@ -677,264 +677,264 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
     double vmbfeature_value_double;
     VmbInt64_t vmbfeature_value_int64;
 
-    GST_TRACE_OBJECT(vimbasrc, "get_property");
+    GST_TRACE_OBJECT(vimbaxsrc, "get_property");
 
     switch (property_id)
     {
     case PROP_CAMERA_ID:
-        g_value_set_string(value, vimbasrc->camera.id);
+        g_value_set_string(value, vimbaxsrc->camera.id);
         break;
     case PROP_SETTINGS_FILENAME:
-        g_value_set_string(value, vimbasrc->properties.settings_file_path);
+        g_value_set_string(value, vimbaxsrc->properties.settings_file_path);
         break;
     case PROP_EXPOSURETIME:
         // TODO: Workaround for cameras with legacy "ExposureTimeAbs" feature should be replaced with a general legacy
         // feature name handling approach: See similar TODO above
 
-        result = VmbFeatureFloatGet(vimbasrc->camera.handle, "ExposureTime", &vmbfeature_value_double);
+        result = VmbFeatureFloatGet(vimbaxsrc->camera.handle, "ExposureTime", &vmbfeature_value_double);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
+            GST_DEBUG_OBJECT(vimbaxsrc,
                              "Camera returned the following value for \"ExposureTime\": %f",
                              vmbfeature_value_double);
-            vimbasrc->properties.exposuretime = vmbfeature_value_double;
+            vimbaxsrc->properties.exposuretime = vmbfeature_value_double;
         }
         else if (result == VmbErrorNotFound)
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Failed to get \"ExposureTime\". Return code was: %s Attempting \"ExposureTimeAbs\"",
                                ErrorCodeToMessage(result));
-            result = VmbFeatureFloatGet(vimbasrc->camera.handle, "ExposureTimeAbs", &vmbfeature_value_double);
+            result = VmbFeatureFloatGet(vimbaxsrc->camera.handle, "ExposureTimeAbs", &vmbfeature_value_double);
             if (result == VmbErrorSuccess)
             {
-                GST_DEBUG_OBJECT(vimbasrc,
+                GST_DEBUG_OBJECT(vimbaxsrc,
                                  "Camera returned the following value for \"ExposureTimeAbs\": %f",
                                  vmbfeature_value_double);
-                vimbasrc->properties.exposuretime = vmbfeature_value_double;
+                vimbaxsrc->properties.exposuretime = vmbfeature_value_double;
             }
             else
             {
-                GST_WARNING_OBJECT(vimbasrc,
+                GST_WARNING_OBJECT(vimbaxsrc,
                                    "Failed to read value of \"ExposureTimeAbs\" from camera. Return code was: %s",
                                    ErrorCodeToMessage(result));
             }
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Failed to read value of \"ExposureTime\" from camera. Return code was: %s",
                                ErrorCodeToMessage(result));
         }
 
-        g_value_set_double(value, vimbasrc->properties.exposuretime);
+        g_value_set_double(value, vimbaxsrc->properties.exposuretime);
         break;
     case PROP_EXPOSUREAUTO:
-        result = VmbFeatureEnumGet(vimbasrc->camera.handle, "ExposureAuto", &vmbfeature_value_char);
+        result = VmbFeatureEnumGet(vimbaxsrc->camera.handle, "ExposureAuto", &vmbfeature_value_char);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
+            GST_DEBUG_OBJECT(vimbaxsrc,
                              "Camera returned the following value for \"ExposureAuto\": %s",
                              vmbfeature_value_char);
-            vimbasrc->properties.exposureauto = g_enum_get_value_by_nick(
+            vimbaxsrc->properties.exposureauto = g_enum_get_value_by_nick(
                                                     g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES),
                                                     vmbfeature_value_char)
                                                     ->value;
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Failed to read value of \"ExposureAuto\" from camera. Return code was: %s",
                                ErrorCodeToMessage(result));
         }
-        g_value_set_enum(value, vimbasrc->properties.exposureauto);
+        g_value_set_enum(value, vimbaxsrc->properties.exposureauto);
         break;
     case PROP_BALANCEWHITEAUTO:
-        result = VmbFeatureEnumGet(vimbasrc->camera.handle, "BalanceWhiteAuto", &vmbfeature_value_char);
+        result = VmbFeatureEnumGet(vimbaxsrc->camera.handle, "BalanceWhiteAuto", &vmbfeature_value_char);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
+            GST_DEBUG_OBJECT(vimbaxsrc,
                              "Camera returned the following value for \"BalanceWhiteAuto\": %s",
                              vmbfeature_value_char);
-            vimbasrc->properties.balancewhiteauto = g_enum_get_value_by_nick(
+            vimbaxsrc->properties.balancewhiteauto = g_enum_get_value_by_nick(
                                                         g_type_class_ref(GST_ENUM_BALANCEWHITEAUTO_MODES),
                                                         vmbfeature_value_char)
                                                         ->value;
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Failed to read value of \"BalanceWhiteAuto\" from camera. Return code was: %s",
                                ErrorCodeToMessage(result));
         }
-        g_value_set_enum(value, vimbasrc->properties.balancewhiteauto);
+        g_value_set_enum(value, vimbaxsrc->properties.balancewhiteauto);
         break;
     case PROP_GAIN:
-        result = VmbFeatureFloatGet(vimbasrc->camera.handle, "Gain", &vmbfeature_value_double);
+        result = VmbFeatureFloatGet(vimbaxsrc->camera.handle, "Gain", &vmbfeature_value_double);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
+            GST_DEBUG_OBJECT(vimbaxsrc,
                              "Camera returned the following value for \"Gain\": %f",
                              vmbfeature_value_double);
-            vimbasrc->properties.gain = vmbfeature_value_double;
+            vimbaxsrc->properties.gain = vmbfeature_value_double;
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Failed to read value of \"Gain\" from camera. Return code was: %s",
                                ErrorCodeToMessage(result));
         }
-        g_value_set_double(value, vimbasrc->properties.gain);
+        g_value_set_double(value, vimbaxsrc->properties.gain);
         break;
     case PROP_OFFSETX:
-        result = VmbFeatureIntGet(vimbasrc->camera.handle, "OffsetX", &vmbfeature_value_int64);
+        result = VmbFeatureIntGet(vimbaxsrc->camera.handle, "OffsetX", &vmbfeature_value_int64);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
+            GST_DEBUG_OBJECT(vimbaxsrc,
                              "Camera returned the following value for \"OffsetX\": %lld",
                              vmbfeature_value_int64);
-            vimbasrc->properties.offsetx = (int)vmbfeature_value_int64;
+            vimbaxsrc->properties.offsetx = (int)vmbfeature_value_int64;
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Could not read value for \"OffsetX\". Got return code %s",
                                ErrorCodeToMessage(result));
         }
-        g_value_set_int(value, vimbasrc->properties.offsetx);
+        g_value_set_int(value, vimbaxsrc->properties.offsetx);
         break;
     case PROP_OFFSETY:
-        result = VmbFeatureIntGet(vimbasrc->camera.handle, "OffsetY", &vmbfeature_value_int64);
+        result = VmbFeatureIntGet(vimbaxsrc->camera.handle, "OffsetY", &vmbfeature_value_int64);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
+            GST_DEBUG_OBJECT(vimbaxsrc,
                              "Camera returned the following value for \"OffsetY\": %lld",
                              vmbfeature_value_int64);
-            vimbasrc->properties.offsety = (int)vmbfeature_value_int64;
+            vimbaxsrc->properties.offsety = (int)vmbfeature_value_int64;
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Could not read value for \"OffsetY\". Got return code %s",
                                ErrorCodeToMessage(result));
         }
-        g_value_set_int(value, vimbasrc->properties.offsety);
+        g_value_set_int(value, vimbaxsrc->properties.offsety);
         break;
     case PROP_WIDTH:
-        result = VmbFeatureIntGet(vimbasrc->camera.handle, "Width", &vmbfeature_value_int64);
+        result = VmbFeatureIntGet(vimbaxsrc->camera.handle, "Width", &vmbfeature_value_int64);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
+            GST_DEBUG_OBJECT(vimbaxsrc,
                              "Camera returned the following value for \"Width\": %lld",
                              vmbfeature_value_int64);
-            vimbasrc->properties.width = (int)vmbfeature_value_int64;
+            vimbaxsrc->properties.width = (int)vmbfeature_value_int64;
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Could not read value for \"Width\". Got return code %s",
                                ErrorCodeToMessage(result));
         }
-        g_value_set_int(value, vimbasrc->properties.width);
+        g_value_set_int(value, vimbaxsrc->properties.width);
         break;
     case PROP_HEIGHT:
-        result = VmbFeatureIntGet(vimbasrc->camera.handle, "Height", &vmbfeature_value_int64);
+        result = VmbFeatureIntGet(vimbaxsrc->camera.handle, "Height", &vmbfeature_value_int64);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
+            GST_DEBUG_OBJECT(vimbaxsrc,
                              "Camera returned the following value for \"Height\": %lld",
                              vmbfeature_value_int64);
-            vimbasrc->properties.height = (int)vmbfeature_value_int64;
+            vimbaxsrc->properties.height = (int)vmbfeature_value_int64;
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Could not read value for \"Height\". Got return code %s",
                                ErrorCodeToMessage(result));
         }
-        g_value_set_int(value, vimbasrc->properties.height);
+        g_value_set_int(value, vimbaxsrc->properties.height);
         break;
     case PROP_TRIGGERSELECTOR:
-        result = VmbFeatureEnumGet(vimbasrc->camera.handle, "TriggerSelector", &vmbfeature_value_char);
+        result = VmbFeatureEnumGet(vimbaxsrc->camera.handle, "TriggerSelector", &vmbfeature_value_char);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
+            GST_DEBUG_OBJECT(vimbaxsrc,
                              "Camera returned the following value for \"TriggerSelector\": %s",
                              vmbfeature_value_char);
-            vimbasrc->properties.exposureauto = g_enum_get_value_by_nick(
+            vimbaxsrc->properties.exposureauto = g_enum_get_value_by_nick(
                                                     g_type_class_ref(GST_ENUM_TRIGGERSELECTOR_VALUES),
                                                     vmbfeature_value_char)
                                                     ->value;
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Failed to read value of \"TriggerSelector\" from camera. Return code was: %s",
                                ErrorCodeToMessage(result));
         }
-        g_value_set_enum(value, vimbasrc->properties.triggerselector);
+        g_value_set_enum(value, vimbaxsrc->properties.triggerselector);
         break;
     case PROP_TRIGGERMODE:
-        result = VmbFeatureEnumGet(vimbasrc->camera.handle, "TriggerMode", &vmbfeature_value_char);
+        result = VmbFeatureEnumGet(vimbaxsrc->camera.handle, "TriggerMode", &vmbfeature_value_char);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
+            GST_DEBUG_OBJECT(vimbaxsrc,
                              "Camera returned the following value for \"TriggerMode\": %s",
                              vmbfeature_value_char);
-            vimbasrc->properties.exposureauto = g_enum_get_value_by_nick(
+            vimbaxsrc->properties.exposureauto = g_enum_get_value_by_nick(
                                                     g_type_class_ref(GST_ENUM_TRIGGERMODE_VALUES),
                                                     vmbfeature_value_char)
                                                     ->value;
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Failed to read value of \"TriggerMode\" from camera. Return code was: %s",
                                ErrorCodeToMessage(result));
         }
-        g_value_set_enum(value, vimbasrc->properties.triggermode);
+        g_value_set_enum(value, vimbaxsrc->properties.triggermode);
         break;
     case PROP_TRIGGERSOURCE:
-        result = VmbFeatureEnumGet(vimbasrc->camera.handle, "TriggerSource", &vmbfeature_value_char);
+        result = VmbFeatureEnumGet(vimbaxsrc->camera.handle, "TriggerSource", &vmbfeature_value_char);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
+            GST_DEBUG_OBJECT(vimbaxsrc,
                              "Camera returned the following value for \"TriggerSource\": %s",
                              vmbfeature_value_char);
-            vimbasrc->properties.exposureauto = g_enum_get_value_by_nick(
+            vimbaxsrc->properties.exposureauto = g_enum_get_value_by_nick(
                                                     g_type_class_ref(GST_ENUM_TRIGGERSOURCE_VALUES),
                                                     vmbfeature_value_char)
                                                     ->value;
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Failed to read value of \"TriggerSource\" from camera. Return code was: %s",
                                ErrorCodeToMessage(result));
         }
-        g_value_set_enum(value, vimbasrc->properties.triggersource);
+        g_value_set_enum(value, vimbaxsrc->properties.triggersource);
         break;
     case PROP_TRIGGERACTIVATION:
-        result = VmbFeatureEnumGet(vimbasrc->camera.handle, "TriggerActivation", &vmbfeature_value_char);
+        result = VmbFeatureEnumGet(vimbaxsrc->camera.handle, "TriggerActivation", &vmbfeature_value_char);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc,
+            GST_DEBUG_OBJECT(vimbaxsrc,
                              "Camera returned the following value for \"TriggerActivation\": %s",
                              vmbfeature_value_char);
-            vimbasrc->properties.exposureauto = g_enum_get_value_by_nick(
+            vimbaxsrc->properties.exposureauto = g_enum_get_value_by_nick(
                                                     g_type_class_ref(GST_ENUM_TRIGGERACTIVATION_VALUES),
                                                     vmbfeature_value_char)
                                                     ->value;
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Failed to read value of \"TriggerActivation\" from camera. Return code was: %s",
                                ErrorCodeToMessage(result));
         }
-        g_value_set_enum(value, vimbasrc->properties.triggeractivation);
+        g_value_set_enum(value, vimbaxsrc->properties.triggeractivation);
         break;
     case PROP_INCOMPLETE_FRAME_HANDLING:
-        g_value_set_enum(value, vimbasrc->properties.incomplete_frame_handling);
+        g_value_set_enum(value, vimbaxsrc->properties.incomplete_frame_handling);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -942,62 +942,62 @@ void gst_vimbasrc_get_property(GObject *object, guint property_id, GValue *value
     }
 }
 
-void gst_vimbasrc_dispose(GObject *object)
+void gst_vimbaxsrc_dispose(GObject *object)
 {
-    GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
+    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(object);
 
-    GST_TRACE_OBJECT(vimbasrc, "dispose");
+    GST_TRACE_OBJECT(vimbaxsrc, "dispose");
 
     /* clean up as possible.  may be called multiple times */
 
-    G_OBJECT_CLASS(gst_vimbasrc_parent_class)->dispose(object);
+    G_OBJECT_CLASS(gst_vimbaxsrc_parent_class)->dispose(object);
 }
 
-void gst_vimbasrc_finalize(GObject *object)
+void gst_vimbaxsrc_finalize(GObject *object)
 {
-    GstVimbaSrc *vimbasrc = GST_vimbasrc(object);
+    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(object);
 
-    GST_TRACE_OBJECT(vimbasrc, "finalize");
+    GST_TRACE_OBJECT(vimbaxsrc, "finalize");
 
-    if (vimbasrc->camera.is_connected)
+    if (vimbaxsrc->camera.is_connected)
     {
-        VmbError_t result = VmbCameraClose(vimbasrc->camera.handle);
+        VmbError_t result = VmbCameraClose(vimbaxsrc->camera.handle);
         if (result == VmbErrorSuccess)
         {
-            GST_INFO_OBJECT(vimbasrc, "Closed camera %s", vimbasrc->camera.id);
+            GST_INFO_OBJECT(vimbaxsrc, "Closed camera %s", vimbaxsrc->camera.id);
         }
         else
         {
-            GST_ERROR_OBJECT(vimbasrc,
+            GST_ERROR_OBJECT(vimbaxsrc,
                              "Closing camera %s failed. Got error code: %s",
-                             vimbasrc->camera.id,
+                             vimbaxsrc->camera.id,
                              ErrorCodeToMessage(result));
         }
-        vimbasrc->camera.is_connected = false;
+        vimbaxsrc->camera.is_connected = false;
     }
 
     G_LOCK(vmb_open_count);
     if (0 == --vmb_open_count)
     {
         VmbShutdown();
-        GST_INFO_OBJECT(vimbasrc, "Vimba API was shut down");
+        GST_INFO_OBJECT(vimbaxsrc, "Vimba API was shut down");
     }
     else
     {
-        GST_DEBUG_OBJECT(vimbasrc, "VmbShutdown not called. Current open count: %u", vmb_open_count);
+        GST_DEBUG_OBJECT(vimbaxsrc, "VmbShutdown not called. Current open count: %u", vmb_open_count);
     }
     G_UNLOCK(vmb_open_count);
 
-    G_OBJECT_CLASS(gst_vimbasrc_parent_class)->finalize(object);
+    G_OBJECT_CLASS(gst_vimbaxsrc_parent_class)->finalize(object);
 }
 
 /* get caps from subclass */
-static GstCaps *gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
+static GstCaps *gst_vimbaxsrc_get_caps(GstBaseSrc *src, GstCaps *filter)
 {
     UNUSED(filter); // enable compilation while treating warning of unused vairable as error
-    GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
+    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(src);
 
-    GST_TRACE_OBJECT(vimbasrc, "get_caps");
+    GST_TRACE_OBJECT(vimbaxsrc, "get_caps");
 
     GstCaps *caps;
     caps = gst_pad_get_pad_template_caps(GST_BASE_SRC_PAD(src));
@@ -1005,12 +1005,12 @@ static GstCaps *gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
 
     // Query the capabilities from the camera and return sensible values. If no camera is connected the template caps
     // are returned
-    if (vimbasrc->camera.is_connected)
+    if (vimbaxsrc->camera.is_connected)
     {
         VmbInt64_t vmb_width, vmb_height;
 
-        VmbFeatureIntGet(vimbasrc->camera.handle, "Width", &vmb_width);
-        VmbFeatureIntGet(vimbasrc->camera.handle, "Height", &vmb_height);
+        VmbFeatureIntGet(vimbaxsrc->camera.handle, "Width", &vmb_width);
+        VmbFeatureIntGet(vimbaxsrc->camera.handle, "Height", &vmb_height);
 
         GValue width = G_VALUE_INIT;
         GValue height = G_VALUE_INIT;
@@ -1052,11 +1052,11 @@ static GstCaps *gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
         g_value_init(&pixel_format, G_TYPE_STRING);
 
         // Add all supported GStreamer format string to the reported caps
-        for (unsigned int i = 0; i < vimbasrc->camera.supported_formats_count; i++)
+        for (unsigned int i = 0; i < vimbaxsrc->camera.supported_formats_count; i++)
         {
-            g_value_set_static_string(&pixel_format, vimbasrc->camera.supported_formats[i]->gst_format_name);
+            g_value_set_static_string(&pixel_format, vimbaxsrc->camera.supported_formats[i]->gst_format_name);
             // TODO: Should this perhaps be done via a flag in vimba_gst_format_matches?
-            if (starts_with(vimbasrc->camera.supported_formats[i]->vimba_format_name, "Bayer"))
+            if (starts_with(vimbaxsrc->camera.supported_formats[i]->vimba_format_name, "Bayer"))
             {
                 gst_value_list_append_value(&pixel_format_bayer_list, &pixel_format);
             }
@@ -1069,42 +1069,42 @@ static GstCaps *gst_vimbasrc_get_caps(GstBaseSrc *src, GstCaps *filter)
         gst_structure_set_value(bayer_caps, "format", &pixel_format_bayer_list);
     }
 
-    GST_DEBUG_OBJECT(vimbasrc, "returning caps: %s", gst_caps_to_string(caps));
+    GST_DEBUG_OBJECT(vimbaxsrc, "returning caps: %s", gst_caps_to_string(caps));
 
     return caps;
 }
 
 /* notify the subclass of new caps */
-static gboolean gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
+static gboolean gst_vimbaxsrc_set_caps(GstBaseSrc *src, GstCaps *caps)
 {
-    GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
+    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(src);
 
-    GST_TRACE_OBJECT(vimbasrc, "set_caps");
+    GST_TRACE_OBJECT(vimbaxsrc, "set_caps");
 
-    GST_DEBUG_OBJECT(vimbasrc, "caps requested to be set: %s", gst_caps_to_string(caps));
+    GST_DEBUG_OBJECT(vimbaxsrc, "caps requested to be set: %s", gst_caps_to_string(caps));
 
     // TODO: save to assume that "format" is always exactly one format and not a list? gst_caps_is_fixed might otherwise
     // be a good check and gst_caps_normalize could help make sure of it
     GstStructure *structure;
     structure = gst_caps_get_structure(caps, 0);
     const char *gst_format = gst_structure_get_string(structure, "format");
-    GST_DEBUG_OBJECT(vimbasrc,
+    GST_DEBUG_OBJECT(vimbaxsrc,
                      "Looking for matching vimba pixel format to GSreamer format \"%s\"",
                      gst_format);
 
     const char *vimba_format = NULL;
-    for (unsigned int i = 0; i < vimbasrc->camera.supported_formats_count; i++)
+    for (unsigned int i = 0; i < vimbaxsrc->camera.supported_formats_count; i++)
     {
-        if (strcmp(gst_format, vimbasrc->camera.supported_formats[i]->gst_format_name) == 0)
+        if (strcmp(gst_format, vimbaxsrc->camera.supported_formats[i]->gst_format_name) == 0)
         {
-            vimba_format = vimbasrc->camera.supported_formats[i]->vimba_format_name;
-            GST_DEBUG_OBJECT(vimbasrc, "Found matching vimba pixel format \"%s\"", vimba_format);
+            vimba_format = vimbaxsrc->camera.supported_formats[i]->vimba_format_name;
+            GST_DEBUG_OBJECT(vimbaxsrc, "Found matching vimba pixel format \"%s\"", vimba_format);
             break;
         }
     }
     if (vimba_format == NULL)
     {
-        GST_ERROR_OBJECT(vimbasrc,
+        GST_ERROR_OBJECT(vimbaxsrc,
                          "Could not find a matching vimba pixel format for GStreamer format \"%s\"",
                          gst_format);
         return FALSE;
@@ -1113,14 +1113,14 @@ static gboolean gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
     // Apply the requested caps to appropriate camera settings
     VmbError_t result;
     // Changing the pixel format can not be done while images are acquired
-    result = stop_image_acquisition(vimbasrc);
+    result = stop_image_acquisition(vimbaxsrc);
 
-    result = VmbFeatureEnumSet(vimbasrc->camera.handle,
+    result = VmbFeatureEnumSet(vimbaxsrc->camera.handle,
                                "PixelFormat",
                                vimba_format);
     if (result != VmbErrorSuccess)
     {
-        GST_ERROR_OBJECT(vimbasrc,
+        GST_ERROR_OBJECT(vimbaxsrc,
                          "Could not set \"PixelFormat\" to \"%s\". Got return code \"%s\"",
                          vimba_format,
                          ErrorCodeToMessage(result));
@@ -1134,39 +1134,39 @@ static gboolean gst_vimbasrc_set_caps(GstBaseSrc *src, GstCaps *caps)
     // previously allocated buffers are not large enough. We simply check the size of the first buffer because they were
     // all allocated with the same size
     VmbInt64_t new_payload_size;
-    result = VmbFeatureIntGet(vimbasrc->camera.handle, "PayloadSize", &new_payload_size);
-    if (vimbasrc->frame_buffers[0].bufferSize < new_payload_size || result != VmbErrorSuccess)
+    result = VmbFeatureIntGet(vimbaxsrc->camera.handle, "PayloadSize", &new_payload_size);
+    if (vimbaxsrc->frame_buffers[0].bufferSize < new_payload_size || result != VmbErrorSuccess)
     {
         // Also reallocate buffers if PayloadSize could not be read because it might have increased
-        GST_DEBUG_OBJECT(vimbasrc,
+        GST_DEBUG_OBJECT(vimbaxsrc,
                          "PayloadSize increased. Reallocating frame buffers to ensure enough space");
-        revoke_and_free_buffers(vimbasrc);
-        result = alloc_and_announce_buffers(vimbasrc);
+        revoke_and_free_buffers(vimbaxsrc);
+        result = alloc_and_announce_buffers(vimbaxsrc);
     }
     if (result == VmbErrorSuccess)
     {
-        result = start_image_acquisition(vimbasrc);
+        result = start_image_acquisition(vimbaxsrc);
     }
 
     return result == VmbErrorSuccess ? TRUE : FALSE;
 }
 
 /* start and stop processing, ideal for opening/closing the resource */
-static gboolean gst_vimbasrc_start(GstBaseSrc *src)
+static gboolean gst_vimbaxsrc_start(GstBaseSrc *src)
 {
-    GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
+    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(src);
 
-    GST_TRACE_OBJECT(vimbasrc, "start");
+    GST_TRACE_OBJECT(vimbaxsrc, "start");
 
-    // Prepare queue for filled frames from which vimbasrc_create can take them
-    vimbasrc->filled_frame_queue = g_async_queue_new();
+    // Prepare queue for filled frames from which vimbaxsrc_create can take them
+    vimbaxsrc->filled_frame_queue = g_async_queue_new();
 
     VmbError_t result;
 
     // TODO: Error handling
-    if (!vimbasrc->camera.is_connected)
+    if (!vimbaxsrc->camera.is_connected)
     {
-        result = open_camera_connection(vimbasrc);
+        result = open_camera_connection(vimbaxsrc);
         if (result != VmbErrorSuccess)
         {
             // Can't connect to camera. Abort execution by returning FALSE. This stops the pipeline!
@@ -1175,36 +1175,36 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
     }
 
     // Load settings from given file if a path was given (settings_file_path is not empty)
-    if (strcmp(vimbasrc->properties.settings_file_path, "") != 0)
+    if (strcmp(vimbaxsrc->properties.settings_file_path, "") != 0)
     {
-        GST_WARNING_OBJECT(vimbasrc,
+        GST_WARNING_OBJECT(vimbaxsrc,
                            "\"%s\" was given as settingsfile. Other feature settings passed as element properties will be ignored!",
-                           vimbasrc->properties.settings_file_path);
+                           vimbaxsrc->properties.settings_file_path);
         // FIXME: Move to new settings save/load implementation
-        // result = VmbCameraSettingsLoad(vimbasrc->camera.handle,
-        //                                vimbasrc->properties.settings_file_path,
+        // result = VmbCameraSettingsLoad(vimbaxsrc->camera.handle,
+        //                                vimbaxsrc->properties.settings_file_path,
         //                                NULL,
         //                                0);
         result = VmbErrorSuccess;
         if (result != VmbErrorSuccess)
         {
-            GST_ERROR_OBJECT(vimbasrc,
+            GST_ERROR_OBJECT(vimbaxsrc,
                              "Could not load settings from file \"%s\". Got error code %s",
-                             vimbasrc->properties.settings_file_path,
+                             vimbaxsrc->properties.settings_file_path,
                              ErrorCodeToMessage(result));
         }
     }
     else
     {
         // If no settings file is given, apply the passed properties as feature settings instead
-        GST_DEBUG_OBJECT(vimbasrc, "No settings file given. Applying features from element properties instead");
-        result = apply_feature_settings(vimbasrc);
+        GST_DEBUG_OBJECT(vimbaxsrc, "No settings file given. Applying features from element properties instead");
+        result = apply_feature_settings(vimbaxsrc);
     }
 
-    result = alloc_and_announce_buffers(vimbasrc);
+    result = alloc_and_announce_buffers(vimbaxsrc);
     if (result == VmbErrorSuccess)
     {
-        result = start_image_acquisition(vimbasrc);
+        result = start_image_acquisition(vimbaxsrc);
     }
 
     // Is this necessary?
@@ -1214,7 +1214,7 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
     }
     else
     {
-        GST_ERROR_OBJECT(vimbasrc, "Could not start acquisition. Experienced error: %s", ErrorCodeToMessage(result));
+        GST_ERROR_OBJECT(vimbaxsrc, "Could not start acquisition. Experienced error: %s", ErrorCodeToMessage(result));
         gst_base_src_start_complete(src, GST_FLOW_ERROR);
     }
 
@@ -1222,28 +1222,28 @@ static gboolean gst_vimbasrc_start(GstBaseSrc *src)
     return result == VmbErrorSuccess ? TRUE : FALSE;
 }
 
-static gboolean gst_vimbasrc_stop(GstBaseSrc *src)
+static gboolean gst_vimbaxsrc_stop(GstBaseSrc *src)
 {
-    GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
+    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(src);
 
-    GST_TRACE_OBJECT(vimbasrc, "stop");
+    GST_TRACE_OBJECT(vimbaxsrc, "stop");
 
-    stop_image_acquisition(vimbasrc);
+    stop_image_acquisition(vimbaxsrc);
 
-    revoke_and_free_buffers(vimbasrc);
+    revoke_and_free_buffers(vimbaxsrc);
 
     // Unref the filled frame queue so it is deleted properly
-    g_async_queue_unref(vimbasrc->filled_frame_queue);
+    g_async_queue_unref(vimbaxsrc->filled_frame_queue);
 
     return TRUE;
 }
 
 /* ask the subclass to create a buffer */
-static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
+static GstFlowReturn gst_vimbaxsrc_create(GstPushSrc *src, GstBuffer **buf)
 {
-    GstVimbaSrc *vimbasrc = GST_vimbasrc(src);
+    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(src);
 
-    GST_TRACE_OBJECT(vimbasrc, "create");
+    GST_TRACE_OBJECT(vimbaxsrc, "create");
 
     bool submit_frame = false;
     VmbFrame_t *frame;
@@ -1256,40 +1256,40 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
         do
         {
             // Try to get a filled frame for 10 microseconds
-            frame = g_async_queue_timeout_pop(vimbasrc->filled_frame_queue, 10);
+            frame = g_async_queue_timeout_pop(vimbaxsrc->filled_frame_queue, 10);
             // Get the current state of the element. Should return immediately since we are not doing ASYNC state changes
             // but wait at most for 100 nanoseconds
-            ret = gst_element_get_state(GST_ELEMENT(vimbasrc), &state, NULL, 100); // timeout is given in nanoseconds
+            ret = gst_element_get_state(GST_ELEMENT(vimbaxsrc), &state, NULL, 100); // timeout is given in nanoseconds
             UNUSED(ret);
             if (state != GST_STATE_PLAYING)
             {
                 // The src should not create any more data. Stop waiting for frame and do not fill buf
-                GST_INFO_OBJECT(vimbasrc, "Element state is no longer \"GST_STATE_PLAYING\". Aborting create call.");
+                GST_INFO_OBJECT(vimbaxsrc, "Element state is no longer \"GST_STATE_PLAYING\". Aborting create call.");
                 return GST_FLOW_FLUSHING;
             }
         } while (frame == NULL);
         // We got a frame. Check receive status and handle incomplete frames according to
-        // vimbasrc->properties.incomplete_frame_handling
+        // vimbaxsrc->properties.incomplete_frame_handling
         if (frame->receiveStatus == VmbFrameStatusIncomplete)
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Received frame with ID \"%llu\" was incomplete", frame->frameID);
-            if (vimbasrc->properties.incomplete_frame_handling == GST_VIMBASRC_INCOMPLETE_FRAME_HANDLING_SUBMIT)
+            if (vimbaxsrc->properties.incomplete_frame_handling == GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_SUBMIT)
             {
-                GST_DEBUG_OBJECT(vimbasrc,
+                GST_DEBUG_OBJECT(vimbaxsrc,
                                  "Submitting incomplete frame because \"incompleteframehandling\" requested it");
                 submit_frame = true;
             }
             else
             {
                 // frame should be dropped -> requeue vimba buffer here since image data will not be used
-                GST_DEBUG_OBJECT(vimbasrc, "Dropping incomplete frame and requeueing buffer to capture queue");
-                VmbCaptureFrameQueue(vimbasrc->camera.handle, frame, &vimba_frame_callback);
+                GST_DEBUG_OBJECT(vimbaxsrc, "Dropping incomplete frame and requeueing buffer to capture queue");
+                VmbCaptureFrameQueue(vimbaxsrc->camera.handle, frame, &vimba_frame_callback);
             }
         }
         else
         {
-            GST_TRACE_OBJECT(vimbasrc, "frame was complete");
+            GST_TRACE_OBJECT(vimbaxsrc, "frame was complete");
             submit_frame = true;
         }
     } while (!submit_frame);
@@ -1306,7 +1306,7 @@ static GstFlowReturn gst_vimbasrc_create(GstPushSrc *src, GstBuffer **buf)
         frame->bufferSize);
 
     // requeue frame after we copied the image data for Vimba to use again
-    VmbCaptureFrameQueue(vimbasrc->camera.handle, frame, &vimba_frame_callback);
+    VmbCaptureFrameQueue(vimbaxsrc->camera.handle, frame, &vimba_frame_callback);
 
     // Set filled GstBuffer as output to pass down the pipeline
     *buf = buffer;
@@ -1318,13 +1318,13 @@ static gboolean plugin_init(GstPlugin *plugin)
 {
 
     /* FIXME Remember to set the rank if it's an element that is meant to be autoplugged by decodebin. */
-    return gst_element_register(plugin, "vimbasrc", GST_RANK_NONE,
-                                GST_TYPE_vimbasrc);
+    return gst_element_register(plugin, "vimbaxsrc", GST_RANK_NONE,
+                                GST_TYPE_vimbaxsrc);
 }
 
 GST_PLUGIN_DEFINE(GST_VERSION_MAJOR,
                   GST_VERSION_MINOR,
-                  vimbasrc,
+                  vimbaxsrc,
                   DESCRIPTION,
                   plugin_init,
                   VERSION,
@@ -1333,32 +1333,32 @@ GST_PLUGIN_DEFINE(GST_VERSION_MAJOR,
                   HOMEPAGE_URL)
 
 /**
- * @brief Opens the connection to the camera given by the ID passed as vimbasrc property and stores the resulting handle
+ * @brief Opens the connection to the camera given by the ID passed as vimbaxsrc property and stores the resulting handle
  *
- * @param vimbasrc Provides access to the camera ID and holds the resulting handle
+ * @param vimbaxsrc Provides access to the camera ID and holds the resulting handle
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc)
+VmbError_t open_camera_connection(GstVimbaSrc *vimbaxsrc)
 {
-    VmbError_t result = VmbCameraOpen(vimbasrc->camera.id, VmbAccessModeFull, &vimbasrc->camera.handle);
+    VmbError_t result = VmbCameraOpen(vimbaxsrc->camera.id, VmbAccessModeFull, &vimbaxsrc->camera.handle);
     if (result == VmbErrorSuccess)
     {
         VmbCameraInfo_t camera_info;
-        VmbCameraInfoQuery(vimbasrc->camera.id, &camera_info, sizeof(camera_info));
+        VmbCameraInfoQuery(vimbaxsrc->camera.id, &camera_info, sizeof(camera_info));
         // FIXME: Decide how this should be formatted
-        // GST_INFO_OBJECT(vimbasrc,
+        // GST_INFO_OBJECT(vimbaxsrc,
         //                 "Successfully opened camera %s (model \"%s\" on interface \"%s\")",
-        //                 vimbasrc->camera.id,
+        //                 vimbaxsrc->camera.id,
         //                 camera_info.modelName,
         //                 camera_info.interfaceIdString);
 
         // Set the GeV packet size to the highest possible value if a GigE camera is used
-        if (VmbErrorSuccess == VmbFeatureCommandRun(vimbasrc->camera.handle, "GVSPAdjustPacketSize"))
+        if (VmbErrorSuccess == VmbFeatureCommandRun(vimbaxsrc->camera.handle, "GVSPAdjustPacketSize"))
         {
             VmbBool_t is_command_done = VmbBoolFalse;
             do
             {
-                if (VmbErrorSuccess != VmbFeatureCommandIsDone(vimbasrc->camera.handle,
+                if (VmbErrorSuccess != VmbFeatureCommandIsDone(vimbaxsrc->camera.handle,
                                                                "GVSPAdjustPacketSize",
                                                                &is_command_done))
                 {
@@ -1366,37 +1366,37 @@ VmbError_t open_camera_connection(GstVimbaSrc *vimbasrc)
                 }
             } while (VmbBoolFalse == is_command_done);
         }
-        vimbasrc->camera.is_connected = true;
-        map_supported_pixel_formats(vimbasrc);
+        vimbaxsrc->camera.is_connected = true;
+        map_supported_pixel_formats(vimbaxsrc);
     }
     else
     {
-        GST_ERROR_OBJECT(vimbasrc,
+        GST_ERROR_OBJECT(vimbaxsrc,
                          "Could not open camera %s. Got error code: %s",
-                         vimbasrc->camera.id,
+                         vimbaxsrc->camera.id,
                          ErrorCodeToMessage(result));
-        vimbasrc->camera.is_connected = false;
+        vimbaxsrc->camera.is_connected = false;
         // TODO: List available cameras in this case?
         // TODO: Can we signal an error to the pipeline to stop immediately?
     }
-    vimbasrc->camera.is_acquiring = false;
+    vimbaxsrc->camera.is_acquiring = false;
     return result;
 }
 
 /**
- * @brief Applies the values defiend in the vimbasrc properties to their corresponding Vimba camera features
+ * @brief Applies the values defiend in the vimbaxsrc properties to their corresponding Vimba camera features
  *
- * @param vimbasrc Provides access to the camera handle used for the Vimba calls and holds the desired values for the
+ * @param vimbaxsrc Provides access to the camera handle used for the Vimba calls and holds the desired values for the
  * modified features
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
+VmbError_t apply_feature_settings(GstVimbaSrc *vimbaxsrc)
 {
-    bool was_acquiring = vimbasrc->camera.is_acquiring;
-    if (vimbasrc->camera.is_acquiring)
+    bool was_acquiring = vimbaxsrc->camera.is_acquiring;
+    if (vimbaxsrc->camera.is_acquiring)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Camera was acquiring. Stopping to change feature settings");
-        stop_image_acquisition(vimbasrc);
+        GST_DEBUG_OBJECT(vimbaxsrc, "Camera was acquiring. Stopping to change feature settings");
+        stop_image_acquisition(vimbaxsrc);
     }
     GEnumValue *enum_entry;
 
@@ -1407,50 +1407,50 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
     // ("ExposureTimeAbs", setExposureTimeAbs, getExposureTimeAbs)]. On startup, the feature list of the connected
     // camera obtained from VmbFeaturesList() is used to determine which set/get function to use.
 
-    GST_DEBUG_OBJECT(vimbasrc, "Setting \"ExposureTime\" to %f", vimbasrc->properties.exposuretime);
-    VmbError_t result = VmbFeatureFloatSet(vimbasrc->camera.handle, "ExposureTime", vimbasrc->properties.exposuretime);
+    GST_DEBUG_OBJECT(vimbaxsrc, "Setting \"ExposureTime\" to %f", vimbaxsrc->properties.exposuretime);
+    VmbError_t result = VmbFeatureFloatSet(vimbaxsrc->camera.handle, "ExposureTime", vimbaxsrc->properties.exposuretime);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        GST_DEBUG_OBJECT(vimbaxsrc, "Setting was changed successfully");
     }
     else if (result == VmbErrorNotFound)
     {
-        GST_WARNING_OBJECT(vimbasrc,
+        GST_WARNING_OBJECT(vimbaxsrc,
                            "Failed to set \"ExposureTime\" to %f. Return code was: %s Attempting \"ExposureTimeAbs\"",
-                           vimbasrc->properties.exposuretime,
+                           vimbaxsrc->properties.exposuretime,
                            ErrorCodeToMessage(result));
-        result = VmbFeatureFloatSet(vimbasrc->camera.handle, "ExposureTimeAbs", vimbasrc->properties.exposuretime);
+        result = VmbFeatureFloatSet(vimbaxsrc->camera.handle, "ExposureTimeAbs", vimbaxsrc->properties.exposuretime);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+            GST_DEBUG_OBJECT(vimbaxsrc, "Setting was changed successfully");
         }
         else
         {
-            GST_WARNING_OBJECT(vimbasrc,
+            GST_WARNING_OBJECT(vimbaxsrc,
                                "Failed to set \"ExposureTimeAbs\" to %f. Return code was: %s",
-                               vimbasrc->properties.exposuretime,
+                               vimbaxsrc->properties.exposuretime,
                                ErrorCodeToMessage(result));
         }
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
+        GST_WARNING_OBJECT(vimbaxsrc,
                            "Failed to set \"ExposureTime\" to %f. Return code was: %s",
-                           vimbasrc->properties.exposuretime,
+                           vimbaxsrc->properties.exposuretime,
                            ErrorCodeToMessage(result));
     }
 
     // Exposure Auto
-    enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), vimbasrc->properties.exposureauto);
-    GST_DEBUG_OBJECT(vimbasrc, "Setting \"ExposureAuto\" to %s", enum_entry->value_nick);
-    result = VmbFeatureEnumSet(vimbasrc->camera.handle, "ExposureAuto", enum_entry->value_nick);
+    enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), vimbaxsrc->properties.exposureauto);
+    GST_DEBUG_OBJECT(vimbaxsrc, "Setting \"ExposureAuto\" to %s", enum_entry->value_nick);
+    result = VmbFeatureEnumSet(vimbaxsrc->camera.handle, "ExposureAuto", enum_entry->value_nick);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        GST_DEBUG_OBJECT(vimbaxsrc, "Setting was changed successfully");
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
+        GST_WARNING_OBJECT(vimbaxsrc,
                            "Failed to set \"ExposureAuto\" to %s. Return code was: %s",
                            enum_entry->value_nick,
                            ErrorCodeToMessage(result));
@@ -1458,44 +1458,44 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
 
     // Auto whitebalance
     enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_BALANCEWHITEAUTO_MODES),
-                                  vimbasrc->properties.balancewhiteauto);
-    GST_DEBUG_OBJECT(vimbasrc, "Setting \"BalanceWhiteAuto\" to %s", enum_entry->value_nick);
-    result = VmbFeatureEnumSet(vimbasrc->camera.handle, "BalanceWhiteAuto", enum_entry->value_nick);
+                                  vimbaxsrc->properties.balancewhiteauto);
+    GST_DEBUG_OBJECT(vimbaxsrc, "Setting \"BalanceWhiteAuto\" to %s", enum_entry->value_nick);
+    result = VmbFeatureEnumSet(vimbaxsrc->camera.handle, "BalanceWhiteAuto", enum_entry->value_nick);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        GST_DEBUG_OBJECT(vimbaxsrc, "Setting was changed successfully");
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
+        GST_WARNING_OBJECT(vimbaxsrc,
                            "Failed to set \"BalanceWhiteAuto\" to %s. Return code was: %s",
                            enum_entry->value_nick,
                            ErrorCodeToMessage(result));
     }
 
     // gain
-    GST_DEBUG_OBJECT(vimbasrc, "Setting \"Gain\" to %f", vimbasrc->properties.gain);
-    result = VmbFeatureFloatSet(vimbasrc->camera.handle, "Gain", vimbasrc->properties.gain);
+    GST_DEBUG_OBJECT(vimbaxsrc, "Setting \"Gain\" to %f", vimbaxsrc->properties.gain);
+    result = VmbFeatureFloatSet(vimbaxsrc->camera.handle, "Gain", vimbaxsrc->properties.gain);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        GST_DEBUG_OBJECT(vimbaxsrc, "Setting was changed successfully");
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
+        GST_WARNING_OBJECT(vimbaxsrc,
                            "Failed to set \"Gain\" to %f. Return code was: %s",
-                           vimbasrc->properties.gain,
+                           vimbaxsrc->properties.gain,
                            ErrorCodeToMessage(result));
     }
 
-    result = set_roi(vimbasrc);
+    result = set_roi(vimbaxsrc);
 
-    result = apply_trigger_settings(vimbasrc);
+    result = apply_trigger_settings(vimbaxsrc);
 
     if (was_acquiring)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Camera was acquiring before changing feature settings. Restarting.");
-        result = start_image_acquisition(vimbasrc);
+        GST_DEBUG_OBJECT(vimbaxsrc, "Camera was acquiring before changing feature settings. Restarting.");
+        result = start_image_acquisition(vimbaxsrc);
     }
 
     return result;
@@ -1505,124 +1505,124 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbasrc)
  * @brief Helper function to set Width, Height, OffsetX and OffsetY feature in correct order to define the region of
  * interest (ROI) on the sensor.
  *
- * The values for setting the ROI are defined as GStreamer properties of the vimbasrc element. If INT_MAX are used for
+ * The values for setting the ROI are defined as GStreamer properties of the vimbaxsrc element. If INT_MAX are used for
  * the width/height property (the default value) the full corresponding sensor size for that feature is used.
  *
- * @param vimbasrc Provides access to the camera handle used for the Vimba calls and holds the desired values for the
+ * @param vimbaxsrc Provides access to the camera handle used for the Vimba calls and holds the desired values for the
  * modified features
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t set_roi(GstVimbaSrc *vimbasrc)
+VmbError_t set_roi(GstVimbaSrc *vimbaxsrc)
 {
     // TODO: Improve error handling (Perhaps more explicit allowed values are enough?) Early exit on errors?
 
     // Reset OffsetX and OffsetY to 0 so that full sensor width is usable for width/height
     VmbError_t result;
-    GST_DEBUG_OBJECT(vimbasrc, "Temporarily resetting \"OffsetX\" and \"OffsetY\" to 0");
-    result = VmbFeatureIntSet(vimbasrc->camera.handle, "OffsetX", 0);
+    GST_DEBUG_OBJECT(vimbaxsrc, "Temporarily resetting \"OffsetX\" and \"OffsetY\" to 0");
+    result = VmbFeatureIntSet(vimbaxsrc->camera.handle, "OffsetX", 0);
     if (result != VmbErrorSuccess)
     {
-        GST_WARNING_OBJECT(vimbasrc,
+        GST_WARNING_OBJECT(vimbaxsrc,
                            "Failed to set \"OffsetX\" to 0. Return code was: %s",
                            ErrorCodeToMessage(result));
     }
-    result = VmbFeatureIntSet(vimbasrc->camera.handle, "OffsetY", 0);
+    result = VmbFeatureIntSet(vimbaxsrc->camera.handle, "OffsetY", 0);
     if (result != VmbErrorSuccess)
     {
-        GST_WARNING_OBJECT(vimbasrc,
+        GST_WARNING_OBJECT(vimbaxsrc,
                            "Failed to set \"OffsetY\" to 0. Return code was: %s",
                            ErrorCodeToMessage(result));
     }
 
     VmbInt64_t vmb_width;
-    result = VmbFeatureIntRangeQuery(vimbasrc->camera.handle, "Width", NULL, &vmb_width);
+    result = VmbFeatureIntRangeQuery(vimbaxsrc->camera.handle, "Width", NULL, &vmb_width);
 
     // Set Width to full sensor if no explicit width was set
-    if (vimbasrc->properties.width == INT_MAX)
+    if (vimbaxsrc->properties.width == INT_MAX)
     {
-        GST_DEBUG_OBJECT(vimbasrc,
+        GST_DEBUG_OBJECT(vimbaxsrc,
                          "Setting \"Width\" to full width. Got sensor width \"%lld\" (Return Code %s)",
                          vmb_width,
                          ErrorCodeToMessage(result));
-        g_object_set(vimbasrc, "width", (int)vmb_width, NULL);
+        g_object_set(vimbaxsrc, "width", (int)vmb_width, NULL);
     }
-    GST_DEBUG_OBJECT(vimbasrc, "Setting \"Width\" to %d", vimbasrc->properties.width);
-    result = VmbFeatureIntSet(vimbasrc->camera.handle, "Width", vimbasrc->properties.width);
+    GST_DEBUG_OBJECT(vimbaxsrc, "Setting \"Width\" to %d", vimbaxsrc->properties.width);
+    result = VmbFeatureIntSet(vimbaxsrc->camera.handle, "Width", vimbaxsrc->properties.width);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        GST_DEBUG_OBJECT(vimbaxsrc, "Setting was changed successfully");
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
+        GST_WARNING_OBJECT(vimbaxsrc,
                            "Failed to set \"Width\" to value \"%d\". Return code was: %s",
-                           vimbasrc->properties.width,
+                           vimbaxsrc->properties.width,
                            ErrorCodeToMessage(result));
     }
 
     VmbInt64_t vmb_height;
-    result = VmbFeatureIntRangeQuery(vimbasrc->camera.handle, "Height", NULL, &vmb_height);
+    result = VmbFeatureIntRangeQuery(vimbaxsrc->camera.handle, "Height", NULL, &vmb_height);
     // Set Height to full sensor if no explicit height was set
-    if (vimbasrc->properties.height == INT_MAX)
+    if (vimbaxsrc->properties.height == INT_MAX)
     {
-        GST_DEBUG_OBJECT(vimbasrc,
+        GST_DEBUG_OBJECT(vimbaxsrc,
                          "Setting \"Height\" to full height. Got sensor height \"%lld\" (Return Code %s)",
                          vmb_height,
                          ErrorCodeToMessage(result));
-        g_object_set(vimbasrc, "height", (int)vmb_height, NULL);
+        g_object_set(vimbaxsrc, "height", (int)vmb_height, NULL);
     }
-    GST_DEBUG_OBJECT(vimbasrc, "Setting \"Height\" to %d", vimbasrc->properties.height);
-    result = VmbFeatureIntSet(vimbasrc->camera.handle, "Height", vimbasrc->properties.height);
+    GST_DEBUG_OBJECT(vimbaxsrc, "Setting \"Height\" to %d", vimbaxsrc->properties.height);
+    result = VmbFeatureIntSet(vimbaxsrc->camera.handle, "Height", vimbaxsrc->properties.height);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        GST_DEBUG_OBJECT(vimbaxsrc, "Setting was changed successfully");
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
+        GST_WARNING_OBJECT(vimbaxsrc,
                            "Failed to set \"Height\" to value \"%d\". Return code was: %s",
-                           vimbasrc->properties.height,
+                           vimbaxsrc->properties.height,
                            ErrorCodeToMessage(result));
     }
     // offsetx
-    if (vimbasrc->properties.offsetx == -1) {
-        VmbInt64_t vmb_offsetx = (vmb_width - vimbasrc->properties.width) >> 1;
-        GST_DEBUG_OBJECT(vimbasrc, "ROI centering along x-axis requested. Calculated offsetx=%lld",
+    if (vimbaxsrc->properties.offsetx == -1) {
+        VmbInt64_t vmb_offsetx = (vmb_width - vimbaxsrc->properties.width) >> 1;
+        GST_DEBUG_OBJECT(vimbaxsrc, "ROI centering along x-axis requested. Calculated offsetx=%lld",
                          vmb_offsetx);
-        g_object_set(vimbasrc, "offsetx", (int) vmb_offsetx, NULL);
+        g_object_set(vimbaxsrc, "offsetx", (int) vmb_offsetx, NULL);
     }
-    GST_DEBUG_OBJECT(vimbasrc, "Setting \"OffsetX\" to %d", vimbasrc->properties.offsetx);
-    result = VmbFeatureIntSet(vimbasrc->camera.handle, "OffsetX", vimbasrc->properties.offsetx);
+    GST_DEBUG_OBJECT(vimbaxsrc, "Setting \"OffsetX\" to %d", vimbaxsrc->properties.offsetx);
+    result = VmbFeatureIntSet(vimbaxsrc->camera.handle, "OffsetX", vimbaxsrc->properties.offsetx);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        GST_DEBUG_OBJECT(vimbaxsrc, "Setting was changed successfully");
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
+        GST_WARNING_OBJECT(vimbaxsrc,
                            "Failed to set \"OffsetX\" to value \"%d\". Return code was: %s",
-                           vimbasrc->properties.offsetx,
+                           vimbaxsrc->properties.offsetx,
                            ErrorCodeToMessage(result));
     }
 
     // offsety
-    if (vimbasrc->properties.offsety == -1) {
-        VmbInt64_t vmb_offsety = (vmb_height - vimbasrc->properties.height) >> 1;
-        GST_DEBUG_OBJECT(vimbasrc, "ROI centering along y-axis requested. Calculated offsety=%lld",
+    if (vimbaxsrc->properties.offsety == -1) {
+        VmbInt64_t vmb_offsety = (vmb_height - vimbaxsrc->properties.height) >> 1;
+        GST_DEBUG_OBJECT(vimbaxsrc, "ROI centering along y-axis requested. Calculated offsety=%lld",
                          vmb_offsety);
-        g_object_set(vimbasrc, "offsety", (int)vmb_offsety, NULL);
+        g_object_set(vimbaxsrc, "offsety", (int)vmb_offsety, NULL);
     }
-    GST_DEBUG_OBJECT(vimbasrc, "Setting \"OffsetY\" to %d", vimbasrc->properties.offsety);
-    result = VmbFeatureIntSet(vimbasrc->camera.handle, "OffsetY", vimbasrc->properties.offsety);
+    GST_DEBUG_OBJECT(vimbaxsrc, "Setting \"OffsetY\" to %d", vimbaxsrc->properties.offsety);
+    result = VmbFeatureIntSet(vimbaxsrc->camera.handle, "OffsetY", vimbaxsrc->properties.offsety);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+        GST_DEBUG_OBJECT(vimbaxsrc, "Setting was changed successfully");
     }
     else
     {
-        GST_WARNING_OBJECT(vimbasrc,
+        GST_WARNING_OBJECT(vimbaxsrc,
                            "Failed to set \"OffsetY\" to value \"%d\". Return code was: %s",
-                           vimbasrc->properties.offsety,
+                           vimbaxsrc->properties.offsety,
                            ErrorCodeToMessage(result));
     }
     return result;
@@ -1638,13 +1638,13 @@ VmbError_t set_roi(GstVimbaSrc *vimbasrc)
  * 3. TriggerSource
  * 4. TriggerMode
  *
- * @param vimbasrc Provides access to the camera handle used for the Vimba calls and holds the desired values for the
+ * @param vimbaxsrc Provides access to the camera handle used for the Vimba calls and holds the desired values for the
  * modified features
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t apply_trigger_settings(GstVimbaSrc *vimbasrc)
+VmbError_t apply_trigger_settings(GstVimbaSrc *vimbaxsrc)
 {
-    GST_DEBUG_OBJECT(vimbasrc, "Applying trigger settings");
+    GST_DEBUG_OBJECT(vimbaxsrc, "Applying trigger settings");
 
     VmbError_t result = VmbErrorSuccess;
     GEnumValue *enum_entry;
@@ -1654,111 +1654,111 @@ VmbError_t apply_trigger_settings(GstVimbaSrc *vimbasrc)
 
     // TriggerSelector
     enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_TRIGGERSELECTOR_VALUES),
-                                  vimbasrc->properties.triggerselector);
-    if (enum_entry->value == GST_VIMBASRC_TRIGGERSELECTOR_UNCHANGED)
+                                  vimbaxsrc->properties.triggerselector);
+    if (enum_entry->value == GST_VIMBAXSRC_TRIGGERSELECTOR_UNCHANGED)
     {
-        GST_DEBUG_OBJECT(vimbasrc,
+        GST_DEBUG_OBJECT(vimbaxsrc,
                          "\"TriggerSelector\" is set to %s. Not changing camera value", enum_entry->value_nick);
     }
     else
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting \"TriggerSelector\" to %s", enum_entry->value_nick);
-        result = VmbFeatureEnumSet(vimbasrc->camera.handle, "TriggerSelector", enum_entry->value_nick);
+        GST_DEBUG_OBJECT(vimbaxsrc, "Setting \"TriggerSelector\" to %s", enum_entry->value_nick);
+        result = VmbFeatureEnumSet(vimbaxsrc->camera.handle, "TriggerSelector", enum_entry->value_nick);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+            GST_DEBUG_OBJECT(vimbaxsrc, "Setting was changed successfully");
         }
         else
         {
-            GST_ERROR_OBJECT(vimbasrc,
+            GST_ERROR_OBJECT(vimbaxsrc,
                              "Failed to set \"TriggerSelector\" to %s. Return code was: %s",
                              enum_entry->value_nick,
                              ErrorCodeToMessage(result));
             if (result == VmbErrorInvalidValue)
             {
-                log_available_enum_entries(vimbasrc, "TriggerSelector");
+                log_available_enum_entries(vimbaxsrc, "TriggerSelector");
             }
         }
     }
 
     // TriggerActivation
     enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_TRIGGERACTIVATION_VALUES),
-                                  vimbasrc->properties.triggeractivation);
-    if (enum_entry->value == GST_VIMBASRC_TRIGGERACTIVATION_UNCHANGED)
+                                  vimbaxsrc->properties.triggeractivation);
+    if (enum_entry->value == GST_VIMBAXSRC_TRIGGERACTIVATION_UNCHANGED)
     {
-        GST_DEBUG_OBJECT(vimbasrc,
+        GST_DEBUG_OBJECT(vimbaxsrc,
                          "\"TriggerActivation\" is set to %s. Not changing camera value", enum_entry->value_nick);
     }
     else
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting \"TriggerActivation\" to %s", enum_entry->value_nick);
-        result = VmbFeatureEnumSet(vimbasrc->camera.handle, "TriggerActivation", enum_entry->value_nick);
+        GST_DEBUG_OBJECT(vimbaxsrc, "Setting \"TriggerActivation\" to %s", enum_entry->value_nick);
+        result = VmbFeatureEnumSet(vimbaxsrc->camera.handle, "TriggerActivation", enum_entry->value_nick);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+            GST_DEBUG_OBJECT(vimbaxsrc, "Setting was changed successfully");
         }
         else
         {
-            GST_ERROR_OBJECT(vimbasrc,
+            GST_ERROR_OBJECT(vimbaxsrc,
                              "Failed to set \"TriggerActivation\" to %s. Return code was: %s",
                              enum_entry->value_nick,
                              ErrorCodeToMessage(result));
             if (result == VmbErrorInvalidValue)
             {
-                log_available_enum_entries(vimbasrc, "TriggerActivation");
+                log_available_enum_entries(vimbaxsrc, "TriggerActivation");
             }
         }
     }
 
     // TriggerSource
     enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_TRIGGERSOURCE_VALUES),
-                                  vimbasrc->properties.triggersource);
-    if (enum_entry->value == GST_VIMBASRC_TRIGGERSOURCE_UNCHANGED)
+                                  vimbaxsrc->properties.triggersource);
+    if (enum_entry->value == GST_VIMBAXSRC_TRIGGERSOURCE_UNCHANGED)
     {
 
-        GST_DEBUG_OBJECT(vimbasrc,
+        GST_DEBUG_OBJECT(vimbaxsrc,
                          "\"TriggerSource\" is set to %s. Not changing camera value", enum_entry->value_nick);
     }
     else
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting \"TriggerSource\" to %s", enum_entry->value_nick);
-        result = VmbFeatureEnumSet(vimbasrc->camera.handle, "TriggerSource", enum_entry->value_nick);
+        GST_DEBUG_OBJECT(vimbaxsrc, "Setting \"TriggerSource\" to %s", enum_entry->value_nick);
+        result = VmbFeatureEnumSet(vimbaxsrc->camera.handle, "TriggerSource", enum_entry->value_nick);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+            GST_DEBUG_OBJECT(vimbaxsrc, "Setting was changed successfully");
         }
         else
         {
-            GST_ERROR_OBJECT(vimbasrc,
+            GST_ERROR_OBJECT(vimbaxsrc,
                              "Failed to set \"TriggerSource\" to %s. Return code was: %s",
                              enum_entry->value_nick,
                              ErrorCodeToMessage(result));
             if (result == VmbErrorInvalidValue)
             {
-                log_available_enum_entries(vimbasrc, "TriggerSource");
+                log_available_enum_entries(vimbaxsrc, "TriggerSource");
             }
         }
     }
 
     // TriggerMode
     enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_TRIGGERMODE_VALUES),
-                                  vimbasrc->properties.triggermode);
-    if (enum_entry->value == GST_VIMBASRC_TRIGGERMODE_UNCHANGED)
+                                  vimbaxsrc->properties.triggermode);
+    if (enum_entry->value == GST_VIMBAXSRC_TRIGGERMODE_UNCHANGED)
     {
-        GST_DEBUG_OBJECT(vimbasrc,
+        GST_DEBUG_OBJECT(vimbaxsrc,
                          "\"TriggerMode\" is set to %s. Not changing camera value", enum_entry->value_nick);
     }
     else
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Setting \"TriggerMode\" to %s", enum_entry->value_nick);
-        result = VmbFeatureEnumSet(vimbasrc->camera.handle, "TriggerMode", enum_entry->value_nick);
+        GST_DEBUG_OBJECT(vimbaxsrc, "Setting \"TriggerMode\" to %s", enum_entry->value_nick);
+        result = VmbFeatureEnumSet(vimbaxsrc->camera.handle, "TriggerMode", enum_entry->value_nick);
         if (result == VmbErrorSuccess)
         {
-            GST_DEBUG_OBJECT(vimbasrc, "Setting was changed successfully");
+            GST_DEBUG_OBJECT(vimbaxsrc, "Setting was changed successfully");
         }
         else
         {
-            GST_ERROR_OBJECT(vimbasrc,
+            GST_ERROR_OBJECT(vimbaxsrc,
                              "Failed to set \"TriggerMode\" to %s. Return code was: %s",
                              enum_entry->value_nick,
                              ErrorCodeToMessage(result));
@@ -1771,36 +1771,36 @@ VmbError_t apply_trigger_settings(GstVimbaSrc *vimbasrc)
 /**
  * @brief Gets the PayloadSize from the connected camera, allocates and announces frame buffers for capturing
  *
- * @param vimbasrc Provides the camera handle used for the Vimba calls and holds the frame buffers
+ * @param vimbaxsrc Provides the camera handle used for the Vimba calls and holds the frame buffers
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbasrc)
+VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbaxsrc)
 {
     VmbInt64_t payload_size;
-    VmbError_t result = VmbFeatureIntGet(vimbasrc->camera.handle, "PayloadSize", &payload_size);
+    VmbError_t result = VmbFeatureIntGet(vimbaxsrc->camera.handle, "PayloadSize", &payload_size);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Got \"PayloadSize\" of: %llu", payload_size);
-        GST_DEBUG_OBJECT(vimbasrc, "Allocating and announcing %d vimba frames", NUM_VIMBA_FRAMES);
+        GST_DEBUG_OBJECT(vimbaxsrc, "Got \"PayloadSize\" of: %llu", payload_size);
+        GST_DEBUG_OBJECT(vimbaxsrc, "Allocating and announcing %d vimba frames", NUM_VIMBA_FRAMES);
         for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
         {
-            vimbasrc->frame_buffers[i].buffer = (unsigned char *)malloc((VmbUint32_t)payload_size);
-            if (NULL == vimbasrc->frame_buffers[i].buffer)
+            vimbaxsrc->frame_buffers[i].buffer = (unsigned char *)malloc((VmbUint32_t)payload_size);
+            if (NULL == vimbaxsrc->frame_buffers[i].buffer)
             {
                 result = VmbErrorResources;
                 break;
             }
-            vimbasrc->frame_buffers[i].bufferSize = (VmbUint32_t)payload_size;
-            vimbasrc->frame_buffers[i].context[0] = vimbasrc->filled_frame_queue;
+            vimbaxsrc->frame_buffers[i].bufferSize = (VmbUint32_t)payload_size;
+            vimbaxsrc->frame_buffers[i].context[0] = vimbaxsrc->filled_frame_queue;
 
             // Announce Frame
-            result = VmbFrameAnnounce(vimbasrc->camera.handle,
-                                      &vimbasrc->frame_buffers[i],
+            result = VmbFrameAnnounce(vimbaxsrc->camera.handle,
+                                      &vimbaxsrc->frame_buffers[i],
                                       (VmbUint32_t)sizeof(VmbFrame_t));
             if (result != VmbErrorSuccess)
             {
-                free(vimbasrc->frame_buffers[i].buffer);
-                memset(&vimbasrc->frame_buffers[i], 0, sizeof(VmbFrame_t));
+                free(vimbaxsrc->frame_buffers[i].buffer);
+                memset(&vimbaxsrc->frame_buffers[i], 0, sizeof(VmbFrame_t));
                 break;
             }
         }
@@ -1811,17 +1811,17 @@ VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbasrc)
 /**
  * @brief Revokes frame buffers, frees their memory and overwrites old pointers with 0
  *
- * @param vimbasrc Provides the camera handle used for the Vimba calls and the frame buffers
+ * @param vimbaxsrc Provides the camera handle used for the Vimba calls and the frame buffers
  */
-void revoke_and_free_buffers(GstVimbaSrc *vimbasrc)
+void revoke_and_free_buffers(GstVimbaSrc *vimbaxsrc)
 {
     for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
     {
-        if (NULL != vimbasrc->frame_buffers[i].buffer)
+        if (NULL != vimbaxsrc->frame_buffers[i].buffer)
         {
-            VmbFrameRevoke(vimbasrc->camera.handle, &vimbasrc->frame_buffers[i]);
-            free(vimbasrc->frame_buffers[i].buffer);
-            memset(&vimbasrc->frame_buffers[i], 0, sizeof(VmbFrame_t));
+            VmbFrameRevoke(vimbaxsrc->camera.handle, &vimbaxsrc->frame_buffers[i]);
+            free(vimbaxsrc->frame_buffers[i].buffer);
+            memset(&vimbaxsrc->frame_buffers[i], 0, sizeof(VmbFrame_t));
         }
     }
 }
@@ -1830,21 +1830,21 @@ void revoke_and_free_buffers(GstVimbaSrc *vimbasrc)
  * @brief Starts the capture engine, queues Vimba frames and runs the AcquisitionStart command feature. Frame buffers
  * must be allocated before running this function.
  *
- * @param vimbasrc Provides the camera handle used for the Vimba calls and access to the queued frame buffers
+ * @param vimbaxsrc Provides the camera handle used for the Vimba calls and access to the queued frame buffers
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc)
+VmbError_t start_image_acquisition(GstVimbaSrc *vimbaxsrc)
 {
     // Start Capture Engine
-    GST_DEBUG_OBJECT(vimbasrc, "Starting the capture engine");
-    VmbError_t result = VmbCaptureStart(vimbasrc->camera.handle);
+    GST_DEBUG_OBJECT(vimbaxsrc, "Starting the capture engine");
+    VmbError_t result = VmbCaptureStart(vimbaxsrc->camera.handle);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbasrc, "Queueing the vimba frames");
+        GST_DEBUG_OBJECT(vimbaxsrc, "Queueing the vimba frames");
         for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
         {
             // Queue Frame
-            result = VmbCaptureFrameQueue(vimbasrc->camera.handle, &vimbasrc->frame_buffers[i], &vimba_frame_callback);
+            result = VmbCaptureFrameQueue(vimbaxsrc->camera.handle, &vimbaxsrc->frame_buffers[i], &vimba_frame_callback);
             if (VmbErrorSuccess != result)
             {
                 break;
@@ -1854,19 +1854,19 @@ VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc)
         if (VmbErrorSuccess == result)
         {
             // Start Acquisition
-            GST_DEBUG_OBJECT(vimbasrc, "Running \"AcquisitionStart\" feature");
-            result = VmbFeatureCommandRun(vimbasrc->camera.handle, "AcquisitionStart");
+            GST_DEBUG_OBJECT(vimbaxsrc, "Running \"AcquisitionStart\" feature");
+            result = VmbFeatureCommandRun(vimbaxsrc->camera.handle, "AcquisitionStart");
             VmbBool_t acquisition_start_done = VmbBoolFalse;
             do
             {
-                if (VmbErrorSuccess != VmbFeatureCommandIsDone(vimbasrc->camera.handle,
+                if (VmbErrorSuccess != VmbFeatureCommandIsDone(vimbaxsrc->camera.handle,
                                                                "AcquisitionStart",
                                                                &acquisition_start_done))
                 {
                     break;
                 }
             } while (VmbBoolFalse == acquisition_start_done);
-            vimbasrc->camera.is_acquiring = true;
+            vimbaxsrc->camera.is_acquiring = true;
         }
     }
     return result;
@@ -1875,33 +1875,33 @@ VmbError_t start_image_acquisition(GstVimbaSrc *vimbasrc)
 /**
  * @brief Runs the AcquisitionStop command feature, stops the capture engine and flushes the capture queue
  *
- * @param vimbasrc Provides the camera handle which is used for the Vimba function calls
+ * @param vimbaxsrc Provides the camera handle which is used for the Vimba function calls
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t stop_image_acquisition(GstVimbaSrc *vimbasrc)
+VmbError_t stop_image_acquisition(GstVimbaSrc *vimbaxsrc)
 {
     // Stop Acquisition
-    GST_DEBUG_OBJECT(vimbasrc, "Running \"AcquisitionStop\" feature");
-    VmbError_t result = VmbFeatureCommandRun(vimbasrc->camera.handle, "AcquisitionStop");
+    GST_DEBUG_OBJECT(vimbaxsrc, "Running \"AcquisitionStop\" feature");
+    VmbError_t result = VmbFeatureCommandRun(vimbaxsrc->camera.handle, "AcquisitionStop");
     VmbBool_t acquisition_stop_done = VmbBoolFalse;
     do
     {
-        if (VmbErrorSuccess != VmbFeatureCommandIsDone(vimbasrc->camera.handle,
+        if (VmbErrorSuccess != VmbFeatureCommandIsDone(vimbaxsrc->camera.handle,
                                                        "AcquisitionStop",
                                                        &acquisition_stop_done))
         {
             break;
         }
     } while (VmbBoolFalse == acquisition_stop_done);
-    vimbasrc->camera.is_acquiring = false;
+    vimbaxsrc->camera.is_acquiring = false;
 
     // Stop Capture Engine
-    GST_DEBUG_OBJECT(vimbasrc, "Stopping the capture engine");
-    result = VmbCaptureEnd(vimbasrc->camera.handle);
+    GST_DEBUG_OBJECT(vimbaxsrc, "Stopping the capture engine");
+    result = VmbCaptureEnd(vimbaxsrc->camera.handle);
 
     // Flush the capture queue
-    GST_DEBUG_OBJECT(vimbasrc, "Flushing the capture queue");
-    VmbCaptureQueueFlush(vimbasrc->camera.handle);
+    GST_DEBUG_OBJECT(vimbaxsrc, "Flushing the capture queue");
+    VmbCaptureQueueFlush(vimbaxsrc->camera.handle);
 
     return result;
 }
@@ -1911,23 +1911,23 @@ void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, const VmbHan
     UNUSED(camera_handle); // enable compilation while treating warning of unused vairable as error
     UNUSED(stream_handle);
     GST_TRACE("Got Frame");
-    g_async_queue_push(frame->context[0], frame); // context[0] holds vimbasrc->filled_frame_queue
+    g_async_queue_push(frame->context[0], frame); // context[0] holds vimbaxsrc->filled_frame_queue
 
-    // requeueing the frame is done after it was consumed in vimbasrc_create
+    // requeueing the frame is done after it was consumed in vimbaxsrc_create
 }
 
 /**
  * @brief Get the Vimba pixel formats the camera supports and create a mapping of them to compatible GStreamer formats
- * (stored in vimbasrc->camera.supported_formats)
+ * (stored in vimbaxsrc->camera.supported_formats)
  *
- * @param vimbasrc provides the camera handle and holds the generated mapping
+ * @param vimbaxsrc provides the camera handle and holds the generated mapping
  */
-void map_supported_pixel_formats(GstVimbaSrc *vimbasrc)
+void map_supported_pixel_formats(GstVimbaSrc *vimbaxsrc)
 {
     // get number of supported formats from the camera
     VmbUint32_t camera_format_count;
     VmbFeatureEnumRangeQuery(
-        vimbasrc->camera.handle,
+        vimbaxsrc->camera.handle,
         "PixelFormat",
         NULL,
         0,
@@ -1936,49 +1936,49 @@ void map_supported_pixel_formats(GstVimbaSrc *vimbasrc)
     // get the vimba format string supported by the camera
     const char **supported_formats = malloc(camera_format_count * sizeof(char *));
     VmbFeatureEnumRangeQuery(
-        vimbasrc->camera.handle,
+        vimbaxsrc->camera.handle,
         "PixelFormat",
         supported_formats,
         camera_format_count,
         NULL);
 
-    GST_DEBUG_OBJECT(vimbasrc, "Camera returned %d supported formats", camera_format_count);
+    GST_DEBUG_OBJECT(vimbaxsrc, "Camera returned %d supported formats", camera_format_count);
     VmbBool_t is_available;
     for (unsigned int i = 0; i < camera_format_count; i++)
     {
-        VmbFeatureEnumIsAvailable(vimbasrc->camera.handle, "PixelFormat", supported_formats[i], &is_available);
+        VmbFeatureEnumIsAvailable(vimbaxsrc->camera.handle, "PixelFormat", supported_formats[i], &is_available);
         if (is_available)
         {
             const VimbaGstFormatMatch_t *format_map = gst_format_from_vimba_format(supported_formats[i]);
             if (format_map != NULL)
             {
-                GST_DEBUG_OBJECT(vimbasrc,
+                GST_DEBUG_OBJECT(vimbaxsrc,
                                  "Vimba format \"%s\" corresponds to GStreamer format \"%s\"",
                                  supported_formats[i],
                                  format_map->gst_format_name);
-                vimbasrc->camera.supported_formats[vimbasrc->camera.supported_formats_count] = format_map;
-                vimbasrc->camera.supported_formats_count++;
+                vimbaxsrc->camera.supported_formats[vimbaxsrc->camera.supported_formats_count] = format_map;
+                vimbaxsrc->camera.supported_formats_count++;
             }
             else
             {
-                GST_DEBUG_OBJECT(vimbasrc,
+                GST_DEBUG_OBJECT(vimbaxsrc,
                                  "No corresponding GStreamer format found for vimba format \"%s\"",
                                  supported_formats[i]);
             }
         }
         else
         {
-            GST_DEBUG_OBJECT(vimbasrc, "Reported format \"%s\" is not available", supported_formats[i]);
+            GST_DEBUG_OBJECT(vimbaxsrc, "Reported format \"%s\" is not available", supported_formats[i]);
         }
     }
     free((void *)supported_formats);
 }
 
-void log_available_enum_entries(GstVimbaSrc *vimbasrc, const char *feat_name)
+void log_available_enum_entries(GstVimbaSrc *vimbaxsrc, const char *feat_name)
 {
     VmbUint32_t trigger_source_count;
     VmbFeatureEnumRangeQuery(
-        vimbasrc->camera.handle,
+        vimbaxsrc->camera.handle,
         feat_name,
         NULL,
         0,
@@ -1986,23 +1986,23 @@ void log_available_enum_entries(GstVimbaSrc *vimbasrc, const char *feat_name)
 
     const char **trigger_source_values = malloc(trigger_source_count * sizeof(char *));
     VmbFeatureEnumRangeQuery(
-        vimbasrc->camera.handle,
+        vimbaxsrc->camera.handle,
         feat_name,
         trigger_source_values,
         trigger_source_count,
         NULL);
 
     VmbBool_t is_available;
-    GST_ERROR_OBJECT(vimbasrc, "The following values for the \"%s\" feature are available", feat_name);
+    GST_ERROR_OBJECT(vimbaxsrc, "The following values for the \"%s\" feature are available", feat_name);
     for (unsigned int i = 0; i < trigger_source_count; i++)
     {
-        VmbFeatureEnumIsAvailable(vimbasrc->camera.handle,
+        VmbFeatureEnumIsAvailable(vimbaxsrc->camera.handle,
                                   feat_name,
                                   trigger_source_values[i],
                                   &is_available);
         if (is_available)
         {
-            GST_ERROR_OBJECT(vimbasrc, "    %s", trigger_source_values[i]);
+            GST_ERROR_OBJECT(vimbaxsrc, "    %s", trigger_source_values[i]);
         }
     }
 
