@@ -1345,12 +1345,11 @@ VmbError_t open_camera_connection(GstVimbaSrc *vimbaxsrc)
     {
         VmbCameraInfo_t camera_info;
         VmbCameraInfoQuery(vimbaxsrc->camera.id, &camera_info, sizeof(camera_info));
-        // FIXME: Decide how this should be formatted
-        // GST_INFO_OBJECT(vimbaxsrc,
-        //                 "Successfully opened camera %s (model \"%s\" on interface \"%s\")",
-        //                 vimbaxsrc->camera.id,
-        //                 camera_info.modelName,
-        //                 camera_info.interfaceIdString);
+        GST_INFO_OBJECT(vimbaxsrc,
+                        "Successfully opened camera %s (model \"%s\", serial \"%s\")",
+                        vimbaxsrc->camera.id,
+                        camera_info.modelName,
+                        camera_info.serialString); // TODO: This seems to show N/A for some cameras (observed with USB)
 
         // Set the GeV packet size to the highest possible value if a GigE camera is used
         if (VmbErrorSuccess == VmbFeatureCommandRun(vimbaxsrc->camera.handle, "GVSPAdjustPacketSize"))
