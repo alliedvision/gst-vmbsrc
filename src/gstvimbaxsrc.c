@@ -1352,12 +1352,12 @@ VmbError_t open_camera_connection(GstVimbaSrc *vimbaxsrc)
                         camera_info.serialString); // TODO: This seems to show N/A for some cameras (observed with USB)
 
         // Set the GeV packet size to the highest possible value if a GigE camera is used
-        if (VmbErrorSuccess == VmbFeatureCommandRun(vimbaxsrc->camera.handle, "GVSPAdjustPacketSize"))
+        if (VmbErrorSuccess == VmbFeatureCommandRun(camera_info.streamHandles[0], "GVSPAdjustPacketSize"))
         {
             VmbBool_t is_command_done = VmbBoolFalse;
             do
             {
-                if (VmbErrorSuccess != VmbFeatureCommandIsDone(vimbaxsrc->camera.handle,
+                if (VmbErrorSuccess != VmbFeatureCommandIsDone(camera_info.streamHandles[0],
                                                                "GVSPAdjustPacketSize",
                                                                &is_command_done))
                 {
