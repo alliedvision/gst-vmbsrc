@@ -44,6 +44,10 @@
 #include <gst/video/video-info.h>
 #include <glib.h>
 
+#ifdef _WIN32
+#include <stdlib.h>
+#endif
+
 #include <VmbC/VmbC.h>
 
 // Counter variable to keep track of calls to VmbStartup() and VmbShutdown()
@@ -1180,12 +1184,30 @@ static gboolean gst_vimbaxsrc_start(GstBaseSrc *src)
         GST_WARNING_OBJECT(vimbaxsrc,
                            "\"%s\" was given as settingsfile. Other feature settings passed as element properties will be ignored!",
                            vimbaxsrc->properties.settings_file_path);
-        // FIXME: Move to new settings save/load implementation
-        // result = VmbCameraSettingsLoad(vimbaxsrc->camera.handle,
-        //                                vimbaxsrc->properties.settings_file_path,
-        //                                NULL,
-        //                                0);
-        result = VmbErrorSuccess;
+        
+        VmbFilePathChar_t *buffer;
+        #ifdef _WIN32
+        size_t num_char = strlen(vimbaxsrc->properties.settings_file_path);
+        size_t num_wchar = 0;
+        mbstowcs_s(&num_wchar, NULL, 0, vimbaxsrc->properties.settings_file_path, num_char);
+        buffer = calloc(num_wchar, sizeof(VmbFilePathChar_t));
+        mbstowcs_s(NULL, buffer, num_wchar, vimbaxsrc->properties.settings_file_path, num_char);
+        #else
+        // TODO: THIS NEEDS TO BE TESTED ON A LINUX SYSTEM
+        buffer = vimbaxsrc->properties.settings_file_path;
+        #endif
+        VmbFeaturePersistSettings_t settings = {
+            // TODO: ARE THESE GOOD DEFAULT VALUES?
+            .persistType = VmbFeaturePersistStreamable,
+            .maxIterations = 1
+        };
+        result = VmbSettingsLoad(vimbaxsrc->camera.handle,
+                                 buffer,
+                                 &settings,
+                                 sizeof(settings));
+        #ifdef _WIN32
+        free(buffer);
+        #endif
         if (result != VmbErrorSuccess)
         {
             GST_ERROR_OBJECT(vimbaxsrc,
