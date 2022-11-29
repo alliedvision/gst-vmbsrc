@@ -510,11 +510,6 @@ static void gst_vimbaxsrc_init(GstVimbaSrc *vimbaxsrc)
         GST_WARNING_OBJECT(vimbaxsrc, "VmbVersionQuery failed with Reason: %s", ErrorCodeToMessage(result));
     }
 
-    if (DiscoverGigECameras((GObject *)vimbaxsrc) == VmbBoolFalse)
-    {
-        GST_INFO_OBJECT(vimbaxsrc, "GigE cameras will be ignored");
-    }
-
     // Mark this element as a live source (disable preroll)
     gst_base_src_set_live(GST_BASE_SRC(vimbaxsrc), TRUE);
     gst_base_src_set_format(GST_BASE_SRC(vimbaxsrc), GST_FORMAT_TIME);
