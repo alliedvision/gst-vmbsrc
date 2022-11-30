@@ -35,7 +35,7 @@ configure_file(
     ${PROJECT_SOURCE_DIR}/src/config.h.in config.h
 )
 
-find_package(GStreamer REQUIRED COMPONENTS base)
+find_package(GStreamer REQUIRED COMPONENTS base video)
 find_package(GLIB2 REQUIRED)
 find_package(GObject REQUIRED)
 find_package(Vmb REQUIRED COMPONENTS C)
@@ -52,6 +52,7 @@ target_link_libraries (${PROJECT_NAME}
     ${GOBJECT_LIBRARIES}
     ${GSTREAMER_LIBRARY}
     ${GSTREAMER_BASE_LIBRARY}
+    ${GSTREAMER_VIDEO_LIBRARY}
     Vmb::C
 )
 

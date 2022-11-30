@@ -41,6 +41,7 @@
 
 #include <gst/gst.h>
 #include <gst/base/gstpushsrc.h>
+#include <gst/video/video.h>
 #include <gst/video/video-info.h>
 #include <glib.h>
 
@@ -593,6 +594,8 @@ static void gst_vimbaxsrc_init(GstVimbaSrc *vimbaxsrc)
             g_object_class_find_property(
                 gobject_class,
                 "incompleteframehandling")));
+
+    gst_video_info_init(&vimbaxsrc->video_info);
 }
 
 void gst_vimbaxsrc_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
@@ -1143,7 +1146,7 @@ static gboolean gst_vimbaxsrc_set_caps(GstBaseSrc *src, GstCaps *caps)
         result = start_image_acquisition(vimbaxsrc);
     }
 
-    return result == VmbErrorSuccess ? TRUE : FALSE;
+    return result == VmbErrorSuccess ? gst_video_info_from_caps(&vimbaxsrc->video_info, caps) : FALSE;
 }
 
 /* start and stop processing, ideal for opening/closing the resource */
@@ -1302,6 +1305,24 @@ static GstFlowReturn gst_vimbaxsrc_create(GstPushSrc *src, GstBuffer **buf)
 
     // requeue frame after we copied the image data for Vimba to use again
     VmbCaptureFrameQueue(vimbaxsrc->camera.handle, frame, &vimba_frame_callback);
+
+    // Manually calculate the stride for pixel rows as it might not be identical to GStreamer
+    // expectations
+    gint stride[GST_VIDEO_MAX_PLANES] = { 0 };
+    gint num_planes = vimbaxsrc->video_info.finfo->n_planes;
+
+    for (gint i = 0; i < num_planes; ++i) {
+        stride[i] = vimbaxsrc->video_info.width * vimbaxsrc->video_info.finfo->pixel_stride[i];
+    }
+
+    gst_buffer_add_video_meta_full(buffer,
+                                   GST_VIDEO_FRAME_FLAG_NONE,
+                                   vimbaxsrc->video_info.finfo->format,
+                                   vimbaxsrc->video_info.width,
+                                   vimbaxsrc->video_info.height,
+                                   num_planes,
+                                   vimbaxsrc->video_info.offset,
+                                   stride);
 
     // Set filled GstBuffer as output to pass down the pipeline
     *buf = buffer;
