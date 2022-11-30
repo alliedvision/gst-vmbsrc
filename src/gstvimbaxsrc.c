@@ -1798,7 +1798,22 @@ VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbaxsrc)
         GST_DEBUG_OBJECT(vimbaxsrc, "Allocating and announcing %d vimba frames", NUM_VIMBA_FRAMES);
         for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
         {
-            vimbaxsrc->frame_buffers[i].buffer = (unsigned char *)malloc((VmbUint32_t)payload_size);
+            // Some transport layers provide higher performance if specific alignment is observed.
+            // Check if this camera has such a requirement. If not this basically becomes a regular
+            // allocation
+            VmbInt64_t buffer_alignment = 1;
+            result = VmbFeatureIntGet(vimbaxsrc->camera.info.streamHandles[0],
+                                      "StreamBufferAlignment",
+                                      &buffer_alignment);
+            // The result is not really important so we do not have to check it. If the camera
+            // requires alignment, the call will have succeeded. If alginment does not matter, the
+            // call failed but the default value of 1 was not changed
+            GST_DEBUG_OBJECT(vimbaxsrc,
+                             "Using \"StreamBufferAlignment\" of: %llu (read result was %s)",
+                             buffer_alignment,
+                             ErrorCodeToMessage(result));
+            vimbaxsrc->frame_buffers[i].buffer = VmbAlignedAlloc(buffer_alignment, payload_size);
+
             if (NULL == vimbaxsrc->frame_buffers[i].buffer)
             {
                 result = VmbErrorResources;
@@ -1834,7 +1849,7 @@ void revoke_and_free_buffers(GstVimbaSrc *vimbaxsrc)
         if (NULL != vimbaxsrc->frame_buffers[i].buffer)
         {
             VmbFrameRevoke(vimbaxsrc->camera.handle, &vimbaxsrc->frame_buffers[i]);
-            free(vimbaxsrc->frame_buffers[i].buffer);
+            VmbAlignedFree(vimbaxsrc->frame_buffers[i].buffer);
             memset(&vimbaxsrc->frame_buffers[i], 0, sizeof(VmbFrame_t));
         }
     }
