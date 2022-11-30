@@ -151,6 +151,7 @@ struct _GstVimbaSrc
     {
         char *id;
         VmbHandle_t handle;
+        VmbCameraInfo_t info;
         VmbUint32_t supported_formats_count;
         // TODO: This overallocates since no camera will actually support all possible format matches. Allocate and fill
         // at runtime?
