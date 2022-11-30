@@ -1197,7 +1197,6 @@ static gboolean gst_vimbaxsrc_start(GstBaseSrc *src)
         buffer = vimbaxsrc->properties.settings_file_path;
         #endif
         VmbFeaturePersistSettings_t settings = {
-            // TODO: ARE THESE GOOD DEFAULT VALUES?
             .persistType = VmbFeaturePersistStreamable,
             .maxIterations = 1
         };
