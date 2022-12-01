@@ -470,7 +470,7 @@ static void gst_vimbaxsrc_class_init(GstVimbaSrcClass *klass)
         PROP_INCOMPLETE_FRAME_HANDLING,
         g_param_spec_enum(
             "incompleteframehandling",
-            "Incomplete frame handline",
+            "Incomplete frame handling",
             "Determines how the element should handle received frames where data transmission was incomplete. Incomplete frames may contain pixel intensities from old acquisitions or random data",
             GST_ENUM_INCOMPLETEFRAMEHANDLING_VALUES,
             GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_DROP,
