@@ -62,7 +62,6 @@ GST_DEBUG_CATEGORY_STATIC(gst_vimbaxsrc_debug_category);
 
 static void gst_vimbaxsrc_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
-static void gst_vimbaxsrc_dispose(GObject *object);
 static void gst_vimbaxsrc_finalize(GObject *object);
 
 static GstCaps *gst_vimbaxsrc_get_caps(GstBaseSrc *src, GstCaps *filter);
@@ -312,7 +311,6 @@ static void gst_vimbaxsrc_class_init(GstVimbaSrcClass *klass)
 
     gobject_class->set_property = gst_vimbaxsrc_set_property;
     gobject_class->get_property = gst_vimbaxsrc_get_property;
-    gobject_class->dispose = gst_vimbaxsrc_dispose;
     gobject_class->finalize = gst_vimbaxsrc_finalize;
     base_src_class->get_caps = GST_DEBUG_FUNCPTR(gst_vimbaxsrc_get_caps);
     base_src_class->set_caps = GST_DEBUG_FUNCPTR(gst_vimbaxsrc_set_caps);
@@ -944,16 +942,6 @@ void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *valu
     }
 }
 
-void gst_vimbaxsrc_dispose(GObject *object)
-{
-    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(object);
-
-    GST_TRACE_OBJECT(vimbaxsrc, "dispose");
-
-    /* clean up as possible.  may be called multiple times */
-
-    G_OBJECT_CLASS(gst_vimbaxsrc_parent_class)->dispose(object);
-}
 
 void gst_vimbaxsrc_finalize(GObject *object)
 {
