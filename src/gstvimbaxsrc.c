@@ -1313,6 +1313,7 @@ static GstFlowReturn gst_vimbaxsrc_create(GstPushSrc *src, GstBuffer **buf)
         g_object_unref(clock);
     }
     GST_BUFFER_TIMESTAMP(buffer) = timestamp;
+    GST_BUFFER_DURATION(buffer) = GST_CLOCK_TIME_NONE;
 
     // copy over frame data into the GStreamer buffer
     // TODO: Investigate if we can work without copying to improve performance?
