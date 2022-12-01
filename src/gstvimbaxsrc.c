@@ -1303,6 +1303,17 @@ static GstFlowReturn gst_vimbaxsrc_create(GstPushSrc *src, GstBuffer **buf)
     // Prepare output buffer that will be filled with frame data
     GstBuffer *buffer = gst_buffer_new_and_alloc(frame->bufferSize);
 
+    // Add a timestamp to the buffer. This is done before copying image data in to keep the
+    // timestamp as close to acquisition as possible
+    GstClock *clock = gst_element_get_clock(GST_ELEMENT(vimbaxsrc));
+    GstClockTime timestamp = GST_CLOCK_TIME_NONE;
+    if (clock)
+    {
+        timestamp = gst_clock_get_time(clock) - gst_element_get_base_time(GST_ELEMENT(vimbaxsrc));
+        g_object_unref(clock);
+    }
+    GST_BUFFER_TIMESTAMP(buffer) = timestamp;
+
     // copy over frame data into the GStreamer buffer
     // TODO: Investigate if we can work without copying to improve performance?
     gst_buffer_fill(
