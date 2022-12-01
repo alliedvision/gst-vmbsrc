@@ -738,9 +738,9 @@ void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *valu
                              "Camera returned the following value for \"ExposureAuto\": %s",
                              vmbfeature_value_char);
             vimbaxsrc->properties.exposureauto = g_enum_get_value_by_nick(
-                                                    g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES),
-                                                    vmbfeature_value_char)
-                                                    ->value;
+                                                     g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES),
+                                                     vmbfeature_value_char)
+                                                     ->value;
         }
         else
         {
@@ -758,9 +758,9 @@ void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *valu
                              "Camera returned the following value for \"BalanceWhiteAuto\": %s",
                              vmbfeature_value_char);
             vimbaxsrc->properties.balancewhiteauto = g_enum_get_value_by_nick(
-                                                        g_type_class_ref(GST_ENUM_BALANCEWHITEAUTO_MODES),
-                                                        vmbfeature_value_char)
-                                                        ->value;
+                                                         g_type_class_ref(GST_ENUM_BALANCEWHITEAUTO_MODES),
+                                                         vmbfeature_value_char)
+                                                         ->value;
         }
         else
         {
@@ -863,9 +863,9 @@ void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *valu
                              "Camera returned the following value for \"TriggerSelector\": %s",
                              vmbfeature_value_char);
             vimbaxsrc->properties.exposureauto = g_enum_get_value_by_nick(
-                                                    g_type_class_ref(GST_ENUM_TRIGGERSELECTOR_VALUES),
-                                                    vmbfeature_value_char)
-                                                    ->value;
+                                                     g_type_class_ref(GST_ENUM_TRIGGERSELECTOR_VALUES),
+                                                     vmbfeature_value_char)
+                                                     ->value;
         }
         else
         {
@@ -883,9 +883,9 @@ void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *valu
                              "Camera returned the following value for \"TriggerMode\": %s",
                              vmbfeature_value_char);
             vimbaxsrc->properties.exposureauto = g_enum_get_value_by_nick(
-                                                    g_type_class_ref(GST_ENUM_TRIGGERMODE_VALUES),
-                                                    vmbfeature_value_char)
-                                                    ->value;
+                                                     g_type_class_ref(GST_ENUM_TRIGGERMODE_VALUES),
+                                                     vmbfeature_value_char)
+                                                     ->value;
         }
         else
         {
@@ -903,9 +903,9 @@ void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *valu
                              "Camera returned the following value for \"TriggerSource\": %s",
                              vmbfeature_value_char);
             vimbaxsrc->properties.exposureauto = g_enum_get_value_by_nick(
-                                                    g_type_class_ref(GST_ENUM_TRIGGERSOURCE_VALUES),
-                                                    vmbfeature_value_char)
-                                                    ->value;
+                                                     g_type_class_ref(GST_ENUM_TRIGGERSOURCE_VALUES),
+                                                     vmbfeature_value_char)
+                                                     ->value;
         }
         else
         {
@@ -923,9 +923,9 @@ void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *valu
                              "Camera returned the following value for \"TriggerActivation\": %s",
                              vmbfeature_value_char);
             vimbaxsrc->properties.exposureauto = g_enum_get_value_by_nick(
-                                                    g_type_class_ref(GST_ENUM_TRIGGERACTIVATION_VALUES),
-                                                    vmbfeature_value_char)
-                                                    ->value;
+                                                     g_type_class_ref(GST_ENUM_TRIGGERACTIVATION_VALUES),
+                                                     vmbfeature_value_char)
+                                                     ->value;
         }
         else
         {
@@ -1182,29 +1182,28 @@ static gboolean gst_vimbaxsrc_start(GstBaseSrc *src)
         GST_WARNING_OBJECT(vimbaxsrc,
                            "\"%s\" was given as settingsfile. Other feature settings passed as element properties will be ignored!",
                            vimbaxsrc->properties.settings_file_path);
-        
+
         VmbFilePathChar_t *buffer;
-        #ifdef _WIN32
+#ifdef _WIN32
         size_t num_char = strlen(vimbaxsrc->properties.settings_file_path);
         size_t num_wchar = 0;
         mbstowcs_s(&num_wchar, NULL, 0, vimbaxsrc->properties.settings_file_path, num_char);
         buffer = calloc(num_wchar, sizeof(VmbFilePathChar_t));
         mbstowcs_s(NULL, buffer, num_wchar, vimbaxsrc->properties.settings_file_path, num_char);
-        #else
+#else
         // TODO: THIS NEEDS TO BE TESTED ON A LINUX SYSTEM
         buffer = vimbaxsrc->properties.settings_file_path;
-        #endif
+#endif
         VmbFeaturePersistSettings_t settings = {
             .persistType = VmbFeaturePersistStreamable,
-            .maxIterations = 1
-        };
+            .maxIterations = 1};
         result = VmbSettingsLoad(vimbaxsrc->camera.handle,
                                  buffer,
                                  &settings,
                                  sizeof(settings));
-        #ifdef _WIN32
+#ifdef _WIN32
         free(buffer);
-        #endif
+#endif
         if (result != VmbErrorSuccess)
         {
             GST_ERROR_OBJECT(vimbaxsrc,
@@ -1329,10 +1328,11 @@ static GstFlowReturn gst_vimbaxsrc_create(GstPushSrc *src, GstBuffer **buf)
 
     // Manually calculate the stride for pixel rows as it might not be identical to GStreamer
     // expectations
-    gint stride[GST_VIDEO_MAX_PLANES] = { 0 };
+    gint stride[GST_VIDEO_MAX_PLANES] = {0};
     gint num_planes = vimbaxsrc->video_info.finfo->n_planes;
 
-    for (gint i = 0; i < num_planes; ++i) {
+    for (gint i = 0; i < num_planes; ++i)
+    {
         stride[i] = vimbaxsrc->video_info.width * vimbaxsrc->video_info.finfo->pixel_stride[i];
     }
 
@@ -1620,11 +1620,12 @@ VmbError_t set_roi(GstVimbaSrc *vimbaxsrc)
                            ErrorCodeToMessage(result));
     }
     // offsetx
-    if (vimbaxsrc->properties.offsetx == -1) {
+    if (vimbaxsrc->properties.offsetx == -1)
+    {
         VmbInt64_t vmb_offsetx = (vmb_width - vimbaxsrc->properties.width) >> 1;
         GST_DEBUG_OBJECT(vimbaxsrc, "ROI centering along x-axis requested. Calculated offsetx=%lld",
                          vmb_offsetx);
-        g_object_set(vimbaxsrc, "offsetx", (int) vmb_offsetx, NULL);
+        g_object_set(vimbaxsrc, "offsetx", (int)vmb_offsetx, NULL);
     }
     GST_DEBUG_OBJECT(vimbaxsrc, "Setting \"OffsetX\" to %d", vimbaxsrc->properties.offsetx);
     result = VmbFeatureIntSet(vimbaxsrc->camera.handle, "OffsetX", vimbaxsrc->properties.offsetx);
@@ -1641,7 +1642,8 @@ VmbError_t set_roi(GstVimbaSrc *vimbaxsrc)
     }
 
     // offsety
-    if (vimbaxsrc->properties.offsety == -1) {
+    if (vimbaxsrc->properties.offsety == -1)
+    {
         VmbInt64_t vmb_offsety = (vmb_height - vimbaxsrc->properties.height) >> 1;
         GST_DEBUG_OBJECT(vimbaxsrc, "ROI centering along y-axis requested. Calculated offsety=%lld",
                          vmb_offsety);

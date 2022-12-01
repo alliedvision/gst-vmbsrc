@@ -13,7 +13,7 @@ bool starts_with(const char *str, const char *prefix)
     return strncmp(str, prefix, strlen(prefix)) == 0;
 }
 
-void* VmbAlignedAlloc(size_t alignment, size_t size)
+void *VmbAlignedAlloc(size_t alignment, size_t size)
 {
 #ifdef _WIN32
     return _aligned_malloc(size, alignment);
@@ -22,7 +22,7 @@ void* VmbAlignedAlloc(size_t alignment, size_t size)
 #endif
 }
 
-void VmbAlignedFree(void* buffer)
+void VmbAlignedFree(void *buffer)
 {
 #ifdef _WIN32
     _aligned_free(buffer);
