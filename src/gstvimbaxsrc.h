@@ -181,6 +181,7 @@ struct _GstVimbaSrc
     // queue in which filled Vimba frames are placed in the vimba_frame_callback (attached to each queued frame at
     // frame->context[0])
     GAsyncQueue *filled_frame_queue;
+    guint64 num_frames_pushed;
     GstVideoInfo video_info;
 };
 

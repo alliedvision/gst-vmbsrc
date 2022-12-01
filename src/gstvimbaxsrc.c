@@ -1344,6 +1344,9 @@ static GstFlowReturn gst_vimbaxsrc_create(GstPushSrc *src, GstBuffer **buf)
                                    vimbaxsrc->video_info.offset,
                                    stride);
 
+    GST_BUFFER_OFFSET(buffer) = vimbaxsrc->num_frames_pushed;
+    GST_BUFFER_OFFSET_END(buffer) = ++(vimbaxsrc->num_frames_pushed);
+
     // Set filled GstBuffer as output to pass down the pipeline
     *buf = buffer;
 
