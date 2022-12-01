@@ -138,6 +138,13 @@ typedef enum
     GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_SUBMIT
 } GstVimbaXSrcIncompleteFrameHandlingValue;
 
+// Frame buffer allocation modes
+typedef enum
+{
+    GST_VIMBAXSRC_ALLOCATION_MODE_ANNOUNCE_FRAME,
+    GST_VIMBAXSRC_ALLOCATION_MODE_ALLOC_AND_ANNOUNCE_FRAME
+} GstVimbasrcAllocationMode;
+
 typedef struct _GstVimbaXSrc GstVimbaXSrc;
 typedef struct _GstVimbaXSrcClass GstVimbaXSrcClass;
 
@@ -175,6 +182,7 @@ struct _GstVimbaXSrc
         int triggersource;
         int triggeractivation;
         int incomplete_frame_handling;
+        int allocation_mode;
     } properties;
 
     VmbFrame_t frame_buffers[NUM_FRAME_BUFFERS];
