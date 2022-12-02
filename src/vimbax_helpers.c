@@ -5,7 +5,7 @@
 #include <VmbC/VmbC.h>
 
 //
-// Translates Vimba error codes to readable error messages
+// Translates VimbaX error codes to readable error messages
 //
 // Parameters:
 //  [in]    eError      The error code to be converted to string

@@ -19,7 +19,7 @@ typedef struct
     const char *gst_format_name;
 } VimbaXGstFormatMatch_t;
 
-// TODO: Check if same capitalization as below for the vimba capabilities is guaranteed
+// TODO: Check if same capitalization as below for the VimbaX capabilities is guaranteed
 static VimbaXGstFormatMatch_t vimba_gst_format_matches[] = {
     {"Mono8", "GRAY8"},
     {"Mono10", "GRAY16_LE"},

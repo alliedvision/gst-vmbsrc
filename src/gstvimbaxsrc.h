@@ -178,7 +178,7 @@ struct _GstVimbaXSrc
     } properties;
 
     VmbFrame_t frame_buffers[NUM_VIMBA_FRAMES];
-    // queue in which filled Vimba frames are placed in the vimba_frame_callback (attached to each queued frame at
+    // queue in which filled VimbaX frames are placed in the vimba_frame_callback (attached to each queued frame at
     // frame->context[0])
     GAsyncQueue *filled_frame_queue;
     guint64 num_frames_pushed;

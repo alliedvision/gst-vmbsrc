@@ -14,7 +14,7 @@ const VimbaXGstFormatMatch_t *gst_format_from_vimbax_format(const char *vimbax_f
     return NULL;
 }
 
-// TODO: There may be multiple vimba format entries for the same gst_format. How to handle this? Currently the first hit
+// TODO: There may be multiple VimbaX format entries for the same gst_format. How to handle this? Currently the first hit
 // for the gst_format is returned and the rest ignored.
 const VimbaXGstFormatMatch_t *vimbax_format_from_gst_format(const char *gst_format)
 {
