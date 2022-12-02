@@ -138,12 +138,12 @@ typedef enum
     GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_SUBMIT
 } GstVimbasrcIncompleteFrameHandlingValue;
 
-typedef struct _GstVimbaSrc GstVimbaSrc;
+typedef struct _GstVimbaXSrc GstVimbaSrc;
 typedef struct _GstVimbaSrcClass GstVimbaSrcClass;
 
 #define NUM_VIMBA_FRAMES 3
 
-struct _GstVimbaSrc
+struct _GstVimbaXSrc
 {
     GstPushSrc base_vimbaxsrc;
 
