@@ -942,7 +942,6 @@ void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *valu
     }
 }
 
-
 void gst_vimbaxsrc_finalize(GObject *object)
 {
     GstVimbaXSrc *vimbaxsrc = GST_vimbaxsrc(object);
