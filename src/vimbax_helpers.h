@@ -1,5 +1,5 @@
-#ifndef VIMBA_HELPERS_H_
-#define VIMBA_HELPERS_H_
+#ifndef VIMBAX_HELPERS_H_
+#define VIMBAX_HELPERS_H_
 
 #include <glib-object.h>
 
@@ -7,4 +7,4 @@
 
 const char *ErrorCodeToMessage(VmbError_t eError);
 
-#endif // VIMBA_HELPERS_H_
+#endif // VIMBAX_HELPERS_H_
