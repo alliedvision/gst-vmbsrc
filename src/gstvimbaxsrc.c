@@ -19,7 +19,7 @@
  * SECTION:element-gstvimbaxsrc
  *
  * The vimbaxsrc element provides a way to stream image data into GStreamer pipelines from cameras
- * using the Vimba X API
+ * using the VimbaX API
  *
  * <refsect2>
  * <title>Example launch line</title>
