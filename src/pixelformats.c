@@ -6,9 +6,9 @@ const VimbaXGstFormatMatch_t *gst_format_from_vimbax_format(const char *vimbax_f
 {
     for (unsigned int i = 0; i < NUM_FORMAT_MATCHES; i++)
     {
-        if (strcmp(vimbax_format, vimba_gst_format_matches[i].vimbax_format_name) == 0)
+        if (strcmp(vimbax_format, vimbax_gst_format_matches[i].vimbax_format_name) == 0)
         {
-            return &vimba_gst_format_matches[i];
+            return &vimbax_gst_format_matches[i];
         }
     }
     return NULL;
@@ -20,9 +20,9 @@ const VimbaXGstFormatMatch_t *vimbax_format_from_gst_format(const char *gst_form
 {
     for (unsigned int i = 0; i < NUM_FORMAT_MATCHES; i++)
     {
-        if (strcmp(gst_format, vimba_gst_format_matches[i].gst_format_name) == 0)
+        if (strcmp(gst_format, vimbax_gst_format_matches[i].gst_format_name) == 0)
         {
-            return &vimba_gst_format_matches[i];
+            return &vimbax_gst_format_matches[i];
         }
     }
     return NULL;

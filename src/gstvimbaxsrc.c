@@ -1044,7 +1044,7 @@ static GstCaps *gst_vimbaxsrc_get_caps(GstBaseSrc *src, GstCaps *filter)
         for (unsigned int i = 0; i < vimbaxsrc->camera.supported_formats_count; i++)
         {
             g_value_set_static_string(&pixel_format, vimbaxsrc->camera.supported_formats[i]->gst_format_name);
-            // TODO: Should this perhaps be done via a flag in vimba_gst_format_matches?
+            // TODO: Should this perhaps be done via a flag in vimbax_gst_format_matches?
             if (starts_with(vimbaxsrc->camera.supported_formats[i]->vimbax_format_name, "Bayer"))
             {
                 gst_value_list_append_value(&pixel_format_bayer_list, &pixel_format);

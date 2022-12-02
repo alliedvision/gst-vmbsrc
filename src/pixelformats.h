@@ -20,7 +20,7 @@ typedef struct
 } VimbaXGstFormatMatch_t;
 
 // TODO: Check if same capitalization as below for the VimbaX capabilities is guaranteed
-static VimbaXGstFormatMatch_t vimba_gst_format_matches[] = {
+static VimbaXGstFormatMatch_t vimbax_gst_format_matches[] = {
     {"Mono8", "GRAY8"},
     {"Mono10", "GRAY16_LE"},
     {"Mono12", "GRAY16_LE"},
@@ -46,7 +46,7 @@ static VimbaXGstFormatMatch_t vimba_gst_format_matches[] = {
     {"BayerRG8", "rggb"},
     {"BayerGB8", "gbrg"},
     {"BayerBG8", "bggr"}};
-#define NUM_FORMAT_MATCHES (sizeof(vimba_gst_format_matches) / sizeof(vimba_gst_format_matches[0]))
+#define NUM_FORMAT_MATCHES (sizeof(vimbax_gst_format_matches) / sizeof(vimbax_gst_format_matches[0]))
 
 // lookup supported gst cap by format string from camera
 const VimbaXGstFormatMatch_t *gst_format_from_vimbax_format(const char *vimbax_format);
