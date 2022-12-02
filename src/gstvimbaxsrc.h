@@ -44,7 +44,7 @@ typedef enum
     GST_VIMBAXSRC_AUTOFEATURE_OFF,
     GST_VIMBAXSRC_AUTOFEATURE_ONCE,
     GST_VIMBAXSRC_AUTOFEATURE_CONTINUOUS
-} GstVimbasrcAutoFeatureValue;
+} GstVimbaXSrcAutoFeatureValue;
 
 // Possible values for TriggerSelector feature
 typedef enum
@@ -63,7 +63,7 @@ typedef enum
     GST_VIMBAXSRC_TRIGGERSELECTOR_EXPOSURE_START,
     GST_VIMBAXSRC_TRIGGERSELECTOR_EXPOSURE_END,
     GST_VIMBAXSRC_TRIGGERSELECTOR_EXPOSURE_ACTIVE
-} GstVimbasrcTriggerSelectorValue;
+} GstVimbaXSrcTriggerSelectorValue;
 
 // Possible values for TriggerMode feature
 typedef enum
@@ -71,7 +71,7 @@ typedef enum
     GST_VIMBAXSRC_TRIGGERMODE_UNCHANGED,
     GST_VIMBAXSRC_TRIGGERMODE_OFF,
     GST_VIMBAXSRC_TRIGGERMODE_ON
-} GstVimbasrcTriggerModeValue;
+} GstVimbaXSrcTriggerModeValue;
 
 // Possible values for the TriggerSource feature
 typedef enum
@@ -118,7 +118,7 @@ typedef enum
     GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER1,
     GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER2,
     GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER3
-} GstVimbasrcTriggerSourceValue;
+} GstVimbaXSrcTriggerSourceValue;
 
 // Possible values for TriggerActivation feature
 typedef enum
@@ -129,14 +129,14 @@ typedef enum
     GST_VIMBAXSRC_TRIGGERACTIVATION_ANY_EDGE,
     GST_VIMBAXSRC_TRIGGERACTIVATION_LEVEL_HIGH,
     GST_VIMBAXSRC_TRIGGERACTIVATION_LEVEL_LOW
-} GstVimbasrcTriggerActivationValue;
+} GstVimbaXSrcTriggerActivationValue;
 
 // Implemented handling approaches for incomplete frames
 typedef enum
 {
     GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_DROP,
     GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_SUBMIT
-} GstVimbasrcIncompleteFrameHandlingValue;
+} GstVimbaXSrcIncompleteFrameHandlingValue;
 
 typedef struct _GstVimbaXSrc GstVimbaXSrc;
 typedef struct _GstVimbaXSrcClass GstVimbaXSrcClass;

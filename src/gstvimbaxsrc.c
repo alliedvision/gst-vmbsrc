@@ -113,7 +113,7 @@ static GType gst_vimbaxsrc_exposureauto_get_type(void)
     if (!vimbaxsrc_exposureauto_type)
     {
         vimbaxsrc_exposureauto_type =
-            g_enum_register_static("GstVimbasrcExposureAutoModes", exposureauto_modes);
+            g_enum_register_static("GstVimbaXSrcExposureAutoModes", exposureauto_modes);
     }
     return vimbaxsrc_exposureauto_type;
 }
@@ -132,7 +132,7 @@ static GType gst_vimbaxsrc_balancewhiteauto_get_type(void)
     if (!vimbaxsrc_balancewhiteauto_type)
     {
         vimbaxsrc_balancewhiteauto_type =
-            g_enum_register_static("GstVimbasrcBalanceWhiteAutoModes", balancewhiteauto_modes);
+            g_enum_register_static("GstVimbaXSrcBalanceWhiteAutoModes", balancewhiteauto_modes);
     }
     return vimbaxsrc_balancewhiteauto_type;
 }
@@ -162,7 +162,7 @@ static GType gst_vimbaxsrc_triggerselector_get_type(void)
     if (!vimbaxsrc_triggerselector_type)
     {
         vimbaxsrc_triggerselector_type =
-            g_enum_register_static("GstVimbasrcTriggerSelectorValues", triggerselector_values);
+            g_enum_register_static("GstVimbaXSrcTriggerSelectorValues", triggerselector_values);
     }
     return vimbaxsrc_triggerselector_type;
 }
@@ -181,7 +181,7 @@ static GType gst_vimbaxsrc_triggermode_get_type(void)
     if (!vimbaxsrc_triggermode_type)
     {
         vimbaxsrc_triggermode_type =
-            g_enum_register_static("GstVimbasrcTriggerModeValues", triggermode_values);
+            g_enum_register_static("GstVimbaXSrcTriggerModeValues", triggermode_values);
     }
     return vimbaxsrc_triggermode_type;
 }
@@ -239,7 +239,7 @@ static GType gst_vimbaxsrc_triggersource_get_type(void)
     if (!vimbaxsrc_triggersource_type)
     {
         vimbaxsrc_triggersource_type =
-            g_enum_register_static("GstVimbasrcTriggerSourceValues", triggersource_values);
+            g_enum_register_static("GstVimbaXSrcTriggerSourceValues", triggersource_values);
     }
     return vimbaxsrc_triggersource_type;
 }
@@ -261,7 +261,7 @@ static GType gst_vimbaxsrc_triggeractivation_get_type(void)
     if (!vimbaxsrc_triggeractivation_type)
     {
         vimbaxsrc_triggeractivation_type =
-            g_enum_register_static("GstVimbasrcTriggerActivationValues", triggeractivation_values);
+            g_enum_register_static("GstVimbaXSrcTriggerActivationValues", triggeractivation_values);
     }
     return vimbaxsrc_triggeractivation_type;
 }
@@ -278,7 +278,7 @@ static GType gst_vimbaxsrc_incompleteframehandling_get_type(void)
     if (!vimbaxsrc_incompleteframehandling_type)
     {
         vimbaxsrc_incompleteframehandling_type =
-            g_enum_register_static("GstVimbasrcIncompleteFrameHandlingValues", incompleteframehandling_values);
+            g_enum_register_static("GstVimbaXSrcIncompleteFrameHandlingValues", incompleteframehandling_values);
     }
     return vimbaxsrc_incompleteframehandling_type;
 }
