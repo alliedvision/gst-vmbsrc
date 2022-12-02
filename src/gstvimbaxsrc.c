@@ -1820,8 +1820,8 @@ VmbError_t alloc_and_announce_buffers(GstVimbaXSrc *vimbaxsrc)
     if (result == VmbErrorSuccess)
     {
         GST_DEBUG_OBJECT(vimbaxsrc, "Got \"PayloadSize\" of: %llu", payload_size);
-        GST_DEBUG_OBJECT(vimbaxsrc, "Allocating and announcing %d vimba frames", NUM_VIMBA_FRAMES);
-        for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
+        GST_DEBUG_OBJECT(vimbaxsrc, "Allocating and announcing %d vimba frames", NUM_FRAME_BUFFERS);
+        for (int i = 0; i < NUM_FRAME_BUFFERS; i++)
         {
             // Some transport layers provide higher performance if specific alignment is observed.
             // Check if this camera has such a requirement. If not this basically becomes a regular
@@ -1869,7 +1869,7 @@ VmbError_t alloc_and_announce_buffers(GstVimbaXSrc *vimbaxsrc)
  */
 void revoke_and_free_buffers(GstVimbaXSrc *vimbaxsrc)
 {
-    for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
+    for (int i = 0; i < NUM_FRAME_BUFFERS; i++)
     {
         if (NULL != vimbaxsrc->frame_buffers[i].buffer)
         {
@@ -1895,7 +1895,7 @@ VmbError_t start_image_acquisition(GstVimbaXSrc *vimbaxsrc)
     if (result == VmbErrorSuccess)
     {
         GST_DEBUG_OBJECT(vimbaxsrc, "Queueing the vimba frames");
-        for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
+        for (int i = 0; i < NUM_FRAME_BUFFERS; i++)
         {
             // Queue Frame
             result = VmbCaptureFrameQueue(vimbaxsrc->camera.handle, &vimbaxsrc->frame_buffers[i], &vimba_frame_callback);

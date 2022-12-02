@@ -141,7 +141,7 @@ typedef enum
 typedef struct _GstVimbaXSrc GstVimbaXSrc;
 typedef struct _GstVimbaXSrcClass GstVimbaXSrcClass;
 
-#define NUM_VIMBA_FRAMES 3
+#define NUM_FRAME_BUFFERS 3
 
 struct _GstVimbaXSrc
 {
@@ -177,7 +177,7 @@ struct _GstVimbaXSrc
         int incomplete_frame_handling;
     } properties;
 
-    VmbFrame_t frame_buffers[NUM_VIMBA_FRAMES];
+    VmbFrame_t frame_buffers[NUM_FRAME_BUFFERS];
     // queue in which filled VimbaX frames are placed in the vimba_frame_callback (attached to each queued frame at
     // frame->context[0])
     GAsyncQueue *filled_frame_queue;
