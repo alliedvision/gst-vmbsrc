@@ -497,13 +497,13 @@ static void gst_vimbaxsrc_init(GstVimbaXSrc *vimbaxsrc)
     }
     G_UNLOCK(vmb_open_count);
 
-    // Log the used VimbaC version
+    // Log the used VmbC version
     VmbVersionInfo_t version_info;
     result = VmbVersionQuery(&version_info, sizeof(version_info));
     if (result == VmbErrorSuccess)
     {
         GST_INFO_OBJECT(vimbaxsrc,
-                        "Running with VimbaC Version %u.%u.%u",
+                        "Running with VmbC Version %u.%u.%u",
                         version_info.major,
                         version_info.minor,
                         version_info.patch);
@@ -1423,7 +1423,7 @@ VmbError_t open_camera_connection(GstVimbaXSrc *vimbaxsrc)
 /**
  * @brief Applies the values defiend in the vimbaxsrc properties to their corresponding camera features
  *
- * @param vimbaxsrc Provides access to the camera handle used for the Vimba calls and holds the desired values for the
+ * @param vimbaxsrc Provides access to the camera handle used for the VmbC calls and holds the desired values for the
  * modified features
  * @return VmbError_t Return status indicating errors if they occurred
  */
@@ -1545,7 +1545,7 @@ VmbError_t apply_feature_settings(GstVimbaXSrc *vimbaxsrc)
  * The values for setting the ROI are defined as GStreamer properties of the vimbaxsrc element. If INT_MAX are used for
  * the width/height property (the default value) the full corresponding sensor size for that feature is used.
  *
- * @param vimbaxsrc Provides access to the camera handle used for the Vimba calls and holds the desired values for the
+ * @param vimbaxsrc Provides access to the camera handle used for the VmbC calls and holds the desired values for the
  * modified features
  * @return VmbError_t Return status indicating errors if they occurred
  */
@@ -1677,7 +1677,7 @@ VmbError_t set_roi(GstVimbaXSrc *vimbaxsrc)
  * 3. TriggerSource
  * 4. TriggerMode
  *
- * @param vimbaxsrc Provides access to the camera handle used for the Vimba calls and holds the desired values for the
+ * @param vimbaxsrc Provides access to the camera handle used for the VmbC calls and holds the desired values for the
  * modified features
  * @return VmbError_t Return status indicating errors if they occurred
  */
@@ -1810,7 +1810,7 @@ VmbError_t apply_trigger_settings(GstVimbaXSrc *vimbaxsrc)
 /**
  * @brief Gets the PayloadSize from the connected camera, allocates and announces frame buffers for capturing
  *
- * @param vimbaxsrc Provides the camera handle used for the Vimba calls and holds the frame buffers
+ * @param vimbaxsrc Provides the camera handle used for the VmbC calls and holds the frame buffers
  * @return VmbError_t Return status indicating errors if they occurred
  */
 VmbError_t alloc_and_announce_buffers(GstVimbaXSrc *vimbaxsrc)
@@ -1865,7 +1865,7 @@ VmbError_t alloc_and_announce_buffers(GstVimbaXSrc *vimbaxsrc)
 /**
  * @brief Revokes frame buffers, frees their memory and overwrites old pointers with 0
  *
- * @param vimbaxsrc Provides the camera handle used for the Vimba calls and the frame buffers
+ * @param vimbaxsrc Provides the camera handle used for the VmbC calls and the frame buffers
  */
 void revoke_and_free_buffers(GstVimbaXSrc *vimbaxsrc)
 {
@@ -1884,7 +1884,7 @@ void revoke_and_free_buffers(GstVimbaXSrc *vimbaxsrc)
  * @brief Starts the capture engine, queues Vimba frames and runs the AcquisitionStart command feature. Frame buffers
  * must be allocated before running this function.
  *
- * @param vimbaxsrc Provides the camera handle used for the Vimba calls and access to the queued frame buffers
+ * @param vimbaxsrc Provides the camera handle used for the VmbC calls and access to the queued frame buffers
  * @return VmbError_t Return status indicating errors if they occurred
  */
 VmbError_t start_image_acquisition(GstVimbaXSrc *vimbaxsrc)
@@ -1929,7 +1929,7 @@ VmbError_t start_image_acquisition(GstVimbaXSrc *vimbaxsrc)
 /**
  * @brief Runs the AcquisitionStop command feature, stops the capture engine and flushes the capture queue
  *
- * @param vimbaxsrc Provides the camera handle which is used for the Vimba function calls
+ * @param vimbaxsrc Provides the camera handle which is used for the VmbC function calls
  * @return VmbError_t Return status indicating errors if they occurred
  */
 VmbError_t stop_image_acquisition(GstVimbaXSrc *vimbaxsrc)
