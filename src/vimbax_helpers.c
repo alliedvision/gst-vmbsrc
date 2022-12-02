@@ -1,4 +1,4 @@
-#include "vimba_helpers.h"
+#include "vimbax_helpers.h"
 
 #include <gst/gstinfo.h>
 

@@ -32,7 +32,7 @@
 
 #include "gstvimbaxsrc.h"
 #include "helpers.h"
-#include "vimba_helpers.h"
+#include "vimbax_helpers.h"
 #include "pixelformats.h"
 
 #ifdef HAVE_CONFIG_H
