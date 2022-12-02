@@ -139,7 +139,7 @@ typedef enum
 } GstVimbasrcIncompleteFrameHandlingValue;
 
 typedef struct _GstVimbaXSrc GstVimbaSrc;
-typedef struct _GstVimbaSrcClass GstVimbaSrcClass;
+typedef struct _GstVimbaXSrcClass GstVimbaSrcClass;
 
 #define NUM_VIMBA_FRAMES 3
 
@@ -185,7 +185,7 @@ struct _GstVimbaXSrc
     GstVideoInfo video_info;
 };
 
-struct _GstVimbaSrcClass
+struct _GstVimbaXSrcClass
 {
     GstPushSrcClass base_vimbaxsrc_class;
 };
