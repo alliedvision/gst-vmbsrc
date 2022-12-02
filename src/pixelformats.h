@@ -15,7 +15,7 @@
 
 typedef struct
 {
-    const char *vimba_format_name;
+    const char *vimbax_format_name;
     const char *gst_format_name;
 } VimbaXGstFormatMatch_t;
 
@@ -49,9 +49,9 @@ static VimbaXGstFormatMatch_t vimba_gst_format_matches[] = {
 #define NUM_FORMAT_MATCHES (sizeof(vimba_gst_format_matches) / sizeof(vimba_gst_format_matches[0]))
 
 // lookup supported gst cap by format string from camera
-const VimbaXGstFormatMatch_t *gst_format_from_vimba_format(const char *vimba_format);
+const VimbaXGstFormatMatch_t *gst_format_from_vimbax_format(const char *vimbax_format);
 
 // lookup camera format string by negotiated gst cap
-const VimbaXGstFormatMatch_t *vimba_format_from_gst_format(const char *gst_format);
+const VimbaXGstFormatMatch_t *vimbax_format_from_gst_format(const char *gst_format);
 
 #endif // PIXELFORMATS_H_

@@ -1046,7 +1046,7 @@ static GstCaps *gst_vimbaxsrc_get_caps(GstBaseSrc *src, GstCaps *filter)
         {
             g_value_set_static_string(&pixel_format, vimbaxsrc->camera.supported_formats[i]->gst_format_name);
             // TODO: Should this perhaps be done via a flag in vimba_gst_format_matches?
-            if (starts_with(vimbaxsrc->camera.supported_formats[i]->vimba_format_name, "Bayer"))
+            if (starts_with(vimbaxsrc->camera.supported_formats[i]->vimbax_format_name, "Bayer"))
             {
                 gst_value_list_append_value(&pixel_format_bayer_list, &pixel_format);
             }
@@ -1082,17 +1082,17 @@ static gboolean gst_vimbaxsrc_set_caps(GstBaseSrc *src, GstCaps *caps)
                      "Looking for matching vimba pixel format to GSreamer format \"%s\"",
                      gst_format);
 
-    const char *vimba_format = NULL;
+    const char *vimbax_format = NULL;
     for (unsigned int i = 0; i < vimbaxsrc->camera.supported_formats_count; i++)
     {
         if (strcmp(gst_format, vimbaxsrc->camera.supported_formats[i]->gst_format_name) == 0)
         {
-            vimba_format = vimbaxsrc->camera.supported_formats[i]->vimba_format_name;
-            GST_DEBUG_OBJECT(vimbaxsrc, "Found matching vimba pixel format \"%s\"", vimba_format);
+            vimbax_format = vimbaxsrc->camera.supported_formats[i]->vimbax_format_name;
+            GST_DEBUG_OBJECT(vimbaxsrc, "Found matching vimba pixel format \"%s\"", vimbax_format);
             break;
         }
     }
-    if (vimba_format == NULL)
+    if (vimbax_format == NULL)
     {
         GST_ERROR_OBJECT(vimbaxsrc,
                          "Could not find a matching vimba pixel format for GStreamer format \"%s\"",
@@ -1107,12 +1107,12 @@ static gboolean gst_vimbaxsrc_set_caps(GstBaseSrc *src, GstCaps *caps)
 
     result = VmbFeatureEnumSet(vimbaxsrc->camera.handle,
                                "PixelFormat",
-                               vimba_format);
+                               vimbax_format);
     if (result != VmbErrorSuccess)
     {
         GST_ERROR_OBJECT(vimbaxsrc,
                          "Could not set \"PixelFormat\" to \"%s\". Got return code \"%s\"",
-                         vimba_format,
+                         vimbax_format,
                          ErrorCodeToMessage(result));
         return FALSE;
     }
@@ -2004,7 +2004,7 @@ void map_supported_pixel_formats(GstVimbaXSrc *vimbaxsrc)
         VmbFeatureEnumIsAvailable(vimbaxsrc->camera.handle, "PixelFormat", supported_formats[i], &is_available);
         if (is_available)
         {
-            const VimbaXGstFormatMatch_t *format_map = gst_format_from_vimba_format(supported_formats[i]);
+            const VimbaXGstFormatMatch_t *format_map = gst_format_from_vimbax_format(supported_formats[i]);
             if (format_map != NULL)
             {
                 GST_DEBUG_OBJECT(vimbaxsrc,
