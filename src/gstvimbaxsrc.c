@@ -1254,7 +1254,7 @@ static GstFlowReturn gst_vimbaxsrc_create(GstPushSrc *src, GstBuffer **buf)
     VmbFrame_t *frame;
     do
     {
-        // Wait until we can get a filled frame (added to queue in vimba_frame_callback)
+        // Wait until we can get a filled frame (added to queue in vimbax_frame_callback)
         frame = NULL;
         GstStateChangeReturn ret;
         GstState state;
@@ -1289,7 +1289,7 @@ static GstFlowReturn gst_vimbaxsrc_create(GstPushSrc *src, GstBuffer **buf)
             {
                 // frame should be dropped -> requeue VimbaX buffer here since image data will not be used
                 GST_DEBUG_OBJECT(vimbaxsrc, "Dropping incomplete frame and requeueing buffer to capture queue");
-                VmbCaptureFrameQueue(vimbaxsrc->camera.handle, frame, &vimba_frame_callback);
+                VmbCaptureFrameQueue(vimbaxsrc->camera.handle, frame, &vimbax_frame_callback);
             }
         }
         else
@@ -1323,7 +1323,7 @@ static GstFlowReturn gst_vimbaxsrc_create(GstPushSrc *src, GstBuffer **buf)
         frame->bufferSize);
 
     // requeue frame after we copied the image data for VimbaX to use again
-    VmbCaptureFrameQueue(vimbaxsrc->camera.handle, frame, &vimba_frame_callback);
+    VmbCaptureFrameQueue(vimbaxsrc->camera.handle, frame, &vimbax_frame_callback);
 
     // Manually calculate the stride for pixel rows as it might not be identical to GStreamer
     // expectations
@@ -1820,7 +1820,7 @@ VmbError_t alloc_and_announce_buffers(GstVimbaXSrc *vimbaxsrc)
     if (result == VmbErrorSuccess)
     {
         GST_DEBUG_OBJECT(vimbaxsrc, "Got \"PayloadSize\" of: %llu", payload_size);
-        GST_DEBUG_OBJECT(vimbaxsrc, "Allocating and announcing %d vimba frames", NUM_FRAME_BUFFERS);
+        GST_DEBUG_OBJECT(vimbaxsrc, "Allocating and announcing %d VimbaX frames", NUM_FRAME_BUFFERS);
         for (int i = 0; i < NUM_FRAME_BUFFERS; i++)
         {
             // Some transport layers provide higher performance if specific alignment is observed.
@@ -1881,7 +1881,7 @@ void revoke_and_free_buffers(GstVimbaXSrc *vimbaxsrc)
 }
 
 /**
- * @brief Starts the capture engine, queues Vimba frames and runs the AcquisitionStart command feature. Frame buffers
+ * @brief Starts the capture engine, queues VimbaX frames and runs the AcquisitionStart command feature. Frame buffers
  * must be allocated before running this function.
  *
  * @param vimbaxsrc Provides the camera handle used for the VmbC calls and access to the queued frame buffers
@@ -1894,11 +1894,11 @@ VmbError_t start_image_acquisition(GstVimbaXSrc *vimbaxsrc)
     VmbError_t result = VmbCaptureStart(vimbaxsrc->camera.handle);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbaxsrc, "Queueing the vimba frames");
+        GST_DEBUG_OBJECT(vimbaxsrc, "Queueing the VimbaX frames");
         for (int i = 0; i < NUM_FRAME_BUFFERS; i++)
         {
             // Queue Frame
-            result = VmbCaptureFrameQueue(vimbaxsrc->camera.handle, &vimbaxsrc->frame_buffers[i], &vimba_frame_callback);
+            result = VmbCaptureFrameQueue(vimbaxsrc->camera.handle, &vimbaxsrc->frame_buffers[i], &vimbax_frame_callback);
             if (VmbErrorSuccess != result)
             {
                 break;
@@ -1960,7 +1960,7 @@ VmbError_t stop_image_acquisition(GstVimbaXSrc *vimbaxsrc)
     return result;
 }
 
-void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, const VmbHandle_t stream_handle, VmbFrame_t *frame)
+void VMB_CALL vimbax_frame_callback(const VmbHandle_t camera_handle, const VmbHandle_t stream_handle, VmbFrame_t *frame)
 {
     UNUSED(camera_handle); // enable compilation while treating warning of unused vairable as error
     UNUSED(stream_handle);

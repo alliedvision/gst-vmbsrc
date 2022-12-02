@@ -178,7 +178,7 @@ struct _GstVimbaXSrc
     } properties;
 
     VmbFrame_t frame_buffers[NUM_FRAME_BUFFERS];
-    // queue in which filled VimbaX frames are placed in the vimba_frame_callback (attached to each queued frame at
+    // queue in which filled VimbaX frames are placed in the vimbax_frame_callback (attached to each queued frame at
     // frame->context[0])
     GAsyncQueue *filled_frame_queue;
     guint64 num_frames_pushed;
@@ -202,7 +202,7 @@ VmbError_t alloc_and_announce_buffers(GstVimbaXSrc *vimbaxsrc);
 void revoke_and_free_buffers(GstVimbaXSrc *vimbaxsrc);
 VmbError_t start_image_acquisition(GstVimbaXSrc *vimbaxsrc);
 VmbError_t stop_image_acquisition(GstVimbaXSrc *vimbaxsrc);
-void VMB_CALL vimba_frame_callback(const VmbHandle_t cameraHandle, const VmbHandle_t stream_handle, VmbFrame_t *pFrame);
+void VMB_CALL vimbax_frame_callback(const VmbHandle_t cameraHandle, const VmbHandle_t stream_handle, VmbFrame_t *pFrame);
 void map_supported_pixel_formats(GstVimbaXSrc *vimbaxsrc);
 void log_available_enum_entries(GstVimbaXSrc *vimbaxsrc, const char *feat_name);
 
