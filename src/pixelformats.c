@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <string.h>
 
-const VimbaGstFormatMatch_t *gst_format_from_vimba_format(const char *vimba_format)
+const VimbaXGstFormatMatch_t *gst_format_from_vimba_format(const char *vimba_format)
 {
     for (unsigned int i = 0; i < NUM_FORMAT_MATCHES; i++)
     {
@@ -16,7 +16,7 @@ const VimbaGstFormatMatch_t *gst_format_from_vimba_format(const char *vimba_form
 
 // TODO: There may be multiple vimba format entries for the same gst_format. How to handle this? Currently the first hit
 // for the gst_format is returned and the rest ignored.
-const VimbaGstFormatMatch_t *vimba_format_from_gst_format(const char *gst_format)
+const VimbaXGstFormatMatch_t *vimba_format_from_gst_format(const char *gst_format)
 {
     for (unsigned int i = 0; i < NUM_FORMAT_MATCHES; i++)
     {

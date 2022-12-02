@@ -155,7 +155,7 @@ struct _GstVimbaSrc
         VmbUint32_t supported_formats_count;
         // TODO: This overallocates since no camera will actually support all possible format matches. Allocate and fill
         // at runtime?
-        const VimbaGstFormatMatch_t *supported_formats[NUM_FORMAT_MATCHES];
+        const VimbaXGstFormatMatch_t *supported_formats[NUM_FORMAT_MATCHES];
         bool is_connected;
         bool is_acquiring;
     } camera;

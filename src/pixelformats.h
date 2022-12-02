@@ -17,10 +17,10 @@ typedef struct
 {
     const char *vimba_format_name;
     const char *gst_format_name;
-} VimbaGstFormatMatch_t;
+} VimbaXGstFormatMatch_t;
 
 // TODO: Check if same capitalization as below for the vimba capabilities is guaranteed
-static VimbaGstFormatMatch_t vimba_gst_format_matches[] = {
+static VimbaXGstFormatMatch_t vimba_gst_format_matches[] = {
     {"Mono8", "GRAY8"},
     {"Mono10", "GRAY16_LE"},
     {"Mono12", "GRAY16_LE"},
@@ -49,9 +49,9 @@ static VimbaGstFormatMatch_t vimba_gst_format_matches[] = {
 #define NUM_FORMAT_MATCHES (sizeof(vimba_gst_format_matches) / sizeof(vimba_gst_format_matches[0]))
 
 // lookup supported gst cap by format string from camera
-const VimbaGstFormatMatch_t *gst_format_from_vimba_format(const char *vimba_format);
+const VimbaXGstFormatMatch_t *gst_format_from_vimba_format(const char *vimba_format);
 
 // lookup camera format string by negotiated gst cap
-const VimbaGstFormatMatch_t *vimba_format_from_gst_format(const char *gst_format);
+const VimbaXGstFormatMatch_t *vimba_format_from_gst_format(const char *gst_format);
 
 #endif // PIXELFORMATS_H_

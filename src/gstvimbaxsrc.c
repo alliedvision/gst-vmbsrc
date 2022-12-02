@@ -2004,7 +2004,7 @@ void map_supported_pixel_formats(GstVimbaSrc *vimbaxsrc)
         VmbFeatureEnumIsAvailable(vimbaxsrc->camera.handle, "PixelFormat", supported_formats[i], &is_available);
         if (is_available)
         {
-            const VimbaGstFormatMatch_t *format_map = gst_format_from_vimba_format(supported_formats[i]);
+            const VimbaXGstFormatMatch_t *format_map = gst_format_from_vimba_format(supported_formats[i]);
             if (format_map != NULL)
             {
                 GST_DEBUG_OBJECT(vimbaxsrc,
