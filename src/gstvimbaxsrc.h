@@ -33,8 +33,8 @@
 G_BEGIN_DECLS
 
 #define GST_TYPE_vimbaxsrc (gst_vimbaxsrc_get_type())
-#define GST_vimbaxsrc(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_vimbaxsrc, GstVimbaSrc))
-#define GST_vimbaxsrc_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_vimbaxsrc, GstVimbaSrcClass))
+#define GST_vimbaxsrc(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_vimbaxsrc, GstVimbaXSrc))
+#define GST_vimbaxsrc_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_vimbaxsrc, GstVimbaXSrcClass))
 #define GST_IS_vimbaxsrc(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_vimbaxsrc))
 #define GST_IS_vimbaxsrc_CLASS(obj) (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_vimbaxsrc))
 
@@ -138,8 +138,8 @@ typedef enum
     GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_SUBMIT
 } GstVimbasrcIncompleteFrameHandlingValue;
 
-typedef struct _GstVimbaXSrc GstVimbaSrc;
-typedef struct _GstVimbaXSrcClass GstVimbaSrcClass;
+typedef struct _GstVimbaXSrc GstVimbaXSrc;
+typedef struct _GstVimbaXSrcClass GstVimbaXSrcClass;
 
 #define NUM_VIMBA_FRAMES 3
 
@@ -194,16 +194,16 @@ GType gst_vimbaxsrc_get_type(void);
 
 G_END_DECLS
 
-VmbError_t open_camera_connection(GstVimbaSrc *vimbaxsrc);
-VmbError_t apply_feature_settings(GstVimbaSrc *vimbaxsrc);
-VmbError_t set_roi(GstVimbaSrc *vimbaxsrc);
-VmbError_t apply_trigger_settings(GstVimbaSrc *vimbaxsrc);
-VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbaxsrc);
-void revoke_and_free_buffers(GstVimbaSrc *vimbaxsrc);
-VmbError_t start_image_acquisition(GstVimbaSrc *vimbaxsrc);
-VmbError_t stop_image_acquisition(GstVimbaSrc *vimbaxsrc);
+VmbError_t open_camera_connection(GstVimbaXSrc *vimbaxsrc);
+VmbError_t apply_feature_settings(GstVimbaXSrc *vimbaxsrc);
+VmbError_t set_roi(GstVimbaXSrc *vimbaxsrc);
+VmbError_t apply_trigger_settings(GstVimbaXSrc *vimbaxsrc);
+VmbError_t alloc_and_announce_buffers(GstVimbaXSrc *vimbaxsrc);
+void revoke_and_free_buffers(GstVimbaXSrc *vimbaxsrc);
+VmbError_t start_image_acquisition(GstVimbaXSrc *vimbaxsrc);
+VmbError_t stop_image_acquisition(GstVimbaXSrc *vimbaxsrc);
 void VMB_CALL vimba_frame_callback(const VmbHandle_t cameraHandle, const VmbHandle_t stream_handle, VmbFrame_t *pFrame);
-void map_supported_pixel_formats(GstVimbaSrc *vimbaxsrc);
-void log_available_enum_entries(GstVimbaSrc *vimbaxsrc, const char *feat_name);
+void map_supported_pixel_formats(GstVimbaXSrc *vimbaxsrc);
+void log_available_enum_entries(GstVimbaXSrc *vimbaxsrc, const char *feat_name);
 
 #endif

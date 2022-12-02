@@ -285,7 +285,7 @@ static GType gst_vimbaxsrc_incompleteframehandling_get_type(void)
 
 /* class initialization */
 
-G_DEFINE_TYPE_WITH_CODE(GstVimbaSrc,
+G_DEFINE_TYPE_WITH_CODE(GstVimbaXSrc,
                         gst_vimbaxsrc,
                         GST_TYPE_PUSH_SRC,
                         GST_DEBUG_CATEGORY_INIT(gst_vimbaxsrc_debug_category,
@@ -293,7 +293,7 @@ G_DEFINE_TYPE_WITH_CODE(GstVimbaSrc,
                                                 0,
                                                 "debug category for vimbaxsrc element"))
 
-static void gst_vimbaxsrc_class_init(GstVimbaSrcClass *klass)
+static void gst_vimbaxsrc_class_init(GstVimbaXSrcClass *klass)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
     GstBaseSrcClass *base_src_class = GST_BASE_SRC_CLASS(klass);
@@ -475,7 +475,7 @@ static void gst_vimbaxsrc_class_init(GstVimbaSrcClass *klass)
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
-static void gst_vimbaxsrc_init(GstVimbaSrc *vimbaxsrc)
+static void gst_vimbaxsrc_init(GstVimbaXSrc *vimbaxsrc)
 {
     GST_TRACE_OBJECT(vimbaxsrc, "init");
     GST_INFO_OBJECT(vimbaxsrc, "gst-vimbaxsrc version %s", VERSION);
@@ -602,7 +602,7 @@ static void gst_vimbaxsrc_init(GstVimbaSrc *vimbaxsrc)
 
 void gst_vimbaxsrc_set_property(GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
-    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(object);
+    GstVimbaXSrc *vimbaxsrc = GST_vimbaxsrc(object);
 
     GST_DEBUG_OBJECT(vimbaxsrc, "set_property");
 
@@ -669,7 +669,7 @@ void gst_vimbaxsrc_set_property(GObject *object, guint property_id, const GValue
 
 void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
-    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(object);
+    GstVimbaXSrc *vimbaxsrc = GST_vimbaxsrc(object);
 
     VmbError_t result;
 
@@ -945,7 +945,7 @@ void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *valu
 
 void gst_vimbaxsrc_finalize(GObject *object)
 {
-    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(object);
+    GstVimbaXSrc *vimbaxsrc = GST_vimbaxsrc(object);
 
     GST_TRACE_OBJECT(vimbaxsrc, "finalize");
 
@@ -985,7 +985,7 @@ void gst_vimbaxsrc_finalize(GObject *object)
 static GstCaps *gst_vimbaxsrc_get_caps(GstBaseSrc *src, GstCaps *filter)
 {
     UNUSED(filter); // enable compilation while treating warning of unused vairable as error
-    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(src);
+    GstVimbaXSrc *vimbaxsrc = GST_vimbaxsrc(src);
 
     GST_TRACE_OBJECT(vimbaxsrc, "get_caps");
 
@@ -1067,7 +1067,7 @@ static GstCaps *gst_vimbaxsrc_get_caps(GstBaseSrc *src, GstCaps *filter)
 /* notify the subclass of new caps */
 static gboolean gst_vimbaxsrc_set_caps(GstBaseSrc *src, GstCaps *caps)
 {
-    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(src);
+    GstVimbaXSrc *vimbaxsrc = GST_vimbaxsrc(src);
 
     GST_TRACE_OBJECT(vimbaxsrc, "set_caps");
 
@@ -1144,7 +1144,7 @@ static gboolean gst_vimbaxsrc_set_caps(GstBaseSrc *src, GstCaps *caps)
 /* start and stop processing, ideal for opening/closing the resource */
 static gboolean gst_vimbaxsrc_start(GstBaseSrc *src)
 {
-    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(src);
+    GstVimbaXSrc *vimbaxsrc = GST_vimbaxsrc(src);
 
     GST_TRACE_OBJECT(vimbaxsrc, "start");
 
@@ -1230,7 +1230,7 @@ static gboolean gst_vimbaxsrc_start(GstBaseSrc *src)
 
 static gboolean gst_vimbaxsrc_stop(GstBaseSrc *src)
 {
-    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(src);
+    GstVimbaXSrc *vimbaxsrc = GST_vimbaxsrc(src);
 
     GST_TRACE_OBJECT(vimbaxsrc, "stop");
 
@@ -1247,7 +1247,7 @@ static gboolean gst_vimbaxsrc_stop(GstBaseSrc *src)
 /* ask the subclass to create a buffer */
 static GstFlowReturn gst_vimbaxsrc_create(GstPushSrc *src, GstBuffer **buf)
 {
-    GstVimbaSrc *vimbaxsrc = GST_vimbaxsrc(src);
+    GstVimbaXSrc *vimbaxsrc = GST_vimbaxsrc(src);
 
     GST_TRACE_OBJECT(vimbaxsrc, "create");
 
@@ -1378,7 +1378,7 @@ GST_PLUGIN_DEFINE(GST_VERSION_MAJOR,
  * @param vimbaxsrc Provides access to the camera ID and holds the resulting handle
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t open_camera_connection(GstVimbaSrc *vimbaxsrc)
+VmbError_t open_camera_connection(GstVimbaXSrc *vimbaxsrc)
 {
     VmbError_t result = VmbCameraOpen(vimbaxsrc->camera.id, VmbAccessModeFull, &vimbaxsrc->camera.handle);
     if (result == VmbErrorSuccess)
@@ -1428,7 +1428,7 @@ VmbError_t open_camera_connection(GstVimbaSrc *vimbaxsrc)
  * modified features
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t apply_feature_settings(GstVimbaSrc *vimbaxsrc)
+VmbError_t apply_feature_settings(GstVimbaXSrc *vimbaxsrc)
 {
     bool was_acquiring = vimbaxsrc->camera.is_acquiring;
     if (vimbaxsrc->camera.is_acquiring)
@@ -1550,7 +1550,7 @@ VmbError_t apply_feature_settings(GstVimbaSrc *vimbaxsrc)
  * modified features
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t set_roi(GstVimbaSrc *vimbaxsrc)
+VmbError_t set_roi(GstVimbaXSrc *vimbaxsrc)
 {
     // TODO: Improve error handling (Perhaps more explicit allowed values are enough?) Early exit on errors?
 
@@ -1682,7 +1682,7 @@ VmbError_t set_roi(GstVimbaSrc *vimbaxsrc)
  * modified features
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t apply_trigger_settings(GstVimbaSrc *vimbaxsrc)
+VmbError_t apply_trigger_settings(GstVimbaXSrc *vimbaxsrc)
 {
     GST_DEBUG_OBJECT(vimbaxsrc, "Applying trigger settings");
 
@@ -1814,7 +1814,7 @@ VmbError_t apply_trigger_settings(GstVimbaSrc *vimbaxsrc)
  * @param vimbaxsrc Provides the camera handle used for the Vimba calls and holds the frame buffers
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbaxsrc)
+VmbError_t alloc_and_announce_buffers(GstVimbaXSrc *vimbaxsrc)
 {
     VmbInt64_t payload_size;
     VmbError_t result = VmbFeatureIntGet(vimbaxsrc->camera.handle, "PayloadSize", &payload_size);
@@ -1868,7 +1868,7 @@ VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbaxsrc)
  *
  * @param vimbaxsrc Provides the camera handle used for the Vimba calls and the frame buffers
  */
-void revoke_and_free_buffers(GstVimbaSrc *vimbaxsrc)
+void revoke_and_free_buffers(GstVimbaXSrc *vimbaxsrc)
 {
     for (int i = 0; i < NUM_VIMBA_FRAMES; i++)
     {
@@ -1888,7 +1888,7 @@ void revoke_and_free_buffers(GstVimbaSrc *vimbaxsrc)
  * @param vimbaxsrc Provides the camera handle used for the Vimba calls and access to the queued frame buffers
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t start_image_acquisition(GstVimbaSrc *vimbaxsrc)
+VmbError_t start_image_acquisition(GstVimbaXSrc *vimbaxsrc)
 {
     // Start Capture Engine
     GST_DEBUG_OBJECT(vimbaxsrc, "Starting the capture engine");
@@ -1933,7 +1933,7 @@ VmbError_t start_image_acquisition(GstVimbaSrc *vimbaxsrc)
  * @param vimbaxsrc Provides the camera handle which is used for the Vimba function calls
  * @return VmbError_t Return status indicating errors if they occurred
  */
-VmbError_t stop_image_acquisition(GstVimbaSrc *vimbaxsrc)
+VmbError_t stop_image_acquisition(GstVimbaXSrc *vimbaxsrc)
 {
     // Stop Acquisition
     GST_DEBUG_OBJECT(vimbaxsrc, "Running \"AcquisitionStop\" feature");
@@ -1977,7 +1977,7 @@ void VMB_CALL vimba_frame_callback(const VmbHandle_t camera_handle, const VmbHan
  *
  * @param vimbaxsrc provides the camera handle and holds the generated mapping
  */
-void map_supported_pixel_formats(GstVimbaSrc *vimbaxsrc)
+void map_supported_pixel_formats(GstVimbaXSrc *vimbaxsrc)
 {
     // get number of supported formats from the camera
     VmbUint32_t camera_format_count;
@@ -2029,7 +2029,7 @@ void map_supported_pixel_formats(GstVimbaSrc *vimbaxsrc)
     free((void *)supported_formats);
 }
 
-void log_available_enum_entries(GstVimbaSrc *vimbaxsrc, const char *feat_name)
+void log_available_enum_entries(GstVimbaXSrc *vimbaxsrc, const char *feat_name)
 {
     VmbUint32_t trigger_source_count;
     VmbFeatureEnumRangeQuery(
