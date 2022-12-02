@@ -33,8 +33,8 @@
 G_BEGIN_DECLS
 
 #define GST_TYPE_vimbaxsrc (gst_vimbaxsrc_get_type())
-#define GST_vimbaxsrc(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_vimbaxsrc, GstVimbaSrc))
-#define GST_vimbaxsrc_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_vimbaxsrc, GstVimbaSrcClass))
+#define GST_vimbaxsrc(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_vimbaxsrc, GstVimbaXSrc))
+#define GST_vimbaxsrc_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_vimbaxsrc, GstVimbaXSrcClass))
 #define GST_IS_vimbaxsrc(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_vimbaxsrc))
 #define GST_IS_vimbaxsrc_CLASS(obj) (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_vimbaxsrc))
 
@@ -44,7 +44,7 @@ typedef enum
     GST_VIMBAXSRC_AUTOFEATURE_OFF,
     GST_VIMBAXSRC_AUTOFEATURE_ONCE,
     GST_VIMBAXSRC_AUTOFEATURE_CONTINUOUS
-} GstVimbasrcAutoFeatureValue;
+} GstVimbaXSrcAutoFeatureValue;
 
 // Possible values for TriggerSelector feature
 typedef enum
@@ -63,7 +63,7 @@ typedef enum
     GST_VIMBAXSRC_TRIGGERSELECTOR_EXPOSURE_START,
     GST_VIMBAXSRC_TRIGGERSELECTOR_EXPOSURE_END,
     GST_VIMBAXSRC_TRIGGERSELECTOR_EXPOSURE_ACTIVE
-} GstVimbasrcTriggerSelectorValue;
+} GstVimbaXSrcTriggerSelectorValue;
 
 // Possible values for TriggerMode feature
 typedef enum
@@ -71,7 +71,7 @@ typedef enum
     GST_VIMBAXSRC_TRIGGERMODE_UNCHANGED,
     GST_VIMBAXSRC_TRIGGERMODE_OFF,
     GST_VIMBAXSRC_TRIGGERMODE_ON
-} GstVimbasrcTriggerModeValue;
+} GstVimbaXSrcTriggerModeValue;
 
 // Possible values for the TriggerSource feature
 typedef enum
@@ -118,7 +118,7 @@ typedef enum
     GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER1,
     GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER2,
     GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER3
-} GstVimbasrcTriggerSourceValue;
+} GstVimbaXSrcTriggerSourceValue;
 
 // Possible values for TriggerActivation feature
 typedef enum
@@ -129,21 +129,21 @@ typedef enum
     GST_VIMBAXSRC_TRIGGERACTIVATION_ANY_EDGE,
     GST_VIMBAXSRC_TRIGGERACTIVATION_LEVEL_HIGH,
     GST_VIMBAXSRC_TRIGGERACTIVATION_LEVEL_LOW
-} GstVimbasrcTriggerActivationValue;
+} GstVimbaXSrcTriggerActivationValue;
 
 // Implemented handling approaches for incomplete frames
 typedef enum
 {
     GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_DROP,
     GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_SUBMIT
-} GstVimbasrcIncompleteFrameHandlingValue;
+} GstVimbaXSrcIncompleteFrameHandlingValue;
 
-typedef struct _GstVimbaSrc GstVimbaSrc;
-typedef struct _GstVimbaSrcClass GstVimbaSrcClass;
+typedef struct _GstVimbaXSrc GstVimbaXSrc;
+typedef struct _GstVimbaXSrcClass GstVimbaXSrcClass;
 
-#define NUM_VIMBA_FRAMES 3
+#define NUM_FRAME_BUFFERS 3
 
-struct _GstVimbaSrc
+struct _GstVimbaXSrc
 {
     GstPushSrc base_vimbaxsrc;
 
@@ -155,7 +155,7 @@ struct _GstVimbaSrc
         VmbUint32_t supported_formats_count;
         // TODO: This overallocates since no camera will actually support all possible format matches. Allocate and fill
         // at runtime?
-        const VimbaGstFormatMatch_t *supported_formats[NUM_FORMAT_MATCHES];
+        const VimbaXGstFormatMatch_t *supported_formats[NUM_FORMAT_MATCHES];
         bool is_connected;
         bool is_acquiring;
     } camera;
@@ -177,15 +177,15 @@ struct _GstVimbaSrc
         int incomplete_frame_handling;
     } properties;
 
-    VmbFrame_t frame_buffers[NUM_VIMBA_FRAMES];
-    // queue in which filled Vimba frames are placed in the vimba_frame_callback (attached to each queued frame at
+    VmbFrame_t frame_buffers[NUM_FRAME_BUFFERS];
+    // queue in which filled VimbaX frames are placed in the vimbax_frame_callback (attached to each queued frame at
     // frame->context[0])
     GAsyncQueue *filled_frame_queue;
     guint64 num_frames_pushed;
     GstVideoInfo video_info;
 };
 
-struct _GstVimbaSrcClass
+struct _GstVimbaXSrcClass
 {
     GstPushSrcClass base_vimbaxsrc_class;
 };
@@ -194,16 +194,16 @@ GType gst_vimbaxsrc_get_type(void);
 
 G_END_DECLS
 
-VmbError_t open_camera_connection(GstVimbaSrc *vimbaxsrc);
-VmbError_t apply_feature_settings(GstVimbaSrc *vimbaxsrc);
-VmbError_t set_roi(GstVimbaSrc *vimbaxsrc);
-VmbError_t apply_trigger_settings(GstVimbaSrc *vimbaxsrc);
-VmbError_t alloc_and_announce_buffers(GstVimbaSrc *vimbaxsrc);
-void revoke_and_free_buffers(GstVimbaSrc *vimbaxsrc);
-VmbError_t start_image_acquisition(GstVimbaSrc *vimbaxsrc);
-VmbError_t stop_image_acquisition(GstVimbaSrc *vimbaxsrc);
-void VMB_CALL vimba_frame_callback(const VmbHandle_t cameraHandle, const VmbHandle_t stream_handle, VmbFrame_t *pFrame);
-void map_supported_pixel_formats(GstVimbaSrc *vimbaxsrc);
-void log_available_enum_entries(GstVimbaSrc *vimbaxsrc, const char *feat_name);
+VmbError_t open_camera_connection(GstVimbaXSrc *vimbaxsrc);
+VmbError_t apply_feature_settings(GstVimbaXSrc *vimbaxsrc);
+VmbError_t set_roi(GstVimbaXSrc *vimbaxsrc);
+VmbError_t apply_trigger_settings(GstVimbaXSrc *vimbaxsrc);
+VmbError_t alloc_and_announce_buffers(GstVimbaXSrc *vimbaxsrc);
+void revoke_and_free_buffers(GstVimbaXSrc *vimbaxsrc);
+VmbError_t start_image_acquisition(GstVimbaXSrc *vimbaxsrc);
+VmbError_t stop_image_acquisition(GstVimbaXSrc *vimbaxsrc);
+void VMB_CALL vimbax_frame_callback(const VmbHandle_t cameraHandle, const VmbHandle_t stream_handle, VmbFrame_t *pFrame);
+void map_supported_pixel_formats(GstVimbaXSrc *vimbaxsrc);
+void log_available_enum_entries(GstVimbaXSrc *vimbaxsrc, const char *feat_name);
 
 #endif
