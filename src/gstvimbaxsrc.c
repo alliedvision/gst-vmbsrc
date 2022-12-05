@@ -497,7 +497,7 @@ static void gst_vimbaxsrc_class_init(GstVimbaXSrcClass *klass)
         g_param_spec_enum(
             "allocationmode",
             "Buffer allocation strategy",
-            "Decides if frame buffers should be allocated by the gstreamer element itself or by the transport layer. It is possible that not all transport layers support automatic buffer allocation",
+            "Decides if frame buffers should be allocated by the gstreamer element itself or by the transport layer",
             GST_ENUM_ALLOCATIONMODE_VALUES,
             GST_VIMBAXSRC_ALLOCATION_MODE_ANNOUNCE_FRAME,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
