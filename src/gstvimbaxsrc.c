@@ -1874,7 +1874,7 @@ VmbError_t alloc_and_announce_buffers(GstVimbaXSrc *vimbaxsrc)
                                         "StreamBufferAlignment",
                                         &buffer_alignment);
                 // The result is not really important so we do not have to check it. If the camera
-                // requires alignment, the call will have succeeded. If alginment does not matter,
+                // requires alignment, the call will have succeeded. If alignment does not matter,
                 // the call failed but the default value of 1 was not changed
                 GST_DEBUG_OBJECT(vimbaxsrc,
                                 "Using \"StreamBufferAlignment\" of: %llu (read result was %s)",
