@@ -1858,7 +1858,7 @@ VmbError_t alloc_and_announce_buffers(GstVimbaXSrc *vimbaxsrc)
     VmbError_t result = VmbPayloadSizeGet(vimbaxsrc->camera.handle, &payload_size);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbaxsrc, "Got \"PayloadSize\" of: %llu", payload_size);
+        GST_DEBUG_OBJECT(vimbaxsrc, "Got \"PayloadSize\" of: %u", payload_size);
         GST_DEBUG_OBJECT(vimbaxsrc, "Allocating and announcing %d VimbaX frames", NUM_FRAME_BUFFERS);
         GEnumValue *allocation_mode = g_enum_get_value(g_type_class_ref(GST_ENUM_ALLOCATIONMODE_VALUES), vimbaxsrc->properties.allocation_mode);
         GST_DEBUG_OBJECT(vimbaxsrc, "Using allocation mode %s", allocation_mode->value_nick);
