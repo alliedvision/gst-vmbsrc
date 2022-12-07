@@ -1161,8 +1161,8 @@ static gboolean gst_vimbaxsrc_set_caps(GstBaseSrc *src, GstCaps *caps)
     // Buffer size needs to be increased if the new payload size is greater than the old one because that means the
     // previously allocated buffers are not large enough. We simply check the size of the first buffer because they were
     // all allocated with the same size
-    VmbInt64_t new_payload_size;
-    result = VmbFeatureIntGet(vimbaxsrc->camera.handle, "PayloadSize", &new_payload_size);
+    VmbUint32_t new_payload_size;
+    result = VmbPayloadSizeGet(vimbaxsrc->camera.handle, &new_payload_size);
     if (vimbaxsrc->frame_buffers[0].bufferSize < new_payload_size || result != VmbErrorSuccess)
     {
         // Also reallocate buffers if PayloadSize could not be read because it might have increased
@@ -1854,8 +1854,8 @@ VmbError_t apply_trigger_settings(GstVimbaXSrc *vimbaxsrc)
  */
 VmbError_t alloc_and_announce_buffers(GstVimbaXSrc *vimbaxsrc)
 {
-    VmbInt64_t payload_size;
-    VmbError_t result = VmbFeatureIntGet(vimbaxsrc->camera.handle, "PayloadSize", &payload_size);
+    VmbUint32_t payload_size;
+    VmbError_t result = VmbPayloadSizeGet(vimbaxsrc->camera.handle, &payload_size);
     if (result == VmbErrorSuccess)
     {
         GST_DEBUG_OBJECT(vimbaxsrc, "Got \"PayloadSize\" of: %llu", payload_size);
