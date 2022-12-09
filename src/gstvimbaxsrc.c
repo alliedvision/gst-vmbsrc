@@ -88,7 +88,8 @@ enum
     PROP_TRIGGERMODE,
     PROP_TRIGGERSOURCE,
     PROP_TRIGGERACTIVATION,
-    PROP_INCOMPLETE_FRAME_HANDLING
+    PROP_INCOMPLETE_FRAME_HANDLING,
+    PROP_ALLOCATION_MODE
 };
 
 /* pad templates */
@@ -283,6 +284,23 @@ static GType gst_vimbaxsrc_incompleteframehandling_get_type(void)
     return vimbaxsrc_incompleteframehandling_type;
 }
 
+/* Frame buffer allocation modes */
+#define GST_ENUM_ALLOCATIONMODE_VALUES (gst_vimbaxsrc_allocationmode_get_type())
+static GType gst_vimbaxsrc_allocationmode_get_type(void)
+{
+    static GType vimbaxsrc_allocationmode_type = 0;
+    static const GEnumValue allocationmode_values[] = {
+        {GST_VIMBAXSRC_ALLOCATION_MODE_ANNOUNCE_FRAME, "Allocate buffers in the plugin", "AnnounceFrame"},
+        {GST_VIMBAXSRC_ALLOCATION_MODE_ALLOC_AND_ANNOUNCE_FRAME, "Let the transport layer allocate buffers", "AllocAndAnnounceFrame"},
+        {0, NULL, NULL}};
+    if (!vimbaxsrc_allocationmode_type)
+    {
+        vimbaxsrc_allocationmode_type =
+            g_enum_register_static("GstVimbasrcAllocationModeValues", allocationmode_values);
+    }
+    return vimbaxsrc_allocationmode_type;
+}
+
 /* class initialization */
 
 G_DEFINE_TYPE_WITH_CODE(GstVimbaXSrc,
@@ -473,6 +491,16 @@ static void gst_vimbaxsrc_class_init(GstVimbaXSrcClass *klass)
             GST_ENUM_INCOMPLETEFRAMEHANDLING_VALUES,
             GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_DROP,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_ALLOCATION_MODE,
+        g_param_spec_enum(
+            "allocationmode",
+            "Buffer allocation strategy",
+            "Decides if frame buffers should be allocated by the gstreamer element itself or by the transport layer",
+            GST_ENUM_ALLOCATIONMODE_VALUES,
+            GST_VIMBAXSRC_ALLOCATION_MODE_ANNOUNCE_FRAME,
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void gst_vimbaxsrc_init(GstVimbaXSrc *vimbaxsrc)
@@ -596,6 +624,11 @@ static void gst_vimbaxsrc_init(GstVimbaXSrc *vimbaxsrc)
             g_object_class_find_property(
                 gobject_class,
                 "incompleteframehandling")));
+    vimbaxsrc->properties.allocation_mode = g_value_get_enum(
+        g_param_spec_get_default_value(
+            g_object_class_find_property(
+                gobject_class,
+                "allocationmode")));
 
     gst_video_info_init(&vimbaxsrc->video_info);
 }
@@ -660,6 +693,9 @@ void gst_vimbaxsrc_set_property(GObject *object, guint property_id, const GValue
         break;
     case PROP_INCOMPLETE_FRAME_HANDLING:
         vimbaxsrc->properties.incomplete_frame_handling = g_value_get_enum(value);
+        break;
+    case PROP_ALLOCATION_MODE:
+        vimbaxsrc->properties.allocation_mode = g_value_get_enum(value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
@@ -936,6 +972,9 @@ void gst_vimbaxsrc_get_property(GObject *object, guint property_id, GValue *valu
     case PROP_INCOMPLETE_FRAME_HANDLING:
         g_value_set_enum(value, vimbaxsrc->properties.incomplete_frame_handling);
         break;
+    case PROP_ALLOCATION_MODE:
+        g_value_set_enum(value, vimbaxsrc->properties.incomplete_frame_handling);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
         break;
@@ -1122,8 +1161,8 @@ static gboolean gst_vimbaxsrc_set_caps(GstBaseSrc *src, GstCaps *caps)
     // Buffer size needs to be increased if the new payload size is greater than the old one because that means the
     // previously allocated buffers are not large enough. We simply check the size of the first buffer because they were
     // all allocated with the same size
-    VmbInt64_t new_payload_size;
-    result = VmbFeatureIntGet(vimbaxsrc->camera.handle, "PayloadSize", &new_payload_size);
+    VmbUint32_t new_payload_size;
+    result = VmbPayloadSizeGet(vimbaxsrc->camera.handle, &new_payload_size);
     if (vimbaxsrc->frame_buffers[0].bufferSize < new_payload_size || result != VmbErrorSuccess)
     {
         // Also reallocate buffers if PayloadSize could not be read because it might have increased
@@ -1815,35 +1854,45 @@ VmbError_t apply_trigger_settings(GstVimbaXSrc *vimbaxsrc)
  */
 VmbError_t alloc_and_announce_buffers(GstVimbaXSrc *vimbaxsrc)
 {
-    VmbInt64_t payload_size;
-    VmbError_t result = VmbFeatureIntGet(vimbaxsrc->camera.handle, "PayloadSize", &payload_size);
+    VmbUint32_t payload_size;
+    VmbError_t result = VmbPayloadSizeGet(vimbaxsrc->camera.handle, &payload_size);
     if (result == VmbErrorSuccess)
     {
-        GST_DEBUG_OBJECT(vimbaxsrc, "Got \"PayloadSize\" of: %llu", payload_size);
+        GST_DEBUG_OBJECT(vimbaxsrc, "Got \"PayloadSize\" of: %u", payload_size);
         GST_DEBUG_OBJECT(vimbaxsrc, "Allocating and announcing %d VimbaX frames", NUM_FRAME_BUFFERS);
+        GEnumValue *allocation_mode = g_enum_get_value(g_type_class_ref(GST_ENUM_ALLOCATIONMODE_VALUES), vimbaxsrc->properties.allocation_mode);
+        GST_DEBUG_OBJECT(vimbaxsrc, "Using allocation mode %s", allocation_mode->value_nick);
         for (int i = 0; i < NUM_FRAME_BUFFERS; i++)
         {
-            // Some transport layers provide higher performance if specific alignment is observed.
-            // Check if this camera has such a requirement. If not this basically becomes a regular
-            // allocation
-            VmbInt64_t buffer_alignment = 1;
-            result = VmbFeatureIntGet(vimbaxsrc->camera.info.streamHandles[0],
-                                      "StreamBufferAlignment",
-                                      &buffer_alignment);
-            // The result is not really important so we do not have to check it. If the camera
-            // requires alignment, the call will have succeeded. If alginment does not matter, the
-            // call failed but the default value of 1 was not changed
-            GST_DEBUG_OBJECT(vimbaxsrc,
-                             "Using \"StreamBufferAlignment\" of: %llu (read result was %s)",
-                             buffer_alignment,
-                             ErrorCodeToMessage(result));
-            vimbaxsrc->frame_buffers[i].buffer = VmbAlignedAlloc(buffer_alignment, payload_size);
-
-            if (NULL == vimbaxsrc->frame_buffers[i].buffer)
+            if (vimbaxsrc->properties.allocation_mode == GST_VIMBAXSRC_ALLOCATION_MODE_ANNOUNCE_FRAME)
             {
-                result = VmbErrorResources;
-                break;
+                // The element is responsible for allocating frame buffers. Some transport layers
+                // provide higher performance if specific alignment is observed. Check if this
+                // camera has such a requirement. If not this basically becomes a regular allocation
+                VmbInt64_t buffer_alignment = 1;
+                result = VmbFeatureIntGet(vimbaxsrc->camera.info.streamHandles[0],
+                                        "StreamBufferAlignment",
+                                        &buffer_alignment);
+                // The result is not really important so we do not have to check it. If the camera
+                // requires alignment, the call will have succeeded. If alignment does not matter,
+                // the call failed but the default value of 1 was not changed
+                GST_DEBUG_OBJECT(vimbaxsrc,
+                                "Using \"StreamBufferAlignment\" of: %llu (read result was %s)",
+                                buffer_alignment,
+                                ErrorCodeToMessage(result));
+                vimbaxsrc->frame_buffers[i].buffer = VmbAlignedAlloc(buffer_alignment, payload_size);
+                if (NULL == vimbaxsrc->frame_buffers[i].buffer)
+                {
+                    result = VmbErrorResources;
+                    break;
+                }
             }
+            else
+            {
+                // The transport layer will allocate suitable buffers
+                vimbaxsrc->frame_buffers[i].buffer = NULL;
+            }
+
             vimbaxsrc->frame_buffers[i].bufferSize = (VmbUint32_t)payload_size;
             vimbaxsrc->frame_buffers[i].context[0] = vimbaxsrc->filled_frame_queue;
 
@@ -1874,7 +1923,11 @@ void revoke_and_free_buffers(GstVimbaXSrc *vimbaxsrc)
         if (NULL != vimbaxsrc->frame_buffers[i].buffer)
         {
             VmbFrameRevoke(vimbaxsrc->camera.handle, &vimbaxsrc->frame_buffers[i]);
-            VmbAlignedFree(vimbaxsrc->frame_buffers[i].buffer);
+            if (vimbaxsrc->properties.allocation_mode == GST_VIMBAXSRC_ALLOCATION_MODE_ANNOUNCE_FRAME)
+            {
+                // The element allocated the frame buffers, so it must free the memory also
+                VmbAlignedFree(vimbaxsrc->frame_buffers[i].buffer);
+            }
             memset(&vimbaxsrc->frame_buffers[i], 0, sizeof(VmbFrame_t));
         }
     }
