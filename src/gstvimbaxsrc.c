@@ -1222,7 +1222,7 @@ static gboolean gst_vimbaxsrc_start(GstBaseSrc *src)
 #endif
         VmbFeaturePersistSettings_t settings = {
             .persistType = VmbFeaturePersistStreamable,
-            .maxIterations = 1};
+            .maxIterations = 0};
         result = VmbSettingsLoad(vimbaxsrc->camera.handle,
                                  buffer,
                                  &settings,
