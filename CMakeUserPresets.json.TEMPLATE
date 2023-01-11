@@ -59,7 +59,7 @@
       "name": "build-template",
       "hidden": true,
       "jobs": 8,
-      "targets": ["gstvimbaxsrc"]
+      "targets": ["gstvmbsrc"]
     },
     {
       "name": "win64",
