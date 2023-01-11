@@ -16,8 +16,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef _GST_vimbaxsrc_H_
-#define _GST_vimbaxsrc_H_
+#ifndef _GST_vmbsrc_H_
+#define _GST_vmbsrc_H_
 
 #include "pixelformats.h"
 
@@ -32,11 +32,11 @@
 
 G_BEGIN_DECLS
 
-#define GST_TYPE_vimbaxsrc (gst_vimbaxsrc_get_type())
-#define GST_vimbaxsrc(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_vimbaxsrc, GstVmbSrc))
-#define GST_vimbaxsrc_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_vimbaxsrc, GstVmbSrcClass))
-#define GST_IS_vimbaxsrc(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_vimbaxsrc))
-#define GST_IS_vimbaxsrc_CLASS(obj) (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_vimbaxsrc))
+#define GST_TYPE_vmbsrc (gst_vmbsrc_get_type())
+#define GST_vmbsrc(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), GST_TYPE_vmbsrc, GstVmbSrc))
+#define GST_vmbsrc_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass), GST_TYPE_vmbsrc, GstVmbSrcClass))
+#define GST_IS_vmbsrc(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), GST_TYPE_vmbsrc))
+#define GST_IS_vmbsrc_CLASS(obj) (G_TYPE_CHECK_CLASS_TYPE((klass), GST_TYPE_vmbsrc))
 
 /* Allowed values for "Auto" camera Features */
 typedef enum
@@ -152,7 +152,7 @@ typedef struct _GstVmbSrcClass GstVmbSrcClass;
 
 struct _GstVmbSrc
 {
-    GstPushSrc base_vimbaxsrc;
+    GstPushSrc base_vmbsrc;
 
     struct
     {
@@ -195,23 +195,23 @@ struct _GstVmbSrc
 
 struct _GstVmbSrcClass
 {
-    GstPushSrcClass base_vimbaxsrc_class;
+    GstPushSrcClass base_vmbsrc_class;
 };
 
-GType gst_vimbaxsrc_get_type(void);
+GType gst_vmbsrc_get_type(void);
 
 G_END_DECLS
 
-VmbError_t open_camera_connection(GstVmbSrc *vimbaxsrc);
-VmbError_t apply_feature_settings(GstVmbSrc *vimbaxsrc);
-VmbError_t set_roi(GstVmbSrc *vimbaxsrc);
-VmbError_t apply_trigger_settings(GstVmbSrc *vimbaxsrc);
-VmbError_t alloc_and_announce_buffers(GstVmbSrc *vimbaxsrc);
-void revoke_and_free_buffers(GstVmbSrc *vimbaxsrc);
-VmbError_t start_image_acquisition(GstVmbSrc *vimbaxsrc);
-VmbError_t stop_image_acquisition(GstVmbSrc *vimbaxsrc);
+VmbError_t open_camera_connection(GstVmbSrc *vmbsrc);
+VmbError_t apply_feature_settings(GstVmbSrc *vmbsrc);
+VmbError_t set_roi(GstVmbSrc *vmbsrc);
+VmbError_t apply_trigger_settings(GstVmbSrc *vmbsrc);
+VmbError_t alloc_and_announce_buffers(GstVmbSrc *vmbsrc);
+void revoke_and_free_buffers(GstVmbSrc *vmbsrc);
+VmbError_t start_image_acquisition(GstVmbSrc *vmbsrc);
+VmbError_t stop_image_acquisition(GstVmbSrc *vmbsrc);
 void VMB_CALL vimbax_frame_callback(const VmbHandle_t cameraHandle, const VmbHandle_t stream_handle, VmbFrame_t *pFrame);
-void map_supported_pixel_formats(GstVmbSrc *vimbaxsrc);
-void log_available_enum_entries(GstVmbSrc *vimbaxsrc, const char *feat_name);
+void map_supported_pixel_formats(GstVmbSrc *vmbsrc);
+void log_available_enum_entries(GstVmbSrc *vmbsrc, const char *feat_name);
 
 #endif
