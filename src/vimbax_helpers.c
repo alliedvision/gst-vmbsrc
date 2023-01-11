@@ -1,7 +1,5 @@
 #include "vimbax_helpers.h"
 
-#include <gst/gstinfo.h>
-
 #include <VmbC/VmbC.h>
 
 //
