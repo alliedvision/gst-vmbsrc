@@ -16,7 +16,7 @@
  * Boston, MA 02110-1301, USA.
  */
 /**
- * SECTION:element-gstvimbaxsrc
+ * SECTION:element-gstvmbsrc
  *
  * The vimbaxsrc element provides a way to stream image data into GStreamer pipelines from cameras
  * using the VimbaX API
@@ -30,7 +30,7 @@
  * </refsect2>
  */
 
-#include "gstvimbaxsrc.h"
+#include "gstvmbsrc.h"
 #include "helpers.h"
 #include "vimbax_helpers.h"
 #include "pixelformats.h"

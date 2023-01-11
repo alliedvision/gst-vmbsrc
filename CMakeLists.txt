@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 project(
-    gstvimbaxsrc
+    gstvmbsrc
     VERSION 0.0.1
     LANGUAGES C
     DESCRIPTION "GStreamer source plugin for VimbaX"
@@ -19,7 +19,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 add_library(${PROJECT_NAME} SHARED
-    src/gstvimbaxsrc.c
+    src/gstvmbsrc.c
     src/vimbax_helpers.c
     src/pixelformats.c
 )
