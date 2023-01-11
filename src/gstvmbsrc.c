@@ -107,9 +107,9 @@ static GType gst_vmbsrc_exposureauto_get_type(void)
     static GType vmbsrc_exposureauto_type = 0;
     static const GEnumValue exposureauto_modes[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the VimbaX FeatureEnum */
-        {GST_VIMBAXSRC_AUTOFEATURE_OFF, "Exposure duration is usercontrolled using ExposureTime", "Off"},
-        {GST_VIMBAXSRC_AUTOFEATURE_ONCE, "Exposure duration is adapted once by the device. Once it has converged, it returns to the Offstate", "Once"},
-        {GST_VIMBAXSRC_AUTOFEATURE_CONTINUOUS, "Exposure duration is constantly adapted by the device to maximize the dynamic range", "Continuous"},
+        {GST_VMBSRC_AUTOFEATURE_OFF, "Exposure duration is usercontrolled using ExposureTime", "Off"},
+        {GST_VMBSRC_AUTOFEATURE_ONCE, "Exposure duration is adapted once by the device. Once it has converged, it returns to the Offstate", "Once"},
+        {GST_VMBSRC_AUTOFEATURE_CONTINUOUS, "Exposure duration is constantly adapted by the device to maximize the dynamic range", "Continuous"},
         {0, NULL, NULL}};
     if (!vmbsrc_exposureauto_type)
     {
@@ -126,9 +126,9 @@ static GType gst_vmbsrc_balancewhiteauto_get_type(void)
     static GType vmbsrc_balancewhiteauto_type = 0;
     static const GEnumValue balancewhiteauto_modes[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the VimbaX FeatureEnum */
-        {GST_VIMBAXSRC_AUTOFEATURE_OFF, "White balancing is user controlled using BalanceRatioSelector and BalanceRatio", "Off"},
-        {GST_VIMBAXSRC_AUTOFEATURE_ONCE, "White balancing is automatically adjusted once by the device. Once it has converged, it automatically returns to the Off state", "Once"},
-        {GST_VIMBAXSRC_AUTOFEATURE_CONTINUOUS, "White balancing is constantly adjusted by the device", "Continuous"},
+        {GST_VMBSRC_AUTOFEATURE_OFF, "White balancing is user controlled using BalanceRatioSelector and BalanceRatio", "Off"},
+        {GST_VMBSRC_AUTOFEATURE_ONCE, "White balancing is automatically adjusted once by the device. Once it has converged, it automatically returns to the Off state", "Once"},
+        {GST_VMBSRC_AUTOFEATURE_CONTINUOUS, "White balancing is constantly adjusted by the device", "Continuous"},
         {0, NULL, NULL}};
     if (!vmbsrc_balancewhiteauto_type)
     {
@@ -145,20 +145,20 @@ static GType gst_vmbsrc_triggerselector_get_type(void)
     static GType vmbsrc_triggerselector_type = 0;
     static const GEnumValue triggerselector_values[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the VimbaX FeatureEnum */
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_UNCHANGED, "Does not change the currently applied triggerselector value on the device", "UNCHANGED"},
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_ACQUISITION_START, "Selects a trigger that starts the Acquisition of one or many frames according to AcquisitionMode", "AcquisitionStart"},
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_ACQUISITION_END, "Selects a trigger that ends the Acquisition of one or many frames according to AcquisitionMode", "AcquisitionEnd"},
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_ACQUISITION_ACTIVE, "Selects a trigger that controls the duration of the Acquisition of one or many frames. The Acquisition is activated when the trigger signal becomes active and terminated when it goes back to the inactive state", "AcquisitionActive"},
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_FRAME_START, "Selects a trigger starting the capture of one frame", "FrameStart"},
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_FRAME_END, "Selects a trigger ending the capture of one frame (mainly used in linescanmode)", "FrameEnd"},
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_FRAME_ACTIVE, "Selects a trigger controlling the duration of one frame (mainly used in linescanmode)", "FrameActive"},
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_FRAME_BURST_START, "Selects a trigger starting the capture of the bursts of frames in an acquisition. AcquisitionBurstFrameCount controls the length of each burst unless a FrameBurstEnd trigger is active. The total number of frames captured is also conditioned by AcquisitionFrameCount if AcquisitionMode is MultiFrame", "FrameBurstStart"},
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_FRAME_BURST_END, "Selects a trigger ending the capture of the bursts of frames in an acquisition", "FrameBurstEnd"},
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_FRAME_BURST_ACTIVE, "Selects a trigger controlling the duration of the capture of the bursts of frames in an acquisition", "FrameBurstActive"},
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_LINE_START, "Selects a trigger starting the capture of one Line of a Frame (mainly used in linescanmode)", "LineStart"},
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_EXPOSURE_START, "Selects a trigger controlling the start of the exposure of one Frame (or Line)", "ExposureStart"},
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_EXPOSURE_END, "Selects a trigger controlling the end of the exposure of one Frame (or Line)", "ExposureEnd"},
-        {GST_VIMBAXSRC_TRIGGERSELECTOR_EXPOSURE_ACTIVE, "Selects a trigger controlling the duration of the exposure of one frame (or Line)", "ExposureActive"},
+        {GST_VMBSRC_TRIGGERSELECTOR_UNCHANGED, "Does not change the currently applied triggerselector value on the device", "UNCHANGED"},
+        {GST_VMBSRC_TRIGGERSELECTOR_ACQUISITION_START, "Selects a trigger that starts the Acquisition of one or many frames according to AcquisitionMode", "AcquisitionStart"},
+        {GST_VMBSRC_TRIGGERSELECTOR_ACQUISITION_END, "Selects a trigger that ends the Acquisition of one or many frames according to AcquisitionMode", "AcquisitionEnd"},
+        {GST_VMBSRC_TRIGGERSELECTOR_ACQUISITION_ACTIVE, "Selects a trigger that controls the duration of the Acquisition of one or many frames. The Acquisition is activated when the trigger signal becomes active and terminated when it goes back to the inactive state", "AcquisitionActive"},
+        {GST_VMBSRC_TRIGGERSELECTOR_FRAME_START, "Selects a trigger starting the capture of one frame", "FrameStart"},
+        {GST_VMBSRC_TRIGGERSELECTOR_FRAME_END, "Selects a trigger ending the capture of one frame (mainly used in linescanmode)", "FrameEnd"},
+        {GST_VMBSRC_TRIGGERSELECTOR_FRAME_ACTIVE, "Selects a trigger controlling the duration of one frame (mainly used in linescanmode)", "FrameActive"},
+        {GST_VMBSRC_TRIGGERSELECTOR_FRAME_BURST_START, "Selects a trigger starting the capture of the bursts of frames in an acquisition. AcquisitionBurstFrameCount controls the length of each burst unless a FrameBurstEnd trigger is active. The total number of frames captured is also conditioned by AcquisitionFrameCount if AcquisitionMode is MultiFrame", "FrameBurstStart"},
+        {GST_VMBSRC_TRIGGERSELECTOR_FRAME_BURST_END, "Selects a trigger ending the capture of the bursts of frames in an acquisition", "FrameBurstEnd"},
+        {GST_VMBSRC_TRIGGERSELECTOR_FRAME_BURST_ACTIVE, "Selects a trigger controlling the duration of the capture of the bursts of frames in an acquisition", "FrameBurstActive"},
+        {GST_VMBSRC_TRIGGERSELECTOR_LINE_START, "Selects a trigger starting the capture of one Line of a Frame (mainly used in linescanmode)", "LineStart"},
+        {GST_VMBSRC_TRIGGERSELECTOR_EXPOSURE_START, "Selects a trigger controlling the start of the exposure of one Frame (or Line)", "ExposureStart"},
+        {GST_VMBSRC_TRIGGERSELECTOR_EXPOSURE_END, "Selects a trigger controlling the end of the exposure of one Frame (or Line)", "ExposureEnd"},
+        {GST_VMBSRC_TRIGGERSELECTOR_EXPOSURE_ACTIVE, "Selects a trigger controlling the duration of the exposure of one frame (or Line)", "ExposureActive"},
         {0, NULL, NULL}};
     if (!vmbsrc_triggerselector_type)
     {
@@ -175,9 +175,9 @@ static GType gst_vmbsrc_triggermode_get_type(void)
     static GType vmbsrc_triggermode_type = 0;
     static const GEnumValue triggermode_values[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the VimbaX FeatureEnum */
-        {GST_VIMBAXSRC_TRIGGERMODE_UNCHANGED, "Does not change the currently applied triggermode value on the device", "UNCHANGED"},
-        {GST_VIMBAXSRC_TRIGGERMODE_OFF, "Disables the selected trigger", "Off"},
-        {GST_VIMBAXSRC_TRIGGERMODE_ON, "Enable the selected trigger", "On"},
+        {GST_VMBSRC_TRIGGERMODE_UNCHANGED, "Does not change the currently applied triggermode value on the device", "UNCHANGED"},
+        {GST_VMBSRC_TRIGGERMODE_OFF, "Disables the selected trigger", "Off"},
+        {GST_VMBSRC_TRIGGERMODE_ON, "Enable the selected trigger", "On"},
         {0, NULL, NULL}};
     if (!vmbsrc_triggermode_type)
     {
@@ -195,48 +195,48 @@ static GType gst_vmbsrc_triggersource_get_type(void)
     static const GEnumValue triggersource_values[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the VimbaX FeatureEnum */
         // Commented out trigger sources require more complex setups and should be performed via XML configuration file
-        {GST_VIMBAXSRC_TRIGGERSOURCE_UNCHANGED, "Does not change the currently applied triggersource value on the device", "UNCHANGED"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_SOFTWARE, "Specifies that the trigger source will be generated by software using the TriggerSoftware command", "Software"},
-        {GST_VIMBAXSRC_TRIGGERSOURCE_LINE0, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line0"},
-        {GST_VIMBAXSRC_TRIGGERSOURCE_LINE1, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line1"},
-        {GST_VIMBAXSRC_TRIGGERSOURCE_LINE2, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line2"},
-        {GST_VIMBAXSRC_TRIGGERSOURCE_LINE3, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line3"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_USER_OUTPUT0, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput0"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_USER_OUTPUT1, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput1"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_USER_OUTPUT2, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput2"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_USER_OUTPUT3, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput3"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER0_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter0Start"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER1_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter1Start"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER2_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter2Start"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER3_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter3Start"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER0_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter0End"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER1_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter1End"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER2_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter2End"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_COUNTER3_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter3End"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER0_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer0Start"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER1_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer1Start"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER2_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer2Start"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER3_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer3Start"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER0_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer0End"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER1_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer1End"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER2_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer2End"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_TIMER3_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer3End"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_ENCODER0, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder0"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_ENCODER1, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder1"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_ENCODER2, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder2"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_ENCODER3, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder3"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_LOGIC_BLOCK0, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock0"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_LOGIC_BLOCK1, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock1"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_LOGIC_BLOCK2, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock2"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_LOGIC_BLOCK3, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock3"},
-        {GST_VIMBAXSRC_TRIGGERSOURCE_ACTION0, "Specifies which Action command to use as internal source for the trigger", "Action0"},
-        {GST_VIMBAXSRC_TRIGGERSOURCE_ACTION1, "Specifies which Action command to use as internal source for the trigger", "Action1"},
-        {GST_VIMBAXSRC_TRIGGERSOURCE_ACTION2, "Specifies which Action command to use as internal source for the trigger", "Action2"},
-        {GST_VIMBAXSRC_TRIGGERSOURCE_ACTION3, "Specifies which Action command to use as internal source for the trigger", "Action3"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER0, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger0"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER1, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger1"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER2, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger2"},
-        // {GST_VIMBAXSRC_TRIGGERSOURCE_LINK_TRIGGER3, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger3"},
+        {GST_VMBSRC_TRIGGERSOURCE_UNCHANGED, "Does not change the currently applied triggersource value on the device", "UNCHANGED"},
+        // {GST_VMBSRC_TRIGGERSOURCE_SOFTWARE, "Specifies that the trigger source will be generated by software using the TriggerSoftware command", "Software"},
+        {GST_VMBSRC_TRIGGERSOURCE_LINE0, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line0"},
+        {GST_VMBSRC_TRIGGERSOURCE_LINE1, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line1"},
+        {GST_VMBSRC_TRIGGERSOURCE_LINE2, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line2"},
+        {GST_VMBSRC_TRIGGERSOURCE_LINE3, "Specifies which physical line (or pin) and associated I/O control block to use as external source for the trigger signal", "Line3"},
+        // {GST_VMBSRC_TRIGGERSOURCE_USER_OUTPUT0, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput0"},
+        // {GST_VMBSRC_TRIGGERSOURCE_USER_OUTPUT1, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput1"},
+        // {GST_VMBSRC_TRIGGERSOURCE_USER_OUTPUT2, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput2"},
+        // {GST_VMBSRC_TRIGGERSOURCE_USER_OUTPUT3, "Specifies which User Output bit signal to use as internal source for the trigger", "UserOutput3"},
+        // {GST_VMBSRC_TRIGGERSOURCE_COUNTER0_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter0Start"},
+        // {GST_VMBSRC_TRIGGERSOURCE_COUNTER1_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter1Start"},
+        // {GST_VMBSRC_TRIGGERSOURCE_COUNTER2_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter2Start"},
+        // {GST_VMBSRC_TRIGGERSOURCE_COUNTER3_START, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter3Start"},
+        // {GST_VMBSRC_TRIGGERSOURCE_COUNTER0_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter0End"},
+        // {GST_VMBSRC_TRIGGERSOURCE_COUNTER1_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter1End"},
+        // {GST_VMBSRC_TRIGGERSOURCE_COUNTER2_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter2End"},
+        // {GST_VMBSRC_TRIGGERSOURCE_COUNTER3_END, "Specifies which of the Counter signal to use as internal source for the trigger", "Counter3End"},
+        // {GST_VMBSRC_TRIGGERSOURCE_TIMER0_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer0Start"},
+        // {GST_VMBSRC_TRIGGERSOURCE_TIMER1_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer1Start"},
+        // {GST_VMBSRC_TRIGGERSOURCE_TIMER2_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer2Start"},
+        // {GST_VMBSRC_TRIGGERSOURCE_TIMER3_START, "Specifies which Timer signal to use as internal source for the trigger", "Timer3Start"},
+        // {GST_VMBSRC_TRIGGERSOURCE_TIMER0_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer0End"},
+        // {GST_VMBSRC_TRIGGERSOURCE_TIMER1_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer1End"},
+        // {GST_VMBSRC_TRIGGERSOURCE_TIMER2_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer2End"},
+        // {GST_VMBSRC_TRIGGERSOURCE_TIMER3_END, "Specifies which Timer signal to use as internal source for the trigger", "Timer3End"},
+        // {GST_VMBSRC_TRIGGERSOURCE_ENCODER0, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder0"},
+        // {GST_VMBSRC_TRIGGERSOURCE_ENCODER1, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder1"},
+        // {GST_VMBSRC_TRIGGERSOURCE_ENCODER2, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder2"},
+        // {GST_VMBSRC_TRIGGERSOURCE_ENCODER3, "Specifies which Encoder signal to use as internal source for the trigger", "Encoder3"},
+        // {GST_VMBSRC_TRIGGERSOURCE_LOGIC_BLOCK0, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock0"},
+        // {GST_VMBSRC_TRIGGERSOURCE_LOGIC_BLOCK1, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock1"},
+        // {GST_VMBSRC_TRIGGERSOURCE_LOGIC_BLOCK2, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock2"},
+        // {GST_VMBSRC_TRIGGERSOURCE_LOGIC_BLOCK3, "Specifies which Logic Block signal to use as internal source for the trigger", "LogicBlock3"},
+        {GST_VMBSRC_TRIGGERSOURCE_ACTION0, "Specifies which Action command to use as internal source for the trigger", "Action0"},
+        {GST_VMBSRC_TRIGGERSOURCE_ACTION1, "Specifies which Action command to use as internal source for the trigger", "Action1"},
+        {GST_VMBSRC_TRIGGERSOURCE_ACTION2, "Specifies which Action command to use as internal source for the trigger", "Action2"},
+        {GST_VMBSRC_TRIGGERSOURCE_ACTION3, "Specifies which Action command to use as internal source for the trigger", "Action3"},
+        // {GST_VMBSRC_TRIGGERSOURCE_LINK_TRIGGER0, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger0"},
+        // {GST_VMBSRC_TRIGGERSOURCE_LINK_TRIGGER1, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger1"},
+        // {GST_VMBSRC_TRIGGERSOURCE_LINK_TRIGGER2, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger2"},
+        // {GST_VMBSRC_TRIGGERSOURCE_LINK_TRIGGER3, "Specifies which Link Trigger to use as source for the trigger (received from the transport layer)", "LinkTrigger3"},
         {0, NULL, NULL}};
     if (!vmbsrc_triggersource_type)
     {
@@ -253,12 +253,12 @@ static GType gst_vmbsrc_triggeractivation_get_type(void)
     static GType vmbsrc_triggeractivation_type = 0;
     static const GEnumValue triggeractivation_values[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the VimbaX FeatureEnum */
-        {GST_VIMBAXSRC_TRIGGERACTIVATION_UNCHANGED, "Does not change the currently applied triggeractivation value on the device", "UNCHANGED"},
-        {GST_VIMBAXSRC_TRIGGERACTIVATION_RISING_EDGE, "Specifies that the trigger is considered valid on the rising edge of the source signal", "RisingEdge"},
-        {GST_VIMBAXSRC_TRIGGERACTIVATION_FALLING_EDGE, "Specifies that the trigger is considered valid on the falling edge of the source signal", "FallingEdge"},
-        {GST_VIMBAXSRC_TRIGGERACTIVATION_ANY_EDGE, "Specifies that the trigger is considered valid on the falling or rising edge of the source signal", "AnyEdge"},
-        {GST_VIMBAXSRC_TRIGGERACTIVATION_LEVEL_HIGH, "Specifies that the trigger is considered valid as long as the level of the source signal is high", "LevelHigh"},
-        {GST_VIMBAXSRC_TRIGGERACTIVATION_LEVEL_LOW, "Specifies that the trigger is considered valid as long as the level of the source signal is low", "LevelLow"},
+        {GST_VMBSRC_TRIGGERACTIVATION_UNCHANGED, "Does not change the currently applied triggeractivation value on the device", "UNCHANGED"},
+        {GST_VMBSRC_TRIGGERACTIVATION_RISING_EDGE, "Specifies that the trigger is considered valid on the rising edge of the source signal", "RisingEdge"},
+        {GST_VMBSRC_TRIGGERACTIVATION_FALLING_EDGE, "Specifies that the trigger is considered valid on the falling edge of the source signal", "FallingEdge"},
+        {GST_VMBSRC_TRIGGERACTIVATION_ANY_EDGE, "Specifies that the trigger is considered valid on the falling or rising edge of the source signal", "AnyEdge"},
+        {GST_VMBSRC_TRIGGERACTIVATION_LEVEL_HIGH, "Specifies that the trigger is considered valid as long as the level of the source signal is high", "LevelHigh"},
+        {GST_VMBSRC_TRIGGERACTIVATION_LEVEL_LOW, "Specifies that the trigger is considered valid as long as the level of the source signal is low", "LevelLow"},
         {0, NULL, NULL}};
     if (!vmbsrc_triggeractivation_type)
     {
@@ -274,8 +274,8 @@ static GType gst_vmbsrc_incompleteframehandling_get_type(void)
 {
     static GType vmbsrc_incompleteframehandling_type = 0;
     static const GEnumValue incompleteframehandling_values[] = {
-        {GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_DROP, "Drop incomplete frames", "Drop"},
-        {GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_SUBMIT, "Use incomplete frames and submit them to the next element for processing", "Submit"},
+        {GST_VMBSRC_INCOMPLETE_FRAME_HANDLING_DROP, "Drop incomplete frames", "Drop"},
+        {GST_VMBSRC_INCOMPLETE_FRAME_HANDLING_SUBMIT, "Use incomplete frames and submit them to the next element for processing", "Submit"},
         {0, NULL, NULL}};
     if (!vmbsrc_incompleteframehandling_type)
     {
@@ -291,8 +291,8 @@ static GType gst_vmbsrc_allocationmode_get_type(void)
 {
     static GType vmbsrc_allocationmode_type = 0;
     static const GEnumValue allocationmode_values[] = {
-        {GST_VIMBAXSRC_ALLOCATION_MODE_ANNOUNCE_FRAME, "Allocate buffers in the plugin", "AnnounceFrame"},
-        {GST_VIMBAXSRC_ALLOCATION_MODE_ALLOC_AND_ANNOUNCE_FRAME, "Let the transport layer allocate buffers", "AllocAndAnnounceFrame"},
+        {GST_VMBSRC_ALLOCATION_MODE_ANNOUNCE_FRAME, "Allocate buffers in the plugin", "AnnounceFrame"},
+        {GST_VMBSRC_ALLOCATION_MODE_ALLOC_AND_ANNOUNCE_FRAME, "Let the transport layer allocate buffers", "AllocAndAnnounceFrame"},
         {0, NULL, NULL}};
     if (!vmbsrc_allocationmode_type)
     {
@@ -375,7 +375,7 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
             "ExposureAuto feature setting",
             "Sets the auto exposure mode. The output of the auto exposure function affects the whole image",
             GST_ENUM_EXPOSUREAUTO_MODES,
-            GST_VIMBAXSRC_AUTOFEATURE_OFF,
+            GST_VMBSRC_AUTOFEATURE_OFF,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -385,7 +385,7 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
             "BalanceWhiteAuto feature setting",
             "Controls the mode for automatic white balancing between the color channels. The white balancing ratios are automatically adjusted",
             GST_ENUM_BALANCEWHITEAUTO_MODES,
-            GST_VIMBAXSRC_AUTOFEATURE_OFF,
+            GST_VMBSRC_AUTOFEATURE_OFF,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -450,7 +450,7 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
             "TriggerSelector feature setting",
             "Selects the type of trigger to configure. Not all cameras support every trigger selector listed below. Check which selectors are supported by the used camera model",
             GST_ENUM_TRIGGERSELECTOR_VALUES,
-            GST_VIMBAXSRC_TRIGGERSELECTOR_UNCHANGED,
+            GST_VMBSRC_TRIGGERSELECTOR_UNCHANGED,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -460,7 +460,7 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
             "TriggerMode feature setting",
             "Controls if the selected trigger is active",
             GST_ENUM_TRIGGERMODE_VALUES,
-            GST_VIMBAXSRC_TRIGGERMODE_UNCHANGED,
+            GST_VMBSRC_TRIGGERMODE_UNCHANGED,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -470,7 +470,7 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
             "TriggerSource feature setting",
             "Specifies the internal signal or physical input Line to use as the trigger source. The selected trigger must have its TriggerMode set to On. Not all cameras support every trigger source listed below. Check which sources are supported by the used camera model",
             GST_ENUM_TRIGGERSOURCE_VALUES,
-            GST_VIMBAXSRC_TRIGGERSOURCE_UNCHANGED,
+            GST_VMBSRC_TRIGGERSOURCE_UNCHANGED,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -480,7 +480,7 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
             "TriggerActivation feature setting",
             "Specifies the activation mode of the trigger. Not all cameras support every trigger activation listed below. Check which activations are supported by the used camera model",
             GST_ENUM_TRIGGERACTIVATION_VALUES,
-            GST_VIMBAXSRC_TRIGGERACTIVATION_UNCHANGED,
+            GST_VMBSRC_TRIGGERACTIVATION_UNCHANGED,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -490,7 +490,7 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
             "Incomplete frame handling",
             "Determines how the element should handle received frames where data transmission was incomplete. Incomplete frames may contain pixel intensities from old acquisitions or random data",
             GST_ENUM_INCOMPLETEFRAMEHANDLING_VALUES,
-            GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_DROP,
+            GST_VMBSRC_INCOMPLETE_FRAME_HANDLING_DROP,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -500,7 +500,7 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
             "Buffer allocation strategy",
             "Decides if frame buffers should be allocated by the gstreamer element itself or by the transport layer",
             GST_ENUM_ALLOCATIONMODE_VALUES,
-            GST_VIMBAXSRC_ALLOCATION_MODE_ANNOUNCE_FRAME,
+            GST_VMBSRC_ALLOCATION_MODE_ANNOUNCE_FRAME,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
@@ -1319,7 +1319,7 @@ static GstFlowReturn gst_vmbsrc_create(GstPushSrc *src, GstBuffer **buf)
         {
             GST_WARNING_OBJECT(vmbsrc,
                                "Received frame with ID \"%llu\" was incomplete", frame->frameID);
-            if (vmbsrc->properties.incomplete_frame_handling == GST_VIMBAXSRC_INCOMPLETE_FRAME_HANDLING_SUBMIT)
+            if (vmbsrc->properties.incomplete_frame_handling == GST_VMBSRC_INCOMPLETE_FRAME_HANDLING_SUBMIT)
             {
                 GST_DEBUG_OBJECT(vmbsrc,
                                  "Submitting incomplete frame because \"incompleteframehandling\" requested it");
@@ -1734,7 +1734,7 @@ VmbError_t apply_trigger_settings(GstVmbSrc *vmbsrc)
     // TriggerSelector
     enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_TRIGGERSELECTOR_VALUES),
                                   vmbsrc->properties.triggerselector);
-    if (enum_entry->value == GST_VIMBAXSRC_TRIGGERSELECTOR_UNCHANGED)
+    if (enum_entry->value == GST_VMBSRC_TRIGGERSELECTOR_UNCHANGED)
     {
         GST_DEBUG_OBJECT(vmbsrc,
                          "\"TriggerSelector\" is set to %s. Not changing camera value", enum_entry->value_nick);
@@ -1763,7 +1763,7 @@ VmbError_t apply_trigger_settings(GstVmbSrc *vmbsrc)
     // TriggerActivation
     enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_TRIGGERACTIVATION_VALUES),
                                   vmbsrc->properties.triggeractivation);
-    if (enum_entry->value == GST_VIMBAXSRC_TRIGGERACTIVATION_UNCHANGED)
+    if (enum_entry->value == GST_VMBSRC_TRIGGERACTIVATION_UNCHANGED)
     {
         GST_DEBUG_OBJECT(vmbsrc,
                          "\"TriggerActivation\" is set to %s. Not changing camera value", enum_entry->value_nick);
@@ -1792,7 +1792,7 @@ VmbError_t apply_trigger_settings(GstVmbSrc *vmbsrc)
     // TriggerSource
     enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_TRIGGERSOURCE_VALUES),
                                   vmbsrc->properties.triggersource);
-    if (enum_entry->value == GST_VIMBAXSRC_TRIGGERSOURCE_UNCHANGED)
+    if (enum_entry->value == GST_VMBSRC_TRIGGERSOURCE_UNCHANGED)
     {
 
         GST_DEBUG_OBJECT(vmbsrc,
@@ -1822,7 +1822,7 @@ VmbError_t apply_trigger_settings(GstVmbSrc *vmbsrc)
     // TriggerMode
     enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_TRIGGERMODE_VALUES),
                                   vmbsrc->properties.triggermode);
-    if (enum_entry->value == GST_VIMBAXSRC_TRIGGERMODE_UNCHANGED)
+    if (enum_entry->value == GST_VMBSRC_TRIGGERMODE_UNCHANGED)
     {
         GST_DEBUG_OBJECT(vmbsrc,
                          "\"TriggerMode\" is set to %s. Not changing camera value", enum_entry->value_nick);
@@ -1865,7 +1865,7 @@ VmbError_t alloc_and_announce_buffers(GstVmbSrc *vmbsrc)
         GST_DEBUG_OBJECT(vmbsrc, "Using allocation mode %s", allocation_mode->value_nick);
         for (int i = 0; i < NUM_FRAME_BUFFERS; i++)
         {
-            if (vmbsrc->properties.allocation_mode == GST_VIMBAXSRC_ALLOCATION_MODE_ANNOUNCE_FRAME)
+            if (vmbsrc->properties.allocation_mode == GST_VMBSRC_ALLOCATION_MODE_ANNOUNCE_FRAME)
             {
                 // The element is responsible for allocating frame buffers. Some transport layers
                 // provide higher performance if specific alignment is observed. Check if this
@@ -1924,7 +1924,7 @@ void revoke_and_free_buffers(GstVmbSrc *vmbsrc)
         if (NULL != vmbsrc->frame_buffers[i].buffer)
         {
             VmbFrameRevoke(vmbsrc->camera.handle, &vmbsrc->frame_buffers[i]);
-            if (vmbsrc->properties.allocation_mode == GST_VIMBAXSRC_ALLOCATION_MODE_ANNOUNCE_FRAME)
+            if (vmbsrc->properties.allocation_mode == GST_VMBSRC_ALLOCATION_MODE_ANNOUNCE_FRAME)
             {
                 // The element allocated the frame buffers, so it must free the memory also
                 VmbAlignedFree(vmbsrc->frame_buffers[i].buffer);
