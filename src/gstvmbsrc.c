@@ -507,7 +507,7 @@ static void gst_vimbaxsrc_class_init(GstVmbSrcClass *klass)
 static void gst_vimbaxsrc_init(GstVmbSrc *vimbaxsrc)
 {
     GST_TRACE_OBJECT(vimbaxsrc, "init");
-    GST_INFO_OBJECT(vimbaxsrc, "gst-vimbaxsrc version %s", VERSION);
+    GST_INFO_OBJECT(vimbaxsrc, "gst-vmbsrc version %s", VERSION);
     VmbError_t result = VmbErrorSuccess;
     // Start the VimbaX API
     G_LOCK(vmb_open_count);
