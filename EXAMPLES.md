@@ -10,11 +10,11 @@ inspections of the field of view, brightness and sharpness of the image. GStream
 encoders for different image formats. The example below uses the `png` encoder. A step by step
 explanation of the elements in the pipeline is given below.
 ```
-gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 num-buffers=1 ! pngenc ! filesink location=out.png
+gst-launch-1.0 vmbsrc camera=DEV_1AB22D01BBB8 num-buffers=1 ! pngenc ! filesink location=out.png
 ```
 
-- `vimbasrc camera=DEV_1AB22D01BBB8 num-buffers=1`: uses the `gst-vimbasrc` element to grab one
-  single frame from the camera with the given ID and halt the pipeline afterwards
+- `vmbsrc camera=DEV_1AB22D01BBB8 num-buffers=1`: uses the `vmbsrc` element to grab one single frame
+  from the camera with the given ID and halt the pipeline afterwards
 - `pngenc`: takes the input image and encodes it into a `png` file
 - `filesink location=out.png`: writes the data it receives (the encoded `png` image) to the file
   `out.png` in the current working directory
@@ -25,13 +25,13 @@ achieved by using the `multifilesink` element to save the images.
 gst-launch-1.0 vmbsrc camera=DEV_1AB22D01BBB8 num-buffers=10 ! pngenc ! multifilesink location=out_%03d.png
 ```
 
-Similarly to the previous example, this pipeline uses the `gst-vimbasrc` element to record images
-from the camera. Here however 10 images are recorded. The `multifilesink` saves these images to
-separate files, named `out_000.png`, `out_001.png`, ... , `out_009.png`.
+Similarly to the previous example, this pipeline uses the `vmbsrc` element to record images from the
+camera. Here however 10 images are recorded. The `multifilesink` saves these images to separate
+files, named `out_000.png`, `out_001.png`, ... , `out_009.png`.
 
 Further changes to the pipeline are possible to for example change the format of the recorded images
 to ensure RGB images, or adjust the exposure time of the image acquisition process. For more details
-see the README of the `gst-vimbasrc` element.
+see the README of the `vmbsrc` element.
 
 ## Saving camera stream to a video file
 
@@ -41,20 +41,20 @@ just saving the raw image data. This example uses `h264` encoding for the image 
 resulting video to an `avi` file. An explanation for the separate elements of the pipeline can be
 found below.
 ```
-gst-launch-1.0 vimbasrc camera=DEV_000F315B91E2 ! video/x-raw,format=RGB ! videorate ! video/x-raw,framerate=30/1 ! videoconvert ! queue ! x264enc ! avimux ! filesink location=output.avi
+gst-launch-1.0 vmbsrc camera=DEV_000F315B91E2 ! video/x-raw,format=RGB ! videorate ! video/x-raw,framerate=30/1 ! videoconvert ! queue ! x264enc ! avimux ! filesink location=output.avi
 ```
 
-- `vimbasrc camera=DEV_000F315B91E2`: uses the `gst-vimbasrc` element to grab camera frames from the
-  Vimba compatible camera with the given ID. For more information on the functionality of
-  `gst-vimbasrc` see the README
+- `vmbsrc camera=DEV_000F315B91E2`: uses the `vmbsrc` element to grab camera frames from the Vimba X
+  compatible camera with the given ID. For more information on the functionality of `vmbsrc` see the
+  README
 - `video/x-raw,format=RGB`: a gst capsfilter element that limits the available data formats to `RGB`
   to ensure color images for the resulting video stream. Without this the pipeline may negotiate
   grayscale images
-- `videorate ! video/x-raw,framerate=30/1`: `gst-vimbasrc` provides image data in a variable
-  framerate (due to effects like possible hardware triggers or frame jitter). Because `avi` files
-  only support fixed framerates, it needs to be modified via the `videorate` plugin. This guarantees
-  a fixed framerate output by either copying the input data if more frames are requested than
-  received, or dropping unnecessary frames if more frames are received than requested.
+- `videorate ! video/x-raw,framerate=30/1`: `vmbsrc` provides image data in a variable framerate
+  (due to effects like possible hardware triggers or frame jitter). Because `avi` files only support
+  fixed framerates, it needs to be modified via the `videorate` plugin. This guarantees a fixed
+  framerate output by either copying the input data if more frames are requested than received, or
+  dropping unnecessary frames if more frames are received than requested.
 - `videoconvert ! queue`: converts the input image to a compatible video format for the following
   element
 - `x264enc`: performs the encoding to h264 video
@@ -67,7 +67,7 @@ gst-launch-1.0 vimbasrc camera=DEV_000F315B91E2 ! video/x-raw,format=RGB ! video
 RTSP (Real Time Streaming Protocol) is a network protocol designed to control streaming media
 servers. It allows clients to send commands such as "play" or "pause" to the server, to enable
 control of the media being streamed. The following example shows a minimal RTSP server using the
-`gst-vimbasrc` element to stream image data from a camera via the network to a client machine. This
+`vmbsrc` element to stream image data from a camera via the network to a client machine. This
 example uses Python to start a pre-implemented RTSP server that can be imported via the PyGObject
 package. To do this a few external dependencies must be installed.
 
@@ -75,7 +75,7 @@ package. To do this a few external dependencies must be installed.
 
 The following instructions assume an Ubuntu system. On other distributions different packages may be
 required. It is also assumed, that a working GStreamer installation exists on the system and that
-`gst-vimbasrc` is available to that installation.
+`vmbsrc` is available to that installation.
 
 To have access to the GStreamer RTSP Server from python the following system packages need to be
 installed via the `apt` package manager:
@@ -110,9 +110,9 @@ server = GstRtspServer.RTSPServer()
 mounts = server.get_mount_points()
 
 # define the pipeline to record images ad attach it to the "stream1" endpoint
-vimbasrc_factory = GstRtspServer.RTSPMediaFactory()
-vimbasrc_factory.set_launch('vimbasrc camera=DEV_1AB22D01BBB8 ! videoconvert ! x264enc speed-preset=ultrafast tune=zerolatency ! rtph264pay name=pay0')
-mounts.add_factory("/stream1", vimbasrc_factory)
+vmbsrc_factory = GstRtspServer.RTSPMediaFactory()
+vmbsrc_factory.set_launch('vmbsrc camera=DEV_1AB22D01BBB8 ! videoconvert ! x264enc speed-preset=ultrafast tune=zerolatency ! rtph264pay name=pay0')
+mounts.add_factory("/stream1", vmbsrc_factory)
 server.attach(None)
 
 mainloop.run()
