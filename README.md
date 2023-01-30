@@ -23,9 +23,11 @@ also contains two scripts (`build.sh` and `build.bat`) that run the appropriate 
 Linux and Windows systems respectively. They create a directory named `build` in which the project
 files, as well as the built binary, are placed.
 
+<TODO: DESCRIBE CMAKEPRESET.JSON AND CMAKEPRESETUSER.JSON>
+
 As the build process relies on external libraries (such as GStreamer and Vimba X), paths to these
 libraries have to be detected. The provided build scripts take guesses (where possible) to find
-these directories.
+these directories. <TODO: Check if this is instead covered in CMakePreset.json>
 
 The Vimba X installation directory is assumed to be defined by the `VIMBA_X_HOME` environment
 variable. This is the case for Windows systems where Vimba X was installed. On Linux systems you may
@@ -35,12 +37,14 @@ If problems arise during compilation related to these external dependencies, ple
 provided paths accordingly for your build system.
 
 ### Docker build environment (Linux only)
+<TODO: Check again after Dockerfile has been updated>
 To simplify the setup of a reproducible build environment, a `Dockerfile` based on an Ubuntu 18.04
 base image is provided, which when build includes all necessary dependencies, except the Vimba X
 version against which `vmbsrc` is linked. This is added when the compile command is run by
 mounting a Vimba X installation into the Docker container.
 
 #### Building the docker image
+<TODO: Check again after Dockerfile has been updated>
 In order to build the docker image from the `Dockerfile`, run the following command inside the
 directory containing it:
 ```
@@ -75,6 +79,7 @@ More detailed installation instructions for Linux and Windows can be found in th
 file in this repository.
 
 ## Usage
+<TODO: check if this still should be part of the README>
 **The vmbsrc plugin is still in active development. Please keep the _Known issues and limitations_
 in mind when specifying your GStreamer pipelines and using it**
 
@@ -251,6 +256,7 @@ is able to debayer the data into a widely accepted RGBA format.
 - WIN32 (Validated on Win10 20H2, 32Bit)
 
 The following library versions have been validated to work with vmbsrc:
+<TODO: UPDATE THIS LIST>
 - Vimba X 2023-1
 - GStreamer 1.14 (NVIDIA L4T 32.5.1, Debian 10, Raspberry OS)
 - GStreamer 1.16 (Ubuntu 20.04, CentOS 8.3)
