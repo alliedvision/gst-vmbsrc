@@ -241,12 +241,6 @@ is able to debayer the data into a widely accepted RGBA format.
 - Complex camera feature setups may not be possible using the provided properties (e.g. complex
   trigger setups for multiple trigger selectors). For those cases it is recommended to [use an XML
   file to pass the camera settings](####Using-an-XML-file).
-- If the width of the image data pushed out of the `gst-vimbasrc` element is not evenly divisible by
-  4, the image data can not be transformed with the `videoconvert` element. This is caused by the
-  `videoconvert` element expecting the width to always be a multiple of 4, or being explicitly told
-  the stride of the image data in the buffer. This explicit stride information is currently not
-  implemented. For now it is therefore recommended to use `width` settings that are evenly divisible
-  by 4.
 
 ## Compatibility
 `vmbsrc` is currently officially supported on the following operating systems and architectures:
