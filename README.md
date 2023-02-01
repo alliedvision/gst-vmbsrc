@@ -19,22 +19,18 @@ of the image data or encoding them to a video format.
 
 ## Building
 A `CMakeLists.txt` file is provided that helps build the plugin. For convenience this repository
-also contains two scripts (`build.sh` and `build.bat`) that run the appropriate cmake commands for
-Linux and Windows systems respectively. They create a directory named `build` in which the project
-files, as well as the built binary, are placed.
+also contains `CMakePresets.json` and `CMakeUserPresets.json.TEMPLATE`, which define configuration
+presets for different platforms. This is an easy way to provide paths to external build dependencies
+like Vimba X.
 
-<TODO: DESCRIBE CMAKEPRESET.JSON AND CMAKEPRESETUSER.JSON>
+To use these presets, create a copy of `CMakeUserPresets.json.TEMPLATE` and name it
+`CMakeUserPresets.json`. In this file adjust the value for `PATH_TO_VimbaX` (on Windows also adjust
+`PATH_TO_GSTREAMER_INSTALLATION`).
 
-As the build process relies on external libraries (such as GStreamer and Vimba X), paths to these
-libraries have to be detected. The provided build scripts take guesses (where possible) to find
-these directories. <TODO: Check if this is instead covered in CMakePreset.json>
-
-The Vimba X installation directory is assumed to be defined by the `VIMBA_X_HOME` environment
-variable. This is the case for Windows systems where Vimba X was installed. On Linux systems you may
-need to define this variable manually or pass it directly as parameter to CMake.
-
-If problems arise during compilation related to these external dependencies, please adjust the
-provided paths accordingly for your build system.
+To use the preset for configuration, pass the name as parameter to cmake by calling for example
+`cmake --preset linux64`. This will create a `build-linux64` directory. To build the `vmbsrc` binary
+from this, execute `cmake --build build-linux64`. On different platforms, different preset names and
+directory names must be used (e.g. `arm64` or `win64`).
 
 ### Docker build environment (Linux only)
 <TODO: Check again after Dockerfile has been updated>
