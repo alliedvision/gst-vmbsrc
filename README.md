@@ -48,6 +48,7 @@ docker build -t gst-vmbsrc:18.04 .
 ```
 
 #### Compiling vmbsrc using the Docker image
+<TODO: Check again after Dockerfile has been updated>
 After running the build command described above, a Docker image with the tag `gst-vmbsrc:18.04` will
 be created. This can be used to run the build process of the plugin.
 
