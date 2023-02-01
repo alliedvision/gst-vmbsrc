@@ -76,9 +76,9 @@ More detailed installation instructions for Linux and Windows can be found in th
 file in this repository.
 
 ## Usage
-<TODO: check if this still should be part of the README>
-**The vmbsrc plugin is still in active development. Please keep the _Known issues and limitations_
-in mind when specifying your GStreamer pipelines and using it**
+**Please keep the [Known issues and limitations](##Known-issues-and-limitations) in mind when
+specifying your GStreamer pipelines and check the [Troubleshooting](##Troubleshooting) section if
+you encounter any issues**
 
 `vmbsrc` is intended for use in GStreamer pipelines. The element can be used to forward recorded
 frames from a Vimba X compatible camera into subsequent GStreamer elements.
