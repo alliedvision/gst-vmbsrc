@@ -234,15 +234,10 @@ is able to debayer the data into a widely accepted RGBA format.
 
 ## Compatibility
 `vmbsrc` is currently officially supported on the following operating systems and architectures:
-- AMD64 (Validated on Ubuntu 20.04, Debian 10, CentOS 8.3)
-- ARM64 (Validated on NVIDIA L4T 32.5.1)
-- ARM32 (Validated on Raspberry Pi OS)
-- WIN64 (Validated on Win10 20H2)
-- WIN32 (Validated on Win10 20H2, 32Bit)
+- AMD64 (Validated on Ubuntu 22.04, Debian 11.6)
+- ARM64 (Validated on NVIDIA L4T 35.2.1)
 
 The following library versions have been validated to work with vmbsrc:
-<TODO: UPDATE THIS LIST>
 - Vimba X 2023-1
-- GStreamer 1.14 (NVIDIA L4T 32.5.1, Debian 10, Raspberry OS)
-- GStreamer 1.16 (Ubuntu 20.04, CentOS 8.3)
-- GStreamer 1.18 (Win10 20H2)
+- GStreamer 1.20 (Ubuntu 22.04)
+- GStreamer 1.16 (NVIDIA L4T 35.2.1)
