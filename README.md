@@ -1,13 +1,3 @@
-# WORK IN PROGRESS
-
-THIS REPOSITORY IS STILL A WORK IN PROGRES. IT IS CURRENTLY BEING MIGRATED FROM VIMBA TO VIMBA X.
-
-## TODO
-
-### readme
-
-- Add description how to use `CMakePresets.json` and `CMakeUserPresets.json`
-
 # vmbsrc
 This project contains the official GStreamer plugin to make cameras supported by Allied Visions
 Vimba X API available as GStreamer sources.
