@@ -23,14 +23,12 @@ from this, execute `cmake --build build-linux64`. On different platforms, differ
 directory names must be used (e.g. `arm64` or `win64`).
 
 ### Docker build environment (Linux only)
-<TODO: Check again after Dockerfile has been updated>
 To simplify the setup of a reproducible build environment, a `Dockerfile` based on an Ubuntu 18.04
 base image is provided, which when build includes all necessary dependencies, except the Vimba X
-version against which `vmbsrc` is linked. This is added when the compile command is run by
-mounting a Vimba X installation into the Docker container.
+version against which `vmbsrc` is linked. This is added when the compile command is run by mounting
+a Vimba X installation into the Docker container as a volume.
 
 #### Building the docker image
-<TODO: Check again after Dockerfile has been updated>
 In order to build the docker image from the `Dockerfile`, run the following command inside the
 directory containing it:
 ```
@@ -38,13 +36,12 @@ docker build -t gst-vmbsrc:18.04 .
 ```
 
 #### Compiling vmbsrc using the Docker image
-<TODO: Check again after Dockerfile has been updated>
 After running the build command described above, a Docker image with the tag `gst-vmbsrc:18.04` will
 be created. This can be used to run the build process of the plugin.
 
 Building the plugin with this image is simply a matter of mounting the source code directory and the
-desired Vimba X installation directory into the image at appropriate paths, and letting it run the
-provided `build.sh` script. The expected paths into which to mount these directories are:
+desired Vimba X installation directory into the image at appropriate paths. The expected paths into
+which to mount these directories are:
 - **/gst-vmbsrc**: Path inside the Docker container to mount the gst-vmbsrc project
 - **/vimbax**: Path inside the Docker container to mount the desired Vimba X installation
 
@@ -52,6 +49,7 @@ The full build command to be executed on the host would be as follows:
 ```
 docker run --rm -it --volume /path/to/gst-vmbsrc:/gst-vmbsrc --volume /path/to/VimbaX:/vimbax gst-vmbsrc:18.04
 ```
+The image will run the required `cmake` commands to compile the `vmbsrc` element.
 
 ## Installation
 GStreamer plugins become available for use in pipelines, when GStreamer is able to load the shared
