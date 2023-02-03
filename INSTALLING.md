@@ -2,7 +2,7 @@
 As mentioned in `README.md` the `vmbsrc` element is contained in a single file. In order for
 GStreamer to use the element, the shared library containing `vmbsrc` must be findable by GStreamer.
 This can be achieved by defining the `GST_PLUGIN_SYSTEM_PATH` and placing the shared library file in
-that directory. Additionally the VmbC shared library (and its dependencies) must be loadable as it
+that directory. Additionally, the VmbC shared library (and its dependencies) must be loadable as it
 is used by the `vmbsrc` element. VmbC is provided as part of the Vimba X SDK.
 
 Below are more details on the installation on Linux (more specifically Ubuntu) and Windows.
@@ -25,16 +25,16 @@ path to `/install/path/on/your/system/to/VimbaX/api/lib`.
 After creating that file the `ldconfig` cache needs to be updated. This can be done by running the
 command `sudo ldconfig -v`.
 
-Correct installation of `libVmbC.so` can be checked, by searching for its file name in the output of
-`ldconfig -v` (e.g.: `ldconfig -v | grep libVmbC.so`). Alternatively correct loading of dependent
+Correct installation of `libVmbC.so` can be checked by searching for its file name in the output of
+`ldconfig -v` (e.g.: `ldconfig -v | grep libVmbC.so`). Alternatively, correct loading of dependent
 shared libraries can be checked with `ldd` (e.g. `ldd libgstvmbsrc.so`).
 
 ## Windows
 Adding the directory containing the compiled shared library file to the `GST_PLUGIN_SYSTEM_PATH` is
-the easiest way to install the `vmbsrc` element. Alternatively the file can be placed in the
+the easiest way to install the `vmbsrc` element. Alternatively, the file can be placed in the
 GStreamer installation directory of the system. The installation directory was chosen during the
 installation of the GStreamer runtime. The directory the plugin should be placed into is
-`<GSTREAMER_INSTALLATION_DIRECTORY>\1.0\msvc_x86_64\lib\gstreamer-1.0` on 64 bit systems.
+`<GSTREAMER_INSTALLATION_DIRECTORY>\1.0\msvc_x86_64\lib\gstreamer-1.0` on 64-bit systems.
 
 ### Installation dependencies
 In addition to the installation of GStreamer runtime and placing the `vmbsrc` shared library into

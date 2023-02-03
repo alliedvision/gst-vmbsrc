@@ -29,9 +29,9 @@ Similarly to the previous example, this pipeline uses the `vmbsrc` element to re
 camera. Here however 10 images are recorded. The `multifilesink` saves these images to separate
 files, named `out_000.png`, `out_001.png`, ... , `out_009.png`.
 
-Further changes to the pipeline are possible to for example change the format of the recorded images
-to ensure RGB images, or adjust the exposure time of the image acquisition process. For more details
-see the README of the `vmbsrc` element.
+Further changes to the pipeline are possible to, for example, change the format of the recorded
+images to ensure RGB images, or adjust the exposure time of the image acquisition process. For more
+details see the README of the `vmbsrc` element.
 
 ## Saving camera stream to a video file
 
@@ -45,10 +45,10 @@ gst-launch-1.0 vmbsrc camera=DEV_000F315B91E2 ! video/x-raw,format=RGB ! videora
 ```
 
 - `vmbsrc camera=DEV_000F315B91E2`: uses the `vmbsrc` element to grab camera frames from the Vimba X
-  compatible camera with the given ID. For more information on the functionality of `vmbsrc` see the
-  README
+  compatible camera with the given ID. For more information on the functionality of `vmbsrc`, see
+  the README
 - `video/x-raw,format=RGB`: a gst capsfilter element that limits the available data formats to `RGB`
-  to ensure color images for the resulting video stream. Without this the pipeline may negotiate
+  to ensure color images for the resulting video stream. Without this, the pipeline may negotiate
   grayscale images
 - `videorate ! video/x-raw,framerate=30/1`: `vmbsrc` provides image data in a variable framerate
   (due to effects like possible hardware triggers or frame jitter). Because `avi` files only support
@@ -77,7 +77,7 @@ The following instructions assume an Ubuntu system. On other distributions diffe
 required. It is also assumed, that a working GStreamer installation exists on the system and that
 `vmbsrc` is available to that installation.
 
-To have access to the GStreamer RTSP Server from python the following system packages need to be
+To have access to the GStreamer RTSP Server from python, the following system packages need to be
 installed via the `apt` package manager:
 - gir1.2-gst-rtsp-server-1.0
 - libgirepository1.0-dev
@@ -118,7 +118,7 @@ server.attach(None)
 mainloop.run()
 ```
 
-To start the server simply save the code above to a file (e.g. `RTSP_Server.py`) and run it with
+To start the server, simply save the code above to a file (e.g. `RTSP_Server.py`) and run it with
 your python interpreter. The RTSP server can be stopped by halting the process. This is done by
 pressing `CTRL + c` in the terminal that is running the python script.
 

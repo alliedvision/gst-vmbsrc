@@ -2,7 +2,7 @@
 This project contains the official GStreamer plugin to make cameras supported by Allied Visions
 Vimba X API available as GStreamer sources.
 
-GStreamer is multimedia framework which assembles pipelines from multiple elements. Using the
+GStreamer is a multimedia framework which assembles pipelines from multiple elements. Using the
 `vmbsrc` element it is possible to record images with industrial cameras supported by Vimba X and
 pass them directly into these pipelines. This enables a wide variety of uses such as live displays
 of the image data or encoding them to a video format.
@@ -52,7 +52,7 @@ docker run --rm -it --volume /path/to/gst-vmbsrc:/gst-vmbsrc --volume /path/to/V
 The image will run the required `cmake` commands to compile the `vmbsrc` element.
 
 ## Installation
-GStreamer plugins become available for use in pipelines, when GStreamer is able to load the shared
+GStreamer plugins become available for use in pipelines when GStreamer is able to load the shared
 library containing the desired element. GStreamer typically searches the directories defined in
 `GST_PLUGIN_SYSTEM_PATH`. By setting this variable to a directory and placing the shared library
 file in it, GStreamer will pick up the `vmbsrc` element for use.
@@ -77,7 +77,7 @@ The following pipeline can for example be used to display the recorded camera im
 gst-launch-1.0 vmbsrc camera=DEV_1AB22D01BBB8 ! videoscale ! videoconvert ! queue ! autovideosink
 ```
 
-For further usage examples also take a look at the included `EXAMPLES.md` file
+For further usage, also take a look at the included `EXAMPLES.md` file
 
 ### Setting camera features
 To adjust the image acquisition process of the camera, access to settings like the exposure time are
@@ -191,7 +191,7 @@ is able to debayer the data into a widely accepted RGBA format.
     available. Installation instructions can be found in `INSTALLING.md`. To verify that the element
     can be loaded try to inspect it by calling `gst-inspect-1.0 vmbsrc`.
   - It is possible that the `vmbsrc` element is blacklisted by GStreamer. This can be determined by
-    checking the list ob blacklisted elements with `gst-inspect-1.0 --print-blacklist`. Resetting
+    checking the list of blacklisted elements with `gst-inspect-1.0 --print-blacklist`. Resetting
     the registry may be done by removing the file in which it is stored. It is typically saved in
     `~/.cache/gstreamer-1.0/registry.x86_64.bin`. The exact file name depends on the architecture of
     the system. For more details see [the official documentation on the
