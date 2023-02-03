@@ -97,9 +97,9 @@ via a provided XML file is recommended.
 #### Using an XML file
 Providing an XML file containing the desired feature values allows access to all supported camera
 features. A convenient way to creating such an XML file is configuring your camera as desired with
-the help of the VmbViewer that is part of Vimba X and saving the current configuration as an XML
-file from there. The path to this file may then be passed to `vmbsrc` via the `settingsfile`
-property as shown below
+the help of the Viewer that is part of Vimba X and saving the current configuration as an XML file
+from there. The path to this file may then be passed to `vmbsrc` via the `settingsfile` property as
+shown below
 ```
 gst-launch-1.0 vmbsrc camera=DEV_1AB22D01BBB8 settingsfile=path_to_settings.xml ! videoscale ! videoconvert ! queue ! autovideosink
 ```
