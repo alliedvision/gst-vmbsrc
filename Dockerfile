@@ -1,44 +1,25 @@
-from ubuntu:18.04 as build_base
+from ubuntu:18.04 as gst-vmbsrc_builder
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
         build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# More modern CMake version needed -> Build and install ourselves
-# Alternatively one might download a precompiled tar.gz from Github, but building it
-# is platform agnostic
-from build_base as cmake_installer
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y \
         wget \
         ca-certificates \
-        libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.19.4/cmake-3.19.4.tar.gz && \
-    tar xf cmake-3.19.4.tar.gz && \
-    rm cmake-3.19.4.tar.gz && \
-    cd ./cmake-3.19.4 && \
-    ./bootstrap --prefix=/usr/local && \
-    make && \
-    make install
-
-# This image will perform the actual GStreamer plugin build process
-FROM build_base as gst-vimbasrc_builder
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y \
         libgstreamer1.0-dev \
         libgstreamer-plugins-base1.0-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=cmake_installer /usr/local /usr/local
+# Add more up-to-date version of CMake than apt-get would provide
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.25.2/cmake-3.25.2-linux-x86_64.sh \
+    && bash cmake-3.25.2-linux-x86_64.sh --skip-license --exclude-subdir \
+    && rm cmake-3.25.2-linux-x86_64.sh
 
-ENV VIMBA_HOME=/vimba
+# mount the Vimba X installation directory into this volume
+VOLUME ["/vimbax"]
 
 # mount the checked out repository into this volume
-VOLUME ["/gst-vimbasrc"]
-WORKDIR /gst-vimbasrc
+VOLUME ["/gst-vmbsrc"]
+WORKDIR /gst-vmbsrc
 
-# Follow README
-CMD ["sh", "build.sh"]
-# Plugin will be located at plugins/.libs/libgstvimba.so
+# Override Vmb_DIR path from preset so it is correct inside docker container
+CMD cmake --preset linux64 -D Vmb_DIR=/vimbax/api/lib/cmake/vmb && cmake --build build-linux64
+# Plugin will be located at build-linux64/libgstvimba.so
