@@ -1,101 +1,90 @@
-# WORK IN PROGRESS
-
-THIS REPOSITORY IS STILL A WORK IN PROGRES. IT IS CURRENTLY BEING MIGRATED FROM VIMBA TO VIMBA X.
-
-## TODO
-
-### readme
-
-- Add description how to use `CMakePresets.json` and `CMakeUserPresets.json`
-
-# gst-vimbasrc
+# vmbsrc
 This project contains the official GStreamer plugin to make cameras supported by Allied Visions
-Vimba API available as GStreamer sources.
+Vimba X API available as GStreamer sources.
 
-GStreamer is multimedia framework which assembles pipelines from multiple elements. Using the
-`vimbasrc` element it is possible to record images with industrial cameras supported by Vimba and
+GStreamer is a multimedia framework which assembles pipelines from multiple elements. Using the
+`vmbsrc` element it is possible to record images with industrial cameras supported by Vimba X and
 pass them directly into these pipelines. This enables a wide variety of uses such as live displays
 of the image data or encoding them to a video format.
 
 ## Building
 A `CMakeLists.txt` file is provided that helps build the plugin. For convenience this repository
-also contains two scripts (`build.sh` and `build.bat`) that run the appropriate cmake commands for
-Linux and Windows systems respectively. They create a directory named `build` in which the project
-files, as well as the built binary, are placed.
+also contains `CMakePresets.json` and `CMakeUserPresets.json.TEMPLATE`, which define configuration
+presets for different platforms. This is an easy way to provide paths to external build dependencies
+like Vimba X.
 
-As the build process relies on external libraries (such as GStreamer and Vimba), paths to these
-libraries have to be detected. The provided build scripts take guesses (where possible) to find
-these directories.
+To use these presets, create a copy of `CMakeUserPresets.json.TEMPLATE` and name it
+`CMakeUserPresets.json`. In this file adjust the value for `PATH_TO_VimbaX` (on Windows also adjust
+`PATH_TO_GSTREAMER_INSTALLATION`).
 
-The Vimba installation directory is assumed to be defined by the `VIMBA_HOME` environment variable.
-This is the case for Windows systems, on Linux systems you may need to define this variable manually
-or pass it directly as parameter to CMake.
-
-If problems arise during compilation related to these external dependencies, please adjust the
-provided paths accordingly for your build system.
+To use the preset for configuration, pass the name as parameter to cmake by calling for example
+`cmake --preset linux64`. This will create a `build-linux64` directory. To build the `vmbsrc` binary
+from this, execute `cmake --build build-linux64`. On different platforms, different preset names and
+directory names must be used (e.g. `arm64` or `win64`).
 
 ### Docker build environment (Linux only)
 To simplify the setup of a reproducible build environment, a `Dockerfile` based on an Ubuntu 18.04
-base image is provided, which when build includes all necessary dependencies, except the Vimba
-version against which `vimbasrc` is linked. This is added when the compile command is run by
-mounting a Vimba installation into the Docker container.
+base image is provided, which when build includes all necessary dependencies, except the Vimba X
+version against which `vmbsrc` is linked. This is added when the compile command is run by mounting
+a Vimba X installation into the Docker container as a volume.
 
 #### Building the docker image
 In order to build the docker image from the `Dockerfile`, run the following command inside the
 directory containing it:
 ```
-docker build -t gst-vimbasrc:18.04 .
+docker build -t gst-vmbsrc:18.04 .
 ```
 
-#### Compiling vimbasrc using the Docker image
-After running the build command described above, a Docker image with the tag `gst-vimbasrc:18.04`
-will be created. This can be used to run the build process of the plugin.
+#### Compiling vmbsrc using the Docker image
+After running the build command described above, a Docker image with the tag `gst-vmbsrc:18.04` will
+be created. This can be used to run the build process of the plugin.
 
 Building the plugin with this image is simply a matter of mounting the source code directory and the
-desired Vimba installation directory into the image at appropriate paths, and letting it run the
-provided `build.sh` script. The expected paths into which to mount these directories are:
-- **/gst-vimbasrc**: Path inside the Docker container to mount the gst-vimbasrc project
-- **/vimba**: Path inside the Docker container to mount the desired Vimba installation
+desired Vimba X installation directory into the image at appropriate paths. The expected paths into
+which to mount these directories are:
+- **/gst-vmbsrc**: Path inside the Docker container to mount the gst-vmbsrc project
+- **/vimbax**: Path inside the Docker container to mount the desired Vimba X installation
 
 The full build command to be executed on the host would be as follows:
 ```
-docker run --rm -it --volume /path/to/gst-vimbasrc:/gst-vimbasrc --volume /path/to/Vimba_X_Y:/vimba gst-vimbasrc:18.04
+docker run --rm -it --volume /path/to/gst-vmbsrc:/gst-vmbsrc --volume /path/to/VimbaX:/vimbax gst-vmbsrc:18.04
 ```
+The image will run the required `cmake` commands to compile the `vmbsrc` element.
 
 ## Installation
-GStreamer plugins become available for use in pipelines, when GStreamer is able to load the shared
+GStreamer plugins become available for use in pipelines when GStreamer is able to load the shared
 library containing the desired element. GStreamer typically searches the directories defined in
 `GST_PLUGIN_SYSTEM_PATH`. By setting this variable to a directory and placing the shared library
-file in it, GStreamer will pick up the `vimbasrc` element for use.
+file in it, GStreamer will pick up the `vmbsrc` element for use.
 
-The `vimbasrc` element uses VimbaC. In order to be usable the VimbaC shared library therefore needs
-to also be loadable when the element is started. The VimbaC library is provided as part of the Vimba
-SDK.
+The `vmbsrc` element uses VmbC. In order to be usable the VmbC shared library therefore needs to
+also be loadable when the element is started. The VmbC library is provided as part of Vimba X.
 
 More detailed installation instructions for Linux and Windows can be found in the `INSTALLING.md`
 file in this repository.
 
 ## Usage
-**The vimbasrc plugin is still in active development. Please keep the _Known issues and limitations_
-in mind when specifying your GStreamer pipelines and using it**
+**Please keep the [Known issues and limitations](##Known-issues-and-limitations) in mind when
+specifying your GStreamer pipelines and check the [Troubleshooting](##Troubleshooting) section if
+you encounter any issues**
 
-`vimbasrc` is intended for use in GStreamer pipelines. The element can be used to forward recorded
-frames from a Vimba compatible camera into subsequent GStreamer elements.
+`vmbsrc` is intended for use in GStreamer pipelines. The element can be used to forward recorded
+frames from a Vimba X compatible camera into subsequent GStreamer elements.
 
 The following pipeline can for example be used to display the recorded camera image. The
 `camera=<CAMERA-ID>` parameter needs to be adjusted to use the correct camera ID.
 ```
-gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 ! videoscale ! videoconvert ! queue ! autovideosink
+gst-launch-1.0 vmbsrc camera=DEV_1AB22D01BBB8 ! videoscale ! videoconvert ! queue ! autovideosink
 ```
 
-For further usage examples also take a look at the included `EXAMPLES.md` file
+For further usage, also take a look at the included `EXAMPLES.md` file
 
 ### Setting camera features
 To adjust the image acquisition process of the camera, access to settings like the exposure time are
-necessary. The `vimbasrc` element provides access to these camera features in one of two ways.
+necessary. The `vmbsrc` element provides access to these camera features two ways.
 1. If given, an XML file defining camera features and their corresponding values is parsed and all
    features contained are applied to the camera (see [Using an XML file](####Using-an-XML-file))
-2. Otherwise selected camera features can be set via properties of the `vimbasrc` element (see
+2. Otherwise selected camera features can be set via properties of the `vmbsrc` element (see
    [Supported via GStreamer properties](####Supported-via-GStreamer-properties))
 
 The first approach allows the user to freely modify all features the used camera supports. The
@@ -108,10 +97,11 @@ via a provided XML file is recommended.
 #### Using an XML file
 Providing an XML file containing the desired feature values allows access to all supported camera
 features. A convenient way to creating such an XML file is configuring your camera as desired with
-the help of the VimbaViewer and saving the current configuration as an XML file from there. The path
-to this file may then be passed to `vimbasrc` via the `settingsfile` property as shown below
+the help of the Viewer that is part of Vimba X and saving the current configuration as an XML file
+from there. The path to this file may then be passed to `vmbsrc` via the `settingsfile` property as
+shown below
 ```
-gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 settingsfile=path_to_settings.xml ! videoscale ! videoconvert ! queue ! autovideosink
+gst-launch-1.0 vmbsrc camera=DEV_1AB22D01BBB8 settingsfile=path_to_settings.xml ! videoscale ! videoconvert ! queue ! autovideosink
 ```
 
 **If a settings file is used no other parameters passed as element properties are applied as feature
@@ -120,7 +110,7 @@ from this rule is the format of the recorded image data. For details on this par
 [Supported pixel formats](###Supported-pixel-formats).
 
 #### Supported via GStreamer properties
-A list of supported camera features can be found by using the `gst-inspect` tool on the `vimbasrc`
+A list of supported camera features can be found by using the `gst-inspect` tool on the `vmbsrc`
 element. This displays a list of available "Element Properties", which include the available camera
 features. **Note that these properties are only applied to their corresponding feature, if no XML
 settings file is passed!**
@@ -129,8 +119,8 @@ For some of the exposed features camera specific restrictions in the allowed val
 example the `Width`, `Height`, `OffsetX` and `OffsetY` features may only accept integer values
 between a minimum and a maximum value in a certain interval. In cases where the provided value could
 not be applied a logging message with level `WARNING` is printed (make sure that an appropriate
-logging level is set: e.g. `GST_DEBUG=vimbasrc:WARNING` or higher) and image acquisition will
-proceed with the feature values that were initially set on the camera.
+logging level is set: e.g. `GST_DEBUG=vmbsrc:WARNING` or higher) and image acquisition will proceed
+with the feature values that were initially set on the camera.
 
 In addition to the camera features listed by `gst-inspect`, the pixel format the camera uses to
 record images can be influenced. For details on this see [Supported pixel
@@ -148,17 +138,17 @@ camera features.
 Selecting the desired format can be achieved by defining it in a GStreamer
 [capsfilter](https://gstreamer.freedesktop.org/documentation/coreelements/capsfilter.html) element
 (e.g. `video/x-raw,format=GRAY8`). A full example pipeline setting the GStreamer GRAY8 format is
-shown below. Selecting the GStreamer GRAY8 format will set the Mono8 Vimba Format in the used camera
-to record images.
+shown below. Selecting the GStreamer GRAY8 format will set the Mono8 Vimba X Format in the used
+camera to record images.
 ```
-gst-launch-1.0 vimbasrc camera=DEV_1AB22D01BBB8 ! video/x-raw,format=GRAY8 ! videoscale ! videoconvert ! queue ! autovideosink
+gst-launch-1.0 vmbsrc camera=DEV_1AB22D01BBB8 ! video/x-raw,format=GRAY8 ! videoscale ! videoconvert ! queue ! autovideosink
 ```
 
-Not all Vimba pixel formats can be mapped to compatible GStreamer video formats. This is especially
-true for the "packed" formats. The following tables provide a mapping where possible.
+Not all Vimba X pixel formats can be mapped to compatible GStreamer video formats. This is
+especially true for the "packed" formats. The following tables provide a mapping where possible.
 
 #### GStreamer video/x-raw Formats
-| Vimba Format        | GStreamer video/x-raw Format | Comment                                                                     |
+| Vimba X Format      | GStreamer video/x-raw Format | Comment                                                                     |
 |---------------------|------------------------------|-----------------------------------------------------------------------------|
 | Mono8               | GRAY8                        |                                                                             |
 | Mono10              | GRAY16_LE                    | Only the 10 least significant bits are filled. Image will appear very dark! |
@@ -188,7 +178,7 @@ The GStreamer `x-bayer` formats in the following table are compatible with the G
 [`bayer2rgb`](https://gstreamer.freedesktop.org/documentation/bayer/bayer2rgb.html) element, which
 is able to debayer the data into a widely accepted RGBA format.
 
-| Vimba Format        | GStreamer video/x-bayer Format |
+| Vimba X Format      | GStreamer video/x-bayer Format |
 |---------------------|--------------------------------|
 | BayerGR8            | grbg                           |
 | BayerRG8            | rggb                           |
@@ -196,18 +186,18 @@ is able to debayer the data into a widely accepted RGBA format.
 | BayerBG8            | bggr                           |
 
 ## Troubleshooting
-- The `vimbasrc` element is not loadable
+- The `vmbsrc` element is not loadable
   - Ensure that the installation of the plugin was successful and that all required dependencies are
     available. Installation instructions can be found in `INSTALLING.md`. To verify that the element
-    can be loaded try to inspect it by calling `gst-inspect-1.0 vimbasrc`.
-  - It is possible that the `vimbasrc` element is blacklisted by GStreamer. This can be determined
-    by checking the list ob blacklisted elements with `gst-inspect-1.0 --print-blacklist`. Resetting
+    can be loaded try to inspect it by calling `gst-inspect-1.0 vmbsrc`.
+  - It is possible that the `vmbsrc` element is blacklisted by GStreamer. This can be determined by
+    checking the list of blacklisted elements with `gst-inspect-1.0 --print-blacklist`. Resetting
     the registry may be done by removing the file in which it is stored. It is typically saved in
     `~/.cache/gstreamer-1.0/registry.x86_64.bin`. The exact file name depends on the architecture of
     the system. For more details see [the official documentation on the
     registry](https://gstreamer.freedesktop.org/documentation/gstreamer/gstregistry.html)
 - How can I enable logging for the plugin
-  - To enable logging set the `GST_DEBUG` environment variable to `GST_DEBUG=vimbasrc:DEBUG` or
+  - To enable logging set the `GST_DEBUG` environment variable to `GST_DEBUG=vmbsrc:DEBUG` or
     another appropriate level. For further details see [the official
     documentation](https://gstreamer.freedesktop.org/documentation/tutorials/basic/debugging-tools.html)
 - The camera features are not applied correctly
@@ -241,23 +231,13 @@ is able to debayer the data into a widely accepted RGBA format.
 - Complex camera feature setups may not be possible using the provided properties (e.g. complex
   trigger setups for multiple trigger selectors). For those cases it is recommended to [use an XML
   file to pass the camera settings](####Using-an-XML-file).
-- If the width of the image data pushed out of the `gst-vimbasrc` element is not evenly divisible by
-  4, the image data can not be transformed with the `videoconvert` element. This is caused by the
-  `videoconvert` element expecting the width to always be a multiple of 4, or being explicitly told
-  the stride of the image data in the buffer. This explicit stride information is currently not
-  implemented. For now it is therefore recommended to use `width` settings that are evenly divisible
-  by 4.
 
 ## Compatibility
-`vimbasrc` is currently officially supported on the following operating systems and architectures:
-- AMD64 (Validated on Ubuntu 20.04, Debian 10, CentOS 8.3)
-- ARM64 (Validated on NVIDIA L4T 32.5.1)
-- ARM32 (Validated on Raspberry Pi OS)
-- WIN64 (Validated on Win10 20H2)
-- WIN32 (Validated on Win10 20H2, 32Bit)
+`vmbsrc` is currently officially supported on the following operating systems and architectures:
+- AMD64 (Validated on Ubuntu 22.04, Debian 11.6)
+- ARM64 (Validated on NVIDIA L4T 35.2.1)
 
-The following library versions have been validated to work with vimbasrc:
-- Vimba 5.0
-- GStreamer 1.14 (NVIDIA L4T 32.5.1, Debian 10, Raspberry OS)
-- GStreamer 1.16 (Ubuntu 20.04, CentOS 8.3)
-- GStreamer 1.18 (Win10 20H2)
+The following library versions have been validated to work with vmbsrc:
+- Vimba X 2023-1
+- GStreamer 1.20 (Ubuntu 22.04)
+- GStreamer 1.16 (NVIDIA L4T 35.2.1)
