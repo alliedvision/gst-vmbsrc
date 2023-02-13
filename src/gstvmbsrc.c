@@ -1665,8 +1665,41 @@ VmbError_t set_roi(GstVmbSrc *vmbsrc)
     if (vmbsrc->properties.offsetx == -1)
     {
         VmbInt64_t vmb_offsetx = (vmb_width - vmbsrc->properties.width) >> 1;
-        GST_DEBUG_OBJECT(vmbsrc, "ROI centering along x-axis requested. Calculated offsetx=%lld",
+        GST_DEBUG_OBJECT(vmbsrc, "ROI centering along x-axis requested. Desired offsetx=%lld",
                          vmb_offsetx);
+        // Check if the desired value is valid. If not round to nearest valid value
+        VmbInt64_t offsetx_min = 0;
+        VmbInt64_t offsetx_max = 0;
+        VmbInt64_t offsetx_increment = 0;
+        result = VmbFeatureIntRangeQuery(vmbsrc->camera.handle, "OffsetX", &offsetx_min, &offsetx_max);
+        if (result == VmbErrorSuccess)
+        {
+            result = VmbFeatureIntIncrementQuery(vmbsrc->camera.handle, "OffsetX", &offsetx_increment);
+            if (result == VmbErrorSuccess)
+            {
+                VmbInt64_t valid_vmb_offsetx = RoundToNearestValidValue(vmb_offsetx, offsetx_min, offsetx_max, offsetx_increment);
+                if (valid_vmb_offsetx != vmb_offsetx)
+                {
+                    GST_DEBUG_OBJECT(vmbsrc,
+                                     "Desired offsetx=%lld was not valid. Using nearest valid value=%lld",
+                                     vmb_offsetx,
+                                     valid_vmb_offsetx);
+                    vmb_offsetx = valid_vmb_offsetx;
+                }
+            }
+            else
+            {
+                GST_DEBUG_OBJECT(vmbsrc,
+                                 "Error during imcrement query for OffsetX. Using inital desired value: %s",
+                                 ErrorCodeToMessage(result));
+            }
+        }
+        else
+        {
+            GST_DEBUG_OBJECT(vmbsrc,
+                             "Error during range query for OffsetX. Using inital desired value: %s",
+                             ErrorCodeToMessage(result));
+        }
         g_object_set(vmbsrc, "offsetx", (int)vmb_offsetx, NULL);
     }
     GST_DEBUG_OBJECT(vmbsrc, "Setting \"OffsetX\" to %d", vmbsrc->properties.offsetx);
@@ -1687,8 +1720,41 @@ VmbError_t set_roi(GstVmbSrc *vmbsrc)
     if (vmbsrc->properties.offsety == -1)
     {
         VmbInt64_t vmb_offsety = (vmb_height - vmbsrc->properties.height) >> 1;
-        GST_DEBUG_OBJECT(vmbsrc, "ROI centering along y-axis requested. Calculated offsety=%lld",
+        GST_DEBUG_OBJECT(vmbsrc, "ROI centering along y-axis requested. Desired offsety=%lld",
                          vmb_offsety);
+        // Check if the desired value is valid. If not round to nearest valid value
+        VmbInt64_t offsety_min = 0;
+        VmbInt64_t offsety_max = 0;
+        VmbInt64_t offsety_increment = 0;
+        result = VmbFeatureIntRangeQuery(vmbsrc->camera.handle, "OffsetY", &offsety_min, &offsety_max);
+        if (result == VmbErrorSuccess)
+        {
+            result = VmbFeatureIntIncrementQuery(vmbsrc->camera.handle, "OffsetY", &offsety_increment);
+            if (result == VmbErrorSuccess)
+            {
+                VmbInt64_t valid_vmb_offsety = RoundToNearestValidValue(vmb_offsety, offsety_min, offsety_max, offsety_increment);
+                if (valid_vmb_offsety != vmb_offsety)
+                {
+                    GST_DEBUG_OBJECT(vmbsrc,
+                                     "Desired offsety=%lld was not valid. Using nearest valid value=%lld",
+                                     vmb_offsety,
+                                     valid_vmb_offsety);
+                    vmb_offsety = valid_vmb_offsety;
+                }
+            }
+            else
+            {
+                GST_DEBUG_OBJECT(vmbsrc,
+                                 "Error during imcrement query for OffsetY. Using inital desired value: %s",
+                                 ErrorCodeToMessage(result));
+            }
+        }
+        else
+        {
+            GST_DEBUG_OBJECT(vmbsrc,
+                             "Error during range query for OffsetY. Using inital desired value: %s",
+                             ErrorCodeToMessage(result));
+        }
         g_object_set(vmbsrc, "offsety", (int)vmb_offsety, NULL);
     }
     GST_DEBUG_OBJECT(vmbsrc, "Setting \"OffsetY\" to %d", vmbsrc->properties.offsety);
