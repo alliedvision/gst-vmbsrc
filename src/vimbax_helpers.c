@@ -2,6 +2,9 @@
 
 #include <VmbC/VmbC.h>
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 //
 // Translates VimbaX error codes to readable error messages
 //
@@ -98,4 +101,27 @@ const char *ErrorCodeToMessage(VmbError_t eError)
     default:
         return eError >= VmbErrorCustom ? "User defined error" : "Unknown";
     }
+}
+
+//
+// Round a value to the nearest valid value in the given interval with the given increment
+//
+// Parameters:
+//  [in]    value       The value to find the nearest valid value for
+//  [in]    min         Minimum valid value (inclusive)
+//  [in]    max         Maximum valid value (inclusive)
+//  [in]    increment   Increment/Spacing of the valid values in the interval
+//
+// Returns:
+//  The nearest valid value inside the given interval. If value was already valid, value is returned.
+//
+VmbInt64_t RoundToNearestValidValue(VmbInt64_t value, VmbInt64_t min, VmbInt64_t max, VmbInt64_t increment)
+{
+    VmbInt64_t steps = (value - min) / increment;
+    VmbInt64_t error = value - (steps * increment);
+    if ((error * 2) > increment)
+    {
+        steps += 1;
+    }
+    return MAX(MIN((steps * increment) + min, max), min);
 }
