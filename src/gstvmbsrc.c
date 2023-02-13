@@ -1144,6 +1144,13 @@ static gboolean gst_vmbsrc_set_caps(GstBaseSrc *src, GstCaps *caps)
     // Changing the pixel format can not be done while images are acquired
     result = stop_image_acquisition(vmbsrc);
 
+    if(vmbsrc->filled_frame_queue != NULL)
+    {
+        // current possibly non-empty frame queue layout is no longer valid so we use a new one
+        g_async_queue_unref(vmbsrc->filled_frame_queue); // delete current queue
+        vmbsrc->filled_frame_queue = g_async_queue_new(); // create new queue for our frames
+    }
+
     result = VmbFeatureEnumSet(vmbsrc->camera.handle,
                                "PixelFormat",
                                vimbax_format);
@@ -1168,7 +1175,7 @@ static gboolean gst_vmbsrc_set_caps(GstBaseSrc *src, GstCaps *caps)
     {
         // Also reallocate buffers if PayloadSize could not be read because it might have increased
         GST_DEBUG_OBJECT(vmbsrc,
-                         "PayloadSize increased. Reallocating frame buffers to ensure enough space");
+                         "PayloadSize increased or has not been set yet. Reallocating frame buffers to ensure enough space");
         revoke_and_free_buffers(vmbsrc);
         result = alloc_and_announce_buffers(vmbsrc);
     }
@@ -1244,12 +1251,6 @@ static gboolean gst_vmbsrc_start(GstBaseSrc *src)
         // If no settings file is given, apply the passed properties as feature settings instead
         GST_DEBUG_OBJECT(vmbsrc, "No settings file given. Applying features from element properties instead");
         result = apply_feature_settings(vmbsrc);
-    }
-
-    result = alloc_and_announce_buffers(vmbsrc);
-    if (result == VmbErrorSuccess)
-    {
-        result = start_image_acquisition(vmbsrc);
     }
 
     // Is this necessary?
