@@ -162,9 +162,6 @@ especially true for the "packed" formats. The following tables provide a mapping
 | Argb8               | ARGB                         |                                                                             |
 | Rgba8               | RGBA                         |                                                                             |
 | Bgra8               | BGRA                         |                                                                             |
-| Yuv411              | IYU1                         |                                                                             |
-| Yuv411Packed        | IYU1                         | Legacy GigE Vision Format. Does not follow PFNC                             |
-| YCbCr411_8_CbYYCrYY | IYU1                         |                                                                             |
 | Yuv422              | UYVY                         |                                                                             |
 | Yuv422Packed        | UYVY                         | Legacy GigE Vision Format. Does not follow PFNC                             |
 | YCbCr422_8_CbYCrY   | UYVY                         |                                                                             |
