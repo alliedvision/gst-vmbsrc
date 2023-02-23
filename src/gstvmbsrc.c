@@ -1225,7 +1225,6 @@ static gboolean gst_vmbsrc_start(GstBaseSrc *src)
         buffer = calloc(num_wchar, sizeof(VmbFilePathChar_t));
         mbstowcs_s(NULL, buffer, num_wchar, vmbsrc->properties.settings_file_path, num_char);
 #else
-        // TODO: THIS NEEDS TO BE TESTED ON A LINUX SYSTEM
         buffer = vmbsrc->properties.settings_file_path;
 #endif
         result = VmbSettingsLoad(vmbsrc->camera.handle,
