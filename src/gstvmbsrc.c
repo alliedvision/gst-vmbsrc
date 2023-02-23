@@ -1225,16 +1225,12 @@ static gboolean gst_vmbsrc_start(GstBaseSrc *src)
         buffer = calloc(num_wchar, sizeof(VmbFilePathChar_t));
         mbstowcs_s(NULL, buffer, num_wchar, vmbsrc->properties.settings_file_path, num_char);
 #else
-        // TODO: THIS NEEDS TO BE TESTED ON A LINUX SYSTEM
         buffer = vmbsrc->properties.settings_file_path;
 #endif
-        VmbFeaturePersistSettings_t settings = {
-            .persistType = VmbFeaturePersistStreamable,
-            .maxIterations = 0};
         result = VmbSettingsLoad(vmbsrc->camera.handle,
                                  buffer,
-                                 &settings,
-                                 sizeof(settings));
+                                 NULL,
+                                 sizeof(VmbFeaturePersistSettings_t));
 #ifdef _WIN32
         free(buffer);
 #endif
