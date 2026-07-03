@@ -3,6 +3,42 @@
 GStreamer provides a larges selection of plugins, which can be used to define flexible pipelines for
 many uses. Some examples of common goals are provided in this file.
 
+## `vmbsrc` element properties
+
+The examples below set camera features by passing them as properties directly on the `vmbsrc`
+element, e.g. `vmbsrc camera=DEV_1AB22D01BBB8 gain=10 ! ...`. The full, up to date list can always be
+queried with `gst-inspect-1.0 vmbsrc`; the table below is a quick reference.
+
+| Property                | Type   | Default    | Description                                                                                          |
+|--------------------------|--------|------------|-------------------------------------------------------------------------------------------------------|
+| `camera`                | string | `""`       | ID of the camera images should be recorded from                                                       |
+| `settingsfile`          | string | `""`       | Path to an XML file with camera settings to load. Mutually exclusive with `userset` and the individual feature properties below |
+| `userset`               | string | `""`       | Name of a camera user set (e.g. `UserSet1`) to load via `UserSetSelector`/`UserSetLoad`. Mutually exclusive with `settingsfile` and the individual feature properties below |
+| `exposuretime`          | double | `-1`       | `ExposureTime` in microseconds. Only applied when `ExposureAuto` is `Off`. `-1` leaves the camera's currently applied value unchanged |
+| `exposureauto`          | enum   | `UNCHANGED`| `ExposureAuto` mode: `UNCHANGED`, `Off`, `Once`, `Continuous`                                          |
+| `balancewhiteauto`      | enum   | `UNCHANGED`| `BalanceWhiteAuto` mode: `UNCHANGED`, `Off`, `Once`, `Continuous`                                      |
+| `gain`                  | double | `-1`       | `Gain`, as an absolute physical value. `-1` leaves the camera's currently applied value unchanged      |
+| `offsetx`               | int    | `G_MAXINT` | `OffsetX` in pixels. `-1` centers the ROI horizontally on the sensor. `G_MAXINT` leaves the camera's currently applied value unchanged |
+| `offsety`               | int    | `G_MAXINT` | `OffsetY` in pixels. `-1` centers the ROI vertically on the sensor. `G_MAXINT` leaves the camera's currently applied value unchanged |
+| `width`                 | int    | `-1`       | `Width` in pixels. `-1` leaves the camera's currently applied value unchanged                          |
+| `height`                | int    | `-1`       | `Height` in pixels. `-1` leaves the camera's currently applied value unchanged                         |
+| `triggerselector`       | enum   | `UNCHANGED`| `TriggerSelector`: `UNCHANGED`, `AcquisitionStart`, `AcquisitionEnd`, `AcquisitionActive`, `FrameStart`, `FrameEnd`, `FrameActive`, `FrameBurstStart`, `FrameBurstEnd`, `FrameBurstActive`, `LineStart`, `ExposureStart`, `ExposureEnd`, `ExposureActive` |
+| `triggermode`           | enum   | `UNCHANGED`| `TriggerMode` for the selected trigger: `UNCHANGED`, `Off`, `On`                                       |
+| `triggersource`         | enum   | `UNCHANGED`| `TriggerSource` for the selected trigger: `UNCHANGED`, `Line0`, `Line1`, `Line2`, `Line3`, `Action0`, `Action1`, `Action2`, `Action3`. More complex sources (e.g. `Software`, counters, timers) require an XML settings file |
+| `triggeractivation`     | enum   | `UNCHANGED`| `TriggerActivation` for the selected trigger: `UNCHANGED`, `RisingEdge`, `FallingEdge`, `AnyEdge`, `LevelHigh`, `LevelLow` |
+| `incompleteframehandling`| enum  | `Drop`     | How incomplete frames are handled: `Drop`, `Submit`                                                    |
+| `allocationmode`        | enum   | `AnnounceFrame` | Frame buffer allocation strategy: `AnnounceFrame`, `AllocAndAnnounceFrame`                        |
+| `framebuffers`          | int    | `5`        | Number of frame buffers allocated for transmission from the device to the host                        |
+
+Since `triggerselector`, `triggermode`, `triggersource` and `triggeractivation` each default to
+`UNCHANGED`, setting up a trigger requires passing all of them together, e.g.
+```
+gst-launch-1.0 vmbsrc camera=DEV_1AB22D01BBB8 triggerselector=FrameStart triggermode=On triggersource=Line1 triggeractivation=RisingEdge ! ...
+```
+
+For details on `settingsfile` and `userset`, including why they cannot be combined with the other
+feature properties, see the README.
+
 ## Saving camera frames as images
 
 Recording pictures from a camera and saving them to some common image format allows for quick

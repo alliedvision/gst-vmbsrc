@@ -1,3 +1,15 @@
+# About this fork
+The official plugin laks some features which makes it not really usable in production environments. These features are added in this fork:
+- Loading of user presets. Now it is posible to load user presets by userset=UserSet1. In this case all other parameters will be ignored (except camera parameter). So it is possible to load a glean state.
+- No implicit setting of parameters. The official verseion sets implicitly some parameters, even if they aren't given. This may lead to unwanted effects if one does not set them to the desired values. Especially for loading UserSets this is unfavorible. Additionally it is now possible to set a default UserSet in the camera which the camera loads at startup. This will now survive when using just the camera parameter.
+- Small fixes for the parameter handling, which were a result of copy and paste, but not changing al variable names to the right name.
+
+## Warning
+This fork is generated with the help of an AI coding agent. The modifications were checked. Most of them are small. All of them follow the existing code structure and programming style. It is mainly a copy, paste and modify modification.
+
+Unfortunately the maintainer is no c++ programmer. The code was tested and worked like intended. There were no modifications regarding the pipline. All changes affect only the handling of commandline parameters and configuring the camera before the stream is started/loaded.
+
+
 # vmbsrc
 This project contains the official GStreamer plugin to make cameras supported by Allied Visions
 Vimba X API available as GStreamer sources.
@@ -93,16 +105,18 @@ For further usage, also take a look at the included `EXAMPLES.md` file
 
 ### Setting camera features
 To adjust the image acquisition process of the camera, access to settings like the exposure time are
-necessary. The `vmbsrc` element provides access to these camera features two ways.
+necessary. The `vmbsrc` element provides access to these camera features three ways.
 1. If given, an XML file defining camera features and their corresponding values is parsed and all
    features contained are applied to the camera except for the pixel format used to record images
    (see [Using an XML file](####Using-an-XML-file))
-2. Otherwise selected camera features can be set via properties of the `vmbsrc` element (see
+2. Otherwise, if given, a user set already stored on the camera itself is loaded (see
+   [Using a camera user set](####Using-a-camera-user-set))
+3. Otherwise selected camera features can be set via properties of the `vmbsrc` element (see
    [Supported via GStreamer properties](####Supported-via-GStreamer-properties))
 
 The first approach allows the user to freely modify all features the used camera supports (except
 the used pixel format, see [Supported pixel formats](###Supported-pixel-formats) on how to control
-this). The second one only gives access to a small selection of camera features that are supported
+this). The third one only gives access to a small selection of camera features that are supported
 by many, but not all camera models. The feature names (and in case of enum features their values)
 follow the Standard Feature Naming Convention (SFNC) for GenICam devices. For cameras not
 implementing the SFNC, this may lead to errors in setting some camera features. For these devices
@@ -124,6 +138,17 @@ gst-launch-1.0 vmbsrc camera=DEV_1AB22D01BBB8 settingsfile=path_to_settings.xml 
 > exception from this rule is the pixel format of the recorded image data. For details on this
 > particular feature see [Supported pixel formats](###Supported-pixel-formats).
 
+#### Using a camera user set
+Instead of an XML file on disk, a user set already saved on the camera itself (e.g. `UserSet1`) can be
+loaded at pipeline startup via the `userset` property, as shown below
+```
+gst-launch-1.0 vmbsrc camera=DEV_1AB22D01BBB8 userset=UserSet1 ! videoscale ! videoconvert ! queue ! autovideosink
+```
+
+> **Warning**  
+> **If a user set is given no other parameters passed as element properties are applied as feature
+> values**, for the same reason as with `settingsfile` above.
+
 #### Supported via GStreamer properties
 A list of supported camera features can be found by using the `gst-inspect` tool on the `vmbsrc`
 element. This displays a list of available "Element Properties", which include the available camera
@@ -131,7 +156,14 @@ features.
 
 > **WARNING**  
 > Note that these properties are only applied to their corresponding feature, if no XML settings
-> file is passed!
+> file is passed! Or no user preset is loaded.
+
+Properties that are not explicitly passed on the command line are left untouched, i.e. the camera
+keeps whatever value is currently applied (from a previous session, a loaded user set, or its own
+power-on default) instead of it being reset to a fixed value. This is reflected in the default value
+shown by `gst-inspect`: `-1` for `exposuretime`, `gain`, `width` and `height`, `G_MAXINT` for
+`offsetx`/`offsety`, and `UNCHANGED` for the enum properties (`exposureauto`, `balancewhiteauto`,
+`triggerselector`, `triggermode`, `triggersource`, `triggeractivation`).
 
 For some of the exposed features camera specific restrictions in the allowed values may apply. For
 example the `Width`, `Height`, `OffsetX` and `OffsetY` features may only accept integer values

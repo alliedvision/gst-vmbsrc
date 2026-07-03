@@ -93,6 +93,7 @@ enum
     PROP_0,
     PROP_CAMERA_ID,
     PROP_SETTINGS_FILENAME,
+    PROP_USERSET,
     PROP_EXPOSURETIME,
     PROP_EXPOSUREAUTO,
     PROP_BALANCEWHITEAUTO,
@@ -124,6 +125,7 @@ static GType gst_vmbsrc_exposureauto_get_type(void)
     static GType vmbsrc_exposureauto_type = 0;
     static const GEnumValue exposureauto_modes[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the VimbaX FeatureEnum */
+        {GST_VMBSRC_AUTOFEATURE_UNCHANGED, "Does not change the currently applied exposureauto value on the device", "UNCHANGED"},
         {GST_VMBSRC_AUTOFEATURE_OFF, "Exposure duration is usercontrolled using ExposureTime", "Off"},
         {GST_VMBSRC_AUTOFEATURE_ONCE, "Exposure duration is adapted once by the device. Once it has converged, it returns to the Offstate", "Once"},
         {GST_VMBSRC_AUTOFEATURE_CONTINUOUS, "Exposure duration is constantly adapted by the device to maximize the dynamic range", "Continuous"},
@@ -143,6 +145,7 @@ static GType gst_vmbsrc_balancewhiteauto_get_type(void)
     static GType vmbsrc_balancewhiteauto_type = 0;
     static const GEnumValue balancewhiteauto_modes[] = {
         /* The "nick" (last entry) will be used to pass the setting value on to the VimbaX FeatureEnum */
+        {GST_VMBSRC_AUTOFEATURE_UNCHANGED, "Does not change the currently applied balancewhiteauto value on the device", "UNCHANGED"},
         {GST_VMBSRC_AUTOFEATURE_OFF, "White balancing is user controlled using BalanceRatioSelector and BalanceRatio", "Off"},
         {GST_VMBSRC_AUTOFEATURE_ONCE, "White balancing is automatically adjusted once by the device. Once it has converged, it automatically returns to the Off state", "Once"},
         {GST_VMBSRC_AUTOFEATURE_CONTINUOUS, "White balancing is constantly adjusted by the device", "Continuous"},
@@ -370,7 +373,21 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
         g_param_spec_string(
             "settingsfile",
             "Camera settings filepath",
-            "Path to XML file containing camera settings that should be applied. All settings from this file will be applied before any other property is set. Explicitely set properties will overwrite features set from this file!",
+            "Path to XML file containing camera settings that should be applied, loaded via VmbSettingsLoad. "
+            "Other feature settings passed as element properties are ignored while this is set. Leave empty "
+            "to not load a settings file.",
+            "",
+            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+    g_object_class_install_property(
+        gobject_class,
+        PROP_USERSET,
+        g_param_spec_string(
+            "userset",
+            "Camera user set to load",
+            "Name of a camera user set (e.g. \"UserSet1\") to load via UserSetSelector/UserSetLoad. Other "
+            "feature settings passed as element properties are ignored while this is set. Unlike "
+            "\"settingsfile\" this loads a set stored on the camera itself instead of an XML file. Leave "
+            "empty to not load a user set.",
             "",
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
@@ -379,10 +396,10 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
         g_param_spec_double(
             "exposuretime",
             "ExposureTime feature setting",
-            "Sets the Exposure time (in microseconds) when ExposureMode is Timed and ExposureAuto is Off. This controls the duration where the photosensitive cells are exposed to light",
-            0.,
+            "Sets the Exposure time (in microseconds) when ExposureMode is Timed and ExposureAuto is Off. This controls the duration where the photosensitive cells are exposed to light. If -1 is passed the currently applied value on the device is left unchanged.",
+            -1.,
             G_MAXDOUBLE,
-            0.,
+            -1.,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -392,7 +409,7 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
             "ExposureAuto feature setting",
             "Sets the auto exposure mode. The output of the auto exposure function affects the whole image",
             GST_ENUM_EXPOSUREAUTO_MODES,
-            GST_VMBSRC_AUTOFEATURE_OFF,
+            GST_VMBSRC_AUTOFEATURE_UNCHANGED,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -402,7 +419,7 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
             "BalanceWhiteAuto feature setting",
             "Controls the mode for automatic white balancing between the color channels. The white balancing ratios are automatically adjusted",
             GST_ENUM_BALANCEWHITEAUTO_MODES,
-            GST_VMBSRC_AUTOFEATURE_OFF,
+            GST_VMBSRC_AUTOFEATURE_UNCHANGED,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -410,10 +427,10 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
         g_param_spec_double(
             "gain",
             "Gain feature setting",
-            "Controls the selected gain as an absolute physical value. This is an amplification factor applied to the video signal",
-            0.,
+            "Controls the selected gain as an absolute physical value. This is an amplification factor applied to the video signal. If -1 is passed the currently applied value on the device is left unchanged.",
+            -1.,
             G_MAXDOUBLE,
-            0.,
+            -1.,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -421,10 +438,10 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
         g_param_spec_int(
             "offsetx",
             "OffsetX feature setting",
-            "Horizontal offset from the origin to the region of interest (in pixels). If -1 is passed the ROI will be centered in the sensor along the horizontal axis.",
+            "Horizontal offset from the origin to the region of interest (in pixels). If -1 is passed the ROI will be centered in the sensor along the horizontal axis. If G_MAXINT (the default) is passed the currently applied value on the device is left unchanged.",
             -1,
             G_MAXINT,
-            0,
+            G_MAXINT,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -432,10 +449,10 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
         g_param_spec_int(
             "offsety",
             "OffsetY feature setting",
-            "Vertical offset from the origin to the region of interest (in pixels). If -1 is passed the ROI will be centered in the sensor along the vertical axis.",
+            "Vertical offset from the origin to the region of interest (in pixels). If -1 is passed the ROI will be centered in the sensor along the vertical axis. If G_MAXINT (the default) is passed the currently applied value on the device is left unchanged.",
             -1,
             G_MAXINT,
-            0,
+            G_MAXINT,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -443,10 +460,10 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
         g_param_spec_int(
             "width",
             "Width feature setting",
-            "Width of the image provided by the device (in pixels). If no explicit value is passed the full sensor width is used.",
-            0,
+            "Width of the image provided by the device (in pixels). If -1 (the default) is passed the currently applied value on the device is left unchanged.",
+            -1,
             G_MAXINT,
-            G_MAXINT,
+            -1,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -454,10 +471,10 @@ static void gst_vmbsrc_class_init(GstVmbSrcClass *klass)
         g_param_spec_int(
             "height",
             "Height feature setting",
-            "Height of the image provided by the device (in pixels). If no explicit value is passed the full sensor height is used.",
-            0,
+            "Height of the image provided by the device (in pixels). If -1 (the default) is passed the currently applied value on the device is left unchanged.",
+            -1,
             G_MAXINT,
-            G_MAXINT,
+            -1,
             G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     g_object_class_install_property(
         gobject_class,
@@ -588,6 +605,11 @@ static void gst_vmbsrc_init(GstVmbSrc *vmbsrc)
             g_object_class_find_property(
                 gobject_class,
                 "settingsfile")));
+    vmbsrc->properties.userset = g_value_dup_string(
+        g_param_spec_get_default_value(
+            g_object_class_find_property(
+                gobject_class,
+                "userset")));
     vmbsrc->properties.exposuretime = g_value_get_double(
         g_param_spec_get_default_value(
             g_object_class_find_property(
@@ -689,6 +711,13 @@ void gst_vmbsrc_set_property(GObject *object, guint property_id, const GValue *v
         }
         vmbsrc->properties.settings_file_path = g_value_dup_string(value);
         break;
+    case PROP_USERSET:
+        if (strcmp(vmbsrc->properties.userset, "") != 0)
+        {
+            free((void *)vmbsrc->properties.userset); // Free memory of old entry
+        }
+        vmbsrc->properties.userset = g_value_dup_string(value);
+        break;
     case PROP_EXPOSURETIME:
         vmbsrc->properties.exposuretime = g_value_get_double(value);
         break;
@@ -759,6 +788,9 @@ void gst_vmbsrc_get_property(GObject *object, guint property_id, GValue *value, 
         break;
     case PROP_SETTINGS_FILENAME:
         g_value_set_string(value, vmbsrc->properties.settings_file_path);
+        break;
+    case PROP_USERSET:
+        g_value_set_string(value, vmbsrc->properties.userset);
         break;
     case PROP_EXPOSURETIME:
         // TODO: Workaround for cameras with legacy "ExposureTimeAbs" feature should be replaced with a general legacy
@@ -933,7 +965,7 @@ void gst_vmbsrc_get_property(GObject *object, guint property_id, GValue *value, 
             GST_DEBUG_OBJECT(vmbsrc,
                              "Camera returned the following value for \"TriggerSelector\": %s",
                              vmbfeature_value_char);
-            vmbsrc->properties.exposureauto = g_enum_get_value_by_nick(
+            vmbsrc->properties.triggerselector = g_enum_get_value_by_nick(
                                                      g_type_class_ref(GST_ENUM_TRIGGERSELECTOR_VALUES),
                                                      vmbfeature_value_char)
                                                      ->value;
@@ -953,7 +985,7 @@ void gst_vmbsrc_get_property(GObject *object, guint property_id, GValue *value, 
             GST_DEBUG_OBJECT(vmbsrc,
                              "Camera returned the following value for \"TriggerMode\": %s",
                              vmbfeature_value_char);
-            vmbsrc->properties.exposureauto = g_enum_get_value_by_nick(
+            vmbsrc->properties.triggermode = g_enum_get_value_by_nick(
                                                      g_type_class_ref(GST_ENUM_TRIGGERMODE_VALUES),
                                                      vmbfeature_value_char)
                                                      ->value;
@@ -973,7 +1005,7 @@ void gst_vmbsrc_get_property(GObject *object, guint property_id, GValue *value, 
             GST_DEBUG_OBJECT(vmbsrc,
                              "Camera returned the following value for \"TriggerSource\": %s",
                              vmbfeature_value_char);
-            vmbsrc->properties.exposureauto = g_enum_get_value_by_nick(
+            vmbsrc->properties.triggersource = g_enum_get_value_by_nick(
                                                      g_type_class_ref(GST_ENUM_TRIGGERSOURCE_VALUES),
                                                      vmbfeature_value_char)
                                                      ->value;
@@ -993,7 +1025,7 @@ void gst_vmbsrc_get_property(GObject *object, guint property_id, GValue *value, 
             GST_DEBUG_OBJECT(vmbsrc,
                              "Camera returned the following value for \"TriggerActivation\": %s",
                              vmbfeature_value_char);
-            vmbsrc->properties.exposureauto = g_enum_get_value_by_nick(
+            vmbsrc->properties.triggeractivation = g_enum_get_value_by_nick(
                                                      g_type_class_ref(GST_ENUM_TRIGGERACTIVATION_VALUES),
                                                      vmbfeature_value_char)
                                                      ->value;
@@ -1010,7 +1042,7 @@ void gst_vmbsrc_get_property(GObject *object, guint property_id, GValue *value, 
         g_value_set_enum(value, vmbsrc->properties.incomplete_frame_handling);
         break;
     case PROP_ALLOCATION_MODE:
-        g_value_set_enum(value, vmbsrc->properties.incomplete_frame_handling);
+        g_value_set_enum(value, vmbsrc->properties.allocation_mode);
         break;
     case PROP_NUM_FRAME_BUFFERS:
         g_value_set_int(value, vmbsrc->num_frame_buffers);
@@ -1328,10 +1360,22 @@ static gboolean gst_vmbsrc_start(GstBaseSrc *src)
                              ErrorCodeToMessage(result));
         }
     }
+    else if (strcmp(vmbsrc->properties.userset, "") != 0)
+    {
+        // Feature settings passed as element properties default to values (e.g. 0 for "gain") that
+        // apply_feature_settings() would unconditionally write to the camera below, overwriting what
+        // the requested user set just loaded. So, same as with settingsfile above, loading a user set
+        // and setting individual feature properties are mutually exclusive.
+        GST_WARNING_OBJECT(vmbsrc,
+                           "\"%s\" was given as userset. Other feature settings passed as element properties will be ignored!",
+                           vmbsrc->properties.userset);
+        result = load_user_set(vmbsrc);
+    }
     else
     {
-        // If no settings file is given, apply the passed properties as feature settings instead
-        GST_DEBUG_OBJECT(vmbsrc, "No settings file given. Applying features from element properties instead");
+        // If neither a settings file nor a user set is given, apply the passed properties as feature
+        // settings instead
+        GST_DEBUG_OBJECT(vmbsrc, "No settings file or userset given. Applying features from element properties instead");
         result = apply_feature_settings(vmbsrc);
     }
 
@@ -1572,6 +1616,51 @@ VmbError_t open_camera_connection(GstVmbSrc *vmbsrc)
 }
 
 /**
+ * @brief Loads the camera user set named by the "userset" property (e.g. "UserSet1") via
+ * UserSetSelector/UserSetLoad
+ *
+ * @param vmbsrc Provides access to the camera handle used for the VmbC calls and holds the name of the
+ * user set to load
+ * @return VmbError_t Return status indicating errors if they occurred
+ */
+VmbError_t load_user_set(GstVmbSrc *vmbsrc)
+{
+    GST_INFO_OBJECT(vmbsrc, "Loading user set \"%s\"", vmbsrc->properties.userset);
+
+    VmbError_t result = VmbFeatureEnumSet(vmbsrc->camera.handle, "UserSetSelector", vmbsrc->properties.userset);
+    if (result != VmbErrorSuccess)
+    {
+        GST_ERROR_OBJECT(vmbsrc,
+                         "Could not select user set \"%s\". Got error code: %s",
+                         vmbsrc->properties.userset,
+                         ErrorCodeToMessage(result));
+        return result;
+    }
+
+    result = VmbFeatureCommandRun(vmbsrc->camera.handle, "UserSetLoad");
+    if (result == VmbErrorSuccess)
+    {
+        VmbBool_t is_command_done = VmbBoolFalse;
+        do
+        {
+            if (VmbErrorSuccess != VmbFeatureCommandIsDone(vmbsrc->camera.handle, "UserSetLoad", &is_command_done))
+            {
+                break;
+            }
+        } while (VmbBoolFalse == is_command_done);
+    }
+    else
+    {
+        GST_ERROR_OBJECT(vmbsrc,
+                         "Could not load user set \"%s\". Got error code: %s",
+                         vmbsrc->properties.userset,
+                         ErrorCodeToMessage(result));
+    }
+
+    return result;
+}
+
+/**
  * @brief Applies the values defiend in the vmbsrc properties to their corresponding camera features
  *
  * @param vmbsrc Provides access to the camera handle used for the VmbC calls and holds the desired values for the
@@ -1595,19 +1684,57 @@ VmbError_t apply_feature_settings(GstVmbSrc *vmbsrc)
     // ("ExposureTimeAbs", setExposureTimeAbs, getExposureTimeAbs)]. On startup, the feature list of the connected
     // camera obtained from VmbFeaturesList() is used to determine which set/get function to use.
 
-    GST_DEBUG_OBJECT(vmbsrc, "Setting \"ExposureTime\" to %f", vmbsrc->properties.exposuretime);
-    VmbError_t result = VmbFeatureFloatSet(vmbsrc->camera.handle, "ExposureTime", vmbsrc->properties.exposuretime);
-    if (result == VmbErrorSuccess)
+    VmbError_t result = VmbErrorSuccess;
+    if (vmbsrc->properties.exposuretime == -1.)
     {
-        GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
+        GST_DEBUG_OBJECT(vmbsrc, "\"exposuretime\" is set to -1. Not changing camera value");
     }
-    else if (result == VmbErrorNotFound)
+    else
     {
-        GST_WARNING_OBJECT(vmbsrc,
-                           "Failed to set \"ExposureTime\" to %f. Return code was: %s Attempting \"ExposureTimeAbs\"",
-                           vmbsrc->properties.exposuretime,
-                           ErrorCodeToMessage(result));
-        result = VmbFeatureFloatSet(vmbsrc->camera.handle, "ExposureTimeAbs", vmbsrc->properties.exposuretime);
+        GST_DEBUG_OBJECT(vmbsrc, "Setting \"ExposureTime\" to %f", vmbsrc->properties.exposuretime);
+        result = VmbFeatureFloatSet(vmbsrc->camera.handle, "ExposureTime", vmbsrc->properties.exposuretime);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
+        }
+        else if (result == VmbErrorNotFound)
+        {
+            GST_WARNING_OBJECT(vmbsrc,
+                               "Failed to set \"ExposureTime\" to %f. Return code was: %s Attempting \"ExposureTimeAbs\"",
+                               vmbsrc->properties.exposuretime,
+                               ErrorCodeToMessage(result));
+            result = VmbFeatureFloatSet(vmbsrc->camera.handle, "ExposureTimeAbs", vmbsrc->properties.exposuretime);
+            if (result == VmbErrorSuccess)
+            {
+                GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
+            }
+            else
+            {
+                GST_WARNING_OBJECT(vmbsrc,
+                                   "Failed to set \"ExposureTimeAbs\" to %f. Return code was: %s",
+                                   vmbsrc->properties.exposuretime,
+                                   ErrorCodeToMessage(result));
+            }
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vmbsrc,
+                               "Failed to set \"ExposureTime\" to %f. Return code was: %s",
+                               vmbsrc->properties.exposuretime,
+                               ErrorCodeToMessage(result));
+        }
+    }
+
+    // Exposure Auto
+    enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), vmbsrc->properties.exposureauto);
+    if (enum_entry->value == GST_VMBSRC_AUTOFEATURE_UNCHANGED)
+    {
+        GST_DEBUG_OBJECT(vmbsrc, "\"ExposureAuto\" is set to %s. Not changing camera value", enum_entry->value_nick);
+    }
+    else
+    {
+        GST_DEBUG_OBJECT(vmbsrc, "Setting \"ExposureAuto\" to %s", enum_entry->value_nick);
+        result = VmbFeatureEnumSet(vmbsrc->camera.handle, "ExposureAuto", enum_entry->value_nick);
         if (result == VmbErrorSuccess)
         {
             GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
@@ -1615,65 +1742,56 @@ VmbError_t apply_feature_settings(GstVmbSrc *vmbsrc)
         else
         {
             GST_WARNING_OBJECT(vmbsrc,
-                               "Failed to set \"ExposureTimeAbs\" to %f. Return code was: %s",
-                               vmbsrc->properties.exposuretime,
+                               "Failed to set \"ExposureAuto\" to %s. Return code was: %s",
+                               enum_entry->value_nick,
                                ErrorCodeToMessage(result));
         }
-    }
-    else
-    {
-        GST_WARNING_OBJECT(vmbsrc,
-                           "Failed to set \"ExposureTime\" to %f. Return code was: %s",
-                           vmbsrc->properties.exposuretime,
-                           ErrorCodeToMessage(result));
-    }
-
-    // Exposure Auto
-    enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_EXPOSUREAUTO_MODES), vmbsrc->properties.exposureauto);
-    GST_DEBUG_OBJECT(vmbsrc, "Setting \"ExposureAuto\" to %s", enum_entry->value_nick);
-    result = VmbFeatureEnumSet(vmbsrc->camera.handle, "ExposureAuto", enum_entry->value_nick);
-    if (result == VmbErrorSuccess)
-    {
-        GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
-    }
-    else
-    {
-        GST_WARNING_OBJECT(vmbsrc,
-                           "Failed to set \"ExposureAuto\" to %s. Return code was: %s",
-                           enum_entry->value_nick,
-                           ErrorCodeToMessage(result));
     }
 
     // Auto whitebalance
     enum_entry = g_enum_get_value(g_type_class_ref(GST_ENUM_BALANCEWHITEAUTO_MODES),
                                   vmbsrc->properties.balancewhiteauto);
-    GST_DEBUG_OBJECT(vmbsrc, "Setting \"BalanceWhiteAuto\" to %s", enum_entry->value_nick);
-    result = VmbFeatureEnumSet(vmbsrc->camera.handle, "BalanceWhiteAuto", enum_entry->value_nick);
-    if (result == VmbErrorSuccess)
+    if (enum_entry->value == GST_VMBSRC_AUTOFEATURE_UNCHANGED)
     {
-        GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
+        GST_DEBUG_OBJECT(vmbsrc, "\"BalanceWhiteAuto\" is set to %s. Not changing camera value", enum_entry->value_nick);
     }
     else
     {
-        GST_WARNING_OBJECT(vmbsrc,
-                           "Failed to set \"BalanceWhiteAuto\" to %s. Return code was: %s",
-                           enum_entry->value_nick,
-                           ErrorCodeToMessage(result));
+        GST_DEBUG_OBJECT(vmbsrc, "Setting \"BalanceWhiteAuto\" to %s", enum_entry->value_nick);
+        result = VmbFeatureEnumSet(vmbsrc->camera.handle, "BalanceWhiteAuto", enum_entry->value_nick);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vmbsrc,
+                               "Failed to set \"BalanceWhiteAuto\" to %s. Return code was: %s",
+                               enum_entry->value_nick,
+                               ErrorCodeToMessage(result));
+        }
     }
 
     // gain
-    GST_DEBUG_OBJECT(vmbsrc, "Setting \"Gain\" to %f", vmbsrc->properties.gain);
-    result = VmbFeatureFloatSet(vmbsrc->camera.handle, "Gain", vmbsrc->properties.gain);
-    if (result == VmbErrorSuccess)
+    if (vmbsrc->properties.gain == -1.)
     {
-        GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
+        GST_DEBUG_OBJECT(vmbsrc, "\"gain\" is set to -1. Not changing camera value");
     }
     else
     {
-        GST_WARNING_OBJECT(vmbsrc,
-                           "Failed to set \"Gain\" to %f. Return code was: %s",
-                           vmbsrc->properties.gain,
-                           ErrorCodeToMessage(result));
+        GST_DEBUG_OBJECT(vmbsrc, "Setting \"Gain\" to %f", vmbsrc->properties.gain);
+        result = VmbFeatureFloatSet(vmbsrc->camera.handle, "Gain", vmbsrc->properties.gain);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vmbsrc,
+                               "Failed to set \"Gain\" to %f. Return code was: %s",
+                               vmbsrc->properties.gain,
+                               ErrorCodeToMessage(result));
+        }
     }
 
     result = set_roi(vmbsrc);
@@ -1693,8 +1811,9 @@ VmbError_t apply_feature_settings(GstVmbSrc *vmbsrc)
  * @brief Helper function to set Width, Height, OffsetX and OffsetY feature in correct order to define the region of
  * interest (ROI) on the sensor.
  *
- * The values for setting the ROI are defined as GStreamer properties of the vmbsrc element. If INT_MAX are used for
- * the width/height property (the default value) the full corresponding sensor size for that feature is used.
+ * The values for setting the ROI are defined as GStreamer properties of the vmbsrc element. Width and height default
+ * to -1, and offsetx/offsety default to G_MAXINT; these defaults mean the corresponding feature is left unchanged on
+ * the camera. offsetx/offsety additionally accept -1 to center the ROI on the sensor along that axis.
  *
  * @param vmbsrc Provides access to the camera handle used for the VmbC calls and holds the desired values for the
  * modified features
@@ -1704,183 +1823,209 @@ VmbError_t set_roi(GstVmbSrc *vmbsrc)
 {
     // TODO: Improve error handling (Perhaps more explicit allowed values are enough?) Early exit on errors?
 
-    // Reset OffsetX and OffsetY to 0 so that full sensor width is usable for width/height
-    VmbError_t result;
-    GST_DEBUG_OBJECT(vmbsrc, "Temporarily resetting \"OffsetX\" and \"OffsetY\" to 0");
-    result = VmbFeatureIntSet(vmbsrc->camera.handle, "OffsetX", 0);
-    if (result != VmbErrorSuccess)
+    VmbError_t result = VmbErrorSuccess;
+    gboolean width_requested = vmbsrc->properties.width != -1;
+    gboolean height_requested = vmbsrc->properties.height != -1;
+
+    // Reset OffsetX and OffsetY to 0 first so that the full requested width/height is usable, but only if Width or
+    // Height are actually about to change. They are reapplied to their requested values (if any) further down.
+    if (width_requested || height_requested)
     {
-        GST_WARNING_OBJECT(vmbsrc,
-                           "Failed to set \"OffsetX\" to 0. Return code was: %s",
-                           ErrorCodeToMessage(result));
-    }
-    result = VmbFeatureIntSet(vmbsrc->camera.handle, "OffsetY", 0);
-    if (result != VmbErrorSuccess)
-    {
-        GST_WARNING_OBJECT(vmbsrc,
-                           "Failed to set \"OffsetY\" to 0. Return code was: %s",
-                           ErrorCodeToMessage(result));
+        GST_DEBUG_OBJECT(vmbsrc, "Temporarily resetting \"OffsetX\" and \"OffsetY\" to 0");
+        result = VmbFeatureIntSet(vmbsrc->camera.handle, "OffsetX", 0);
+        if (result != VmbErrorSuccess)
+        {
+            GST_WARNING_OBJECT(vmbsrc,
+                               "Failed to set \"OffsetX\" to 0. Return code was: %s",
+                               ErrorCodeToMessage(result));
+        }
+        result = VmbFeatureIntSet(vmbsrc->camera.handle, "OffsetY", 0);
+        if (result != VmbErrorSuccess)
+        {
+            GST_WARNING_OBJECT(vmbsrc,
+                               "Failed to set \"OffsetY\" to 0. Return code was: %s",
+                               ErrorCodeToMessage(result));
+        }
     }
 
-    VmbInt64_t vmb_width;
-    result = VmbFeatureIntRangeQuery(vmbsrc->camera.handle, "Width", NULL, &vmb_width);
-
-    // Set Width to full sensor if no explicit width was set
-    if (vmbsrc->properties.width == INT_MAX)
+    if (!width_requested)
     {
-        GST_DEBUG_OBJECT(vmbsrc,
-                         "Setting \"Width\" to full width. Got sensor width \"%lld\" (Return Code %s)",
-                         vmb_width,
-                         ErrorCodeToMessage(result));
-        g_object_set(vmbsrc, "width", (int)vmb_width, NULL);
-    }
-    GST_DEBUG_OBJECT(vmbsrc, "Setting \"Width\" to %d", vmbsrc->properties.width);
-    result = VmbFeatureIntSet(vmbsrc->camera.handle, "Width", vmbsrc->properties.width);
-    if (result == VmbErrorSuccess)
-    {
-        GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
+        GST_DEBUG_OBJECT(vmbsrc, "\"width\" is set to -1. Not changing camera value");
     }
     else
     {
-        GST_WARNING_OBJECT(vmbsrc,
-                           "Failed to set \"Width\" to value \"%d\". Return code was: %s",
-                           vmbsrc->properties.width,
-                           ErrorCodeToMessage(result));
-    }
-
-    VmbInt64_t vmb_height;
-    result = VmbFeatureIntRangeQuery(vmbsrc->camera.handle, "Height", NULL, &vmb_height);
-    // Set Height to full sensor if no explicit height was set
-    if (vmbsrc->properties.height == INT_MAX)
-    {
-        GST_DEBUG_OBJECT(vmbsrc,
-                         "Setting \"Height\" to full height. Got sensor height \"%lld\" (Return Code %s)",
-                         vmb_height,
-                         ErrorCodeToMessage(result));
-        g_object_set(vmbsrc, "height", (int)vmb_height, NULL);
-    }
-    GST_DEBUG_OBJECT(vmbsrc, "Setting \"Height\" to %d", vmbsrc->properties.height);
-    result = VmbFeatureIntSet(vmbsrc->camera.handle, "Height", vmbsrc->properties.height);
-    if (result == VmbErrorSuccess)
-    {
-        GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
-    }
-    else
-    {
-        GST_WARNING_OBJECT(vmbsrc,
-                           "Failed to set \"Height\" to value \"%d\". Return code was: %s",
-                           vmbsrc->properties.height,
-                           ErrorCodeToMessage(result));
-    }
-    // offsetx
-    if (vmbsrc->properties.offsetx == -1)
-    {
-        VmbInt64_t vmb_offsetx = (vmb_width - vmbsrc->properties.width) >> 1;
-        GST_DEBUG_OBJECT(vmbsrc, "ROI centering along x-axis requested. Desired offsetx=%lld",
-                         vmb_offsetx);
-        // Check if the desired value is valid. If not round to nearest valid value
-        VmbInt64_t offsetx_min = 0;
-        VmbInt64_t offsetx_max = 0;
-        VmbInt64_t offsetx_increment = 0;
-        result = VmbFeatureIntRangeQuery(vmbsrc->camera.handle, "OffsetX", &offsetx_min, &offsetx_max);
+        GST_DEBUG_OBJECT(vmbsrc, "Setting \"Width\" to %d", vmbsrc->properties.width);
+        result = VmbFeatureIntSet(vmbsrc->camera.handle, "Width", vmbsrc->properties.width);
         if (result == VmbErrorSuccess)
         {
-            result = VmbFeatureIntIncrementQuery(vmbsrc->camera.handle, "OffsetX", &offsetx_increment);
+            GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vmbsrc,
+                               "Failed to set \"Width\" to value \"%d\". Return code was: %s",
+                               vmbsrc->properties.width,
+                               ErrorCodeToMessage(result));
+        }
+    }
+
+    if (!height_requested)
+    {
+        GST_DEBUG_OBJECT(vmbsrc, "\"height\" is set to -1. Not changing camera value");
+    }
+    else
+    {
+        GST_DEBUG_OBJECT(vmbsrc, "Setting \"Height\" to %d", vmbsrc->properties.height);
+        result = VmbFeatureIntSet(vmbsrc->camera.handle, "Height", vmbsrc->properties.height);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
+        }
+        else
+        {
+            GST_WARNING_OBJECT(vmbsrc,
+                               "Failed to set \"Height\" to value \"%d\". Return code was: %s",
+                               vmbsrc->properties.height,
+                               ErrorCodeToMessage(result));
+        }
+    }
+
+    // offsetx
+    if (vmbsrc->properties.offsetx == G_MAXINT)
+    {
+        GST_DEBUG_OBJECT(vmbsrc, "\"offsetx\" is set to G_MAXINT. Not changing camera value");
+    }
+    else
+    {
+        if (vmbsrc->properties.offsetx == -1)
+        {
+            // Center along the x-axis using the sensor's max width and the width currently applied on the camera
+            // (which might have just been changed above, or is left over from a previous configuration)
+            VmbInt64_t sensor_width = 0;
+            VmbInt64_t current_width = 0;
+            VmbFeatureIntRangeQuery(vmbsrc->camera.handle, "Width", NULL, &sensor_width);
+            VmbFeatureIntGet(vmbsrc->camera.handle, "Width", &current_width);
+            VmbInt64_t vmb_offsetx = (sensor_width - current_width) >> 1;
+            GST_DEBUG_OBJECT(vmbsrc, "ROI centering along x-axis requested. Desired offsetx=%lld",
+                             vmb_offsetx);
+            // Check if the desired value is valid. If not round to nearest valid value
+            VmbInt64_t offsetx_min = 0;
+            VmbInt64_t offsetx_max = 0;
+            VmbInt64_t offsetx_increment = 0;
+            result = VmbFeatureIntRangeQuery(vmbsrc->camera.handle, "OffsetX", &offsetx_min, &offsetx_max);
             if (result == VmbErrorSuccess)
             {
-                VmbInt64_t valid_vmb_offsetx = RoundToNearestValidValue(vmb_offsetx, offsetx_min, offsetx_max, offsetx_increment);
-                if (valid_vmb_offsetx != vmb_offsetx)
+                result = VmbFeatureIntIncrementQuery(vmbsrc->camera.handle, "OffsetX", &offsetx_increment);
+                if (result == VmbErrorSuccess)
+                {
+                    VmbInt64_t valid_vmb_offsetx = RoundToNearestValidValue(vmb_offsetx, offsetx_min, offsetx_max, offsetx_increment);
+                    if (valid_vmb_offsetx != vmb_offsetx)
+                    {
+                        GST_DEBUG_OBJECT(vmbsrc,
+                                         "Desired offsetx=%lld was not valid. Using nearest valid value=%lld",
+                                         vmb_offsetx,
+                                         valid_vmb_offsetx);
+                        vmb_offsetx = valid_vmb_offsetx;
+                    }
+                }
+                else
                 {
                     GST_DEBUG_OBJECT(vmbsrc,
-                                     "Desired offsetx=%lld was not valid. Using nearest valid value=%lld",
-                                     vmb_offsetx,
-                                     valid_vmb_offsetx);
-                    vmb_offsetx = valid_vmb_offsetx;
+                                     "Error during imcrement query for OffsetX. Using inital desired value: %s",
+                                     ErrorCodeToMessage(result));
                 }
             }
             else
             {
                 GST_DEBUG_OBJECT(vmbsrc,
-                                 "Error during imcrement query for OffsetX. Using inital desired value: %s",
+                                 "Error during range query for OffsetX. Using inital desired value: %s",
                                  ErrorCodeToMessage(result));
             }
+            g_object_set(vmbsrc, "offsetx", (int)vmb_offsetx, NULL);
+        }
+        GST_DEBUG_OBJECT(vmbsrc, "Setting \"OffsetX\" to %d", vmbsrc->properties.offsetx);
+        result = VmbFeatureIntSet(vmbsrc->camera.handle, "OffsetX", vmbsrc->properties.offsetx);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
         }
         else
         {
-            GST_DEBUG_OBJECT(vmbsrc,
-                             "Error during range query for OffsetX. Using inital desired value: %s",
-                             ErrorCodeToMessage(result));
+            GST_WARNING_OBJECT(vmbsrc,
+                               "Failed to set \"OffsetX\" to value \"%d\". Return code was: %s",
+                               vmbsrc->properties.offsetx,
+                               ErrorCodeToMessage(result));
         }
-        g_object_set(vmbsrc, "offsetx", (int)vmb_offsetx, NULL);
-    }
-    GST_DEBUG_OBJECT(vmbsrc, "Setting \"OffsetX\" to %d", vmbsrc->properties.offsetx);
-    result = VmbFeatureIntSet(vmbsrc->camera.handle, "OffsetX", vmbsrc->properties.offsetx);
-    if (result == VmbErrorSuccess)
-    {
-        GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
-    }
-    else
-    {
-        GST_WARNING_OBJECT(vmbsrc,
-                           "Failed to set \"OffsetX\" to value \"%d\". Return code was: %s",
-                           vmbsrc->properties.offsetx,
-                           ErrorCodeToMessage(result));
     }
 
     // offsety
-    if (vmbsrc->properties.offsety == -1)
+    if (vmbsrc->properties.offsety == G_MAXINT)
     {
-        VmbInt64_t vmb_offsety = (vmb_height - vmbsrc->properties.height) >> 1;
-        GST_DEBUG_OBJECT(vmbsrc, "ROI centering along y-axis requested. Desired offsety=%lld",
-                         vmb_offsety);
-        // Check if the desired value is valid. If not round to nearest valid value
-        VmbInt64_t offsety_min = 0;
-        VmbInt64_t offsety_max = 0;
-        VmbInt64_t offsety_increment = 0;
-        result = VmbFeatureIntRangeQuery(vmbsrc->camera.handle, "OffsetY", &offsety_min, &offsety_max);
-        if (result == VmbErrorSuccess)
+        GST_DEBUG_OBJECT(vmbsrc, "\"offsety\" is set to G_MAXINT. Not changing camera value");
+    }
+    else
+    {
+        if (vmbsrc->properties.offsety == -1)
         {
-            result = VmbFeatureIntIncrementQuery(vmbsrc->camera.handle, "OffsetY", &offsety_increment);
+            // Center along the y-axis using the sensor's max height and the height currently applied on the camera
+            // (which might have just been changed above, or is left over from a previous configuration)
+            VmbInt64_t sensor_height = 0;
+            VmbInt64_t current_height = 0;
+            VmbFeatureIntRangeQuery(vmbsrc->camera.handle, "Height", NULL, &sensor_height);
+            VmbFeatureIntGet(vmbsrc->camera.handle, "Height", &current_height);
+            VmbInt64_t vmb_offsety = (sensor_height - current_height) >> 1;
+            GST_DEBUG_OBJECT(vmbsrc, "ROI centering along y-axis requested. Desired offsety=%lld",
+                             vmb_offsety);
+            // Check if the desired value is valid. If not round to nearest valid value
+            VmbInt64_t offsety_min = 0;
+            VmbInt64_t offsety_max = 0;
+            VmbInt64_t offsety_increment = 0;
+            result = VmbFeatureIntRangeQuery(vmbsrc->camera.handle, "OffsetY", &offsety_min, &offsety_max);
             if (result == VmbErrorSuccess)
             {
-                VmbInt64_t valid_vmb_offsety = RoundToNearestValidValue(vmb_offsety, offsety_min, offsety_max, offsety_increment);
-                if (valid_vmb_offsety != vmb_offsety)
+                result = VmbFeatureIntIncrementQuery(vmbsrc->camera.handle, "OffsetY", &offsety_increment);
+                if (result == VmbErrorSuccess)
+                {
+                    VmbInt64_t valid_vmb_offsety = RoundToNearestValidValue(vmb_offsety, offsety_min, offsety_max, offsety_increment);
+                    if (valid_vmb_offsety != vmb_offsety)
+                    {
+                        GST_DEBUG_OBJECT(vmbsrc,
+                                         "Desired offsety=%lld was not valid. Using nearest valid value=%lld",
+                                         vmb_offsety,
+                                         valid_vmb_offsety);
+                        vmb_offsety = valid_vmb_offsety;
+                    }
+                }
+                else
                 {
                     GST_DEBUG_OBJECT(vmbsrc,
-                                     "Desired offsety=%lld was not valid. Using nearest valid value=%lld",
-                                     vmb_offsety,
-                                     valid_vmb_offsety);
-                    vmb_offsety = valid_vmb_offsety;
+                                     "Error during imcrement query for OffsetY. Using inital desired value: %s",
+                                     ErrorCodeToMessage(result));
                 }
             }
             else
             {
                 GST_DEBUG_OBJECT(vmbsrc,
-                                 "Error during imcrement query for OffsetY. Using inital desired value: %s",
+                                 "Error during range query for OffsetY. Using inital desired value: %s",
                                  ErrorCodeToMessage(result));
             }
+            g_object_set(vmbsrc, "offsety", (int)vmb_offsety, NULL);
+        }
+        GST_DEBUG_OBJECT(vmbsrc, "Setting \"OffsetY\" to %d", vmbsrc->properties.offsety);
+        result = VmbFeatureIntSet(vmbsrc->camera.handle, "OffsetY", vmbsrc->properties.offsety);
+        if (result == VmbErrorSuccess)
+        {
+            GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
         }
         else
         {
-            GST_DEBUG_OBJECT(vmbsrc,
-                             "Error during range query for OffsetY. Using inital desired value: %s",
-                             ErrorCodeToMessage(result));
+            GST_WARNING_OBJECT(vmbsrc,
+                               "Failed to set \"OffsetY\" to value \"%d\". Return code was: %s",
+                               vmbsrc->properties.offsety,
+                               ErrorCodeToMessage(result));
         }
-        g_object_set(vmbsrc, "offsety", (int)vmb_offsety, NULL);
     }
-    GST_DEBUG_OBJECT(vmbsrc, "Setting \"OffsetY\" to %d", vmbsrc->properties.offsety);
-    result = VmbFeatureIntSet(vmbsrc->camera.handle, "OffsetY", vmbsrc->properties.offsety);
-    if (result == VmbErrorSuccess)
-    {
-        GST_DEBUG_OBJECT(vmbsrc, "Setting was changed successfully");
-    }
-    else
-    {
-        GST_WARNING_OBJECT(vmbsrc,
-                           "Failed to set \"OffsetY\" to value \"%d\". Return code was: %s",
-                           vmbsrc->properties.offsety,
-                           ErrorCodeToMessage(result));
-    }
+
     return result;
 }
 

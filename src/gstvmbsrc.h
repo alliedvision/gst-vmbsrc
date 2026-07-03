@@ -41,6 +41,7 @@ G_BEGIN_DECLS
 /* Allowed values for "Auto" camera Features */
 typedef enum
 {
+    GST_VMBSRC_AUTOFEATURE_UNCHANGED,
     GST_VMBSRC_AUTOFEATURE_OFF,
     GST_VMBSRC_AUTOFEATURE_ONCE,
     GST_VMBSRC_AUTOFEATURE_CONTINUOUS
@@ -167,6 +168,7 @@ struct _GstVmbSrc
     struct
     {
         char *settings_file_path;
+        char *userset;
         double exposuretime;
         int exposureauto;
         int balancewhiteauto;
@@ -204,6 +206,7 @@ GType gst_vmbsrc_get_type(void);
 G_END_DECLS
 
 VmbError_t open_camera_connection(GstVmbSrc *vmbsrc);
+VmbError_t load_user_set(GstVmbSrc *vmbsrc);
 VmbError_t apply_feature_settings(GstVmbSrc *vmbsrc);
 VmbError_t set_roi(GstVmbSrc *vmbsrc);
 VmbError_t apply_trigger_settings(GstVmbSrc *vmbsrc);
